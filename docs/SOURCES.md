@@ -1,57 +1,23 @@
-# 事实来源与优先级
+# 来源与证据使用规则
 
-官方包与运行合同以官网当前版为准；目标版本能力以实际类型/帮助/UI为准。已确认需求与原型是业务合同；历史日志只能解释经过，不能覆盖当前事实。
+官方运行合同以官网当前版为准；目标环境能力以实际接口、类型、帮助和界面验证为准。已确认需求与原型是业务合同。项目实践用于提炼方法，不替代当前代码或实机证据。
 
-本次官网获取于 2026-10-15：10-09 版本。旧本地副本 09-29；差异包括主动选布局、容器宽度与同机重启边界。在线 Markdown 浏览工具不支持其 content-type，使用限时 HTTP 下载核验原文。
+## 官方资料
 
-## 来源索引
+- O01：[开发规范快照](../reference/official/development-2026-10-09.md)，2026-10-09 版，采集于 2026-10-15。
+- O02：历史本地官方规范副本，用于识别版本差异；不以其覆盖新版合同。
+- O03：[市场验收规范快照](../reference/official/market-acceptance-2026-09-29.md)，仅在选择市场投稿时适用。
 
-| ID | 资料 | 采样状态 | SHA-256 前12位 |
-| --- | --- | --- | --- |
-| O01 | [官网完整离线快照](../reference/official/development-2026-10-09.md) | 官网快照 | `751fcd5a7f48` |
-| O02 | workbench-standard.zh.md | Git已追踪 | `d648e9d22275` |
-| D01 | V3-TAB-IMPLEMENTATION-STRATEGY.md | 本地未提交设计文件 | `dab979e83ef9` |
-| D02 | V3-REBUILD-PARITY-STATUS.md | 本地未提交设计文件 | `6139e7067a7c` |
-| D03 | V3-FEATURE-INVENTORY.md | 本地未提交设计文件 | `8926ea330995` |
-| D04 | UI-DESIGN.md | 本地未提交设计文件 | `f2807945eaaf` |
-| D05 | DESKTOP-ADAPTATION-1.2.2.md | 本地未提交设计文件 | `ecedda2a9f98` |
-| D06 | AGENT-QUERY-DESIGN.md | 本地未提交设计文件 | `322a014d17ab` |
-| D07 | IMPLEMENTATION-QUEUE.md | 本地未提交设计文件 | `08ad492131ef` |
-| D08 | REPORT-GENERATION-DESIGN.md | 本地未提交设计文件 | `5768f06de433` |
-| D09 | DATA-SCHEMA-DESIGN.md | 本地未提交设计文件 | `0cdb5cea28ba` |
-| D10 | SCHEMA-REVIEW-2026-10-13.md | 本地未提交设计文件 | `673e228ba941` |
-| D11 | DEV-LOG.md | 本地未提交设计文件 | `29b1f2558995` |
-| D12 | WORKBENCH-DEVELOPMENT-WITH-CODEX.md | Git已追踪 | `71c3592c7191` |
+联网时核对官网更新。快照来源 URL 与 SHA-256 见 [来源清单](../reference/sources.json)。官方原文保留，不因社区教程改写而修改。
 
-## Git 证据
+## 项目实践资料
 
-| ID | commit | 记录 |
-| --- | --- | --- |
-| G01 | [11e9f4a](https://github.com/xyb-openharness-dsh-plugins/xyb-workbench/commit/11e9f4af864ecaa4cbe693956f61aec9821a3de2) | Initial 0.1.15 release of Xiao Yi Bao workbench |
-| G02 | [cea34a3](https://github.com/xyb-openharness-dsh-plugins/xyb-workbench/commit/cea34a32fad92eb779a9f9e70bc1fb40c4cc7ac7) | release: xiaoyibao workbench 0.1.22 |
-| G03 | [10951fb](https://github.com/xyb-openharness-dsh-plugins/xyb-workbench/commit/10951fbfb31ee9d85833fbbc39486905f2f2b0dd) | Improve clinical indicator flip charts |
+来源包括需求与高精度原型、功能清单、数据设计、宿主适配、Agent 输入输出合同、部署日志、修复 diff 与验收记录。对外文档按问题和方法组织，省略原项目名称、本机路径和业务版本演进。来源清单保留资料编号、指纹与采样状态；没有附带原资料的记录不构成可公开复现的证明。
 
-完整原路径、完整 hash、抓取时间、dirty/tracked 状态见 [reference/sources.json](../reference/sources.json)。绝对路径只用于追溯，脚手架不依赖这些原路径运行。
+设计意图、工作区变更、已提交代码、历史用户反馈和当前测试结果应分别陈述。未重复执行的旧验收不能标为本次通过。具体缺陷与排查方法统一见 [开发典型错误和修复经验](LESSONS.md)。
 
-本地未提交文档不能用某个 Git tag 代表其精确内容，本次以 hash 记录。未复制完整聊天日志/患者资料/有效凭据；用户近期明确“测试 OK”的证据仅用于本轮指标折线图。无法确认的根因按可能原因描述。
+## 第三方设计资源
 
-历史指南 D12 中 injector 示意和 65/35 普适化内容已在本脚手架纠正；社区旧实现仍可能有草稿覆盖、自动任务未接等缺口，不能当成通用模板的已完成功能。
+U01：[hhx465453939/agent-taste-seed-system](https://github.com/hhx465453939/agent-taste-seed-system)，核对于 2026-10-16，提交 f447763a8e106effb2a4c8fdc5fd93cbb2ca2045。脚手架引用其方法，不随包复制原种子库或艺术素材。路径差异与适配见 [Taste Seed 指南](08-TASTE-SEED.md)。开发工具的本机安装状态不等于脚手架已捆绑该资源。
 
-## 心理支持项目补充来源
-
-项目：cancer-psych-support-workbench，远端身份 xyb-openharness-dsh-plugins/xiaoxinbao-workbench。只读检查，其原有未提交修改保留。
-
-| ID | 资料 | 证据边界 |
-| --- | --- | --- |
-| P01 | docs/DSH-Desktop-集成问题与修复经验.md | 当前工作区有更新；含 0.3.11 根因和 GUI 验收记录 |
-| P02 | docs/开发日志.md | 当前工作区有更新；含 0.3.12–0.3.13，不能当作已提交 |
-| P03 | SPEC.md | 角色/边界/工作流程合同 |
-| P04 | docs/WB-技能与记忆方案.md | 技能说明、轻量 JSON 存储与用户认可 |
-| P05 | src/prompt.mjs | 当前未提交模块，角色合同与组装逻辑 |
-| PG01 | 2418411 | 初始提交 |
-| PG02 | 38eed31 | 修复 service/fiber 渲染期异常，文档与真实 GUI 记录 |
-| PG03 | 437ae31 | 补 0.3.11 日志与截图打包排除 |
-
-用户本次描述“GPT-6-Luna 未解决，DSV4.1 后解决”，模型切换未在所检索日志中单独确认，按用户提供的过程信息记录；不据此推出通用模型排名。完整 hash、dirty 状态和提交 URL 同样见 reference/sources.json。
-
-O03：官网市场验收规范（2026-09-29 版），本次同步取得 [离线快照](../reference/official/market-acceptance-2026-09-29.md)。仅用户选择公开投稿时适用，区别于本地开发。
+官方规范、第三方资源和品牌素材保留真实署名与许可说明；它们与教程中的匿名业务案例用途不同。

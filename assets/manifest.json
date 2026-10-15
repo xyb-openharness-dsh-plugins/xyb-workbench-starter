@@ -2,7 +2,7 @@
   "assets": [
     {
       "path": "brand/xyb-logo.png",
-      "source": "/Users/qinxiaoqiang/Downloads/dsh-desktop/docs/xyb-workbench/assets/xyb-logo-original.png",
+      "source": "community-provided brand reference; original local path omitted",
       "sha256": "e7bf8431f3838aac9b790ebe4893c7941f86fd60aaff6caa79dc67d9baa69a58",
       "bytes": 124177,
       "purpose": "community brand reference; not automatically displayed",

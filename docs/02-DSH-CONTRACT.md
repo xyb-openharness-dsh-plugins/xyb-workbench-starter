@@ -46,10 +46,10 @@ npm 包名、patch 插件条目 ID、从 GitHub repository 推导的 `owner/repo
 
 ## 模板兼容声明
 
-`project-template` 使用本机小胰宝已用的 webServer.register 与 connection.requestRejection 形态实现只读健康接口。目标 Desktop 需要提供这些服务；缺能力时拒绝请求/显示错误，而不绕过鉴权。peer 范围需按目标宿主核验；预发布范围不能仅用排除 prerelease 的普通版本范围。
+`project-template` 使用经项目实践核对的 webServer.register 与 connection.requestRejection 形态实现只读健康接口。目标 Desktop 需要提供这些服务；缺能力时拒绝请求/显示错误，而不绕过鉴权。peer 范围需按目标宿主核验；预发布范围不能仅用排除 prerelease 的普通版本范围。
 
 模板静态通过只说明文件与声明一致。实际列表、会话、customFrame、生命周期与跨平台行为仍需实机验收。
 
 ## 接入失败的上下文陷阱
 
-心理支持项目在 Desktop 0.11.1 / Harness 0.2.0-rc.2 上出现注册代理与 props.service 的 fiber 上下文不同，渲染调用 ownsSession 才触发包身份错误。不要把所有 registration 文案都归因于包名；服务端无日志也不证明客户端正常。集中适配，区分 owned/not-owned/unavailable；特定版本状态回退不能当通用授权合同。见 [案例](cases/PSYCH-INTEGRATION.md)。
+项目实践中，Desktop 0.11.1 / Harness 0.2.0-rc.2 上出现注册代理与 props.service 的 fiber 上下文不同，渲染调用 ownsSession 才触发包身份错误。不要把所有 registration 文案都归因于包名；服务端无日志也不证明客户端正常。集中适配，区分 owned/not-owned/unavailable；特定版本状态回退不能当通用授权合同。见 [开发典型错误和修复经验](LESSONS.md)。
