@@ -6,15 +6,17 @@
 
 ## Git 部署和 CLI 激活
 
-脚手架可从 Git 克隆并在克隆目录激活：
+社区仓库：[xyb-workbench-starter](https://github.com/xyb-openharness-dsh-plugins/xyb-workbench-starter)。从 Git 克隆并激活：
 
 ```bash
+git clone https://github.com/xyb-openharness-dsh-plugins/xyb-workbench-starter.git
+cd xyb-workbench-starter
 npm link --ignore-scripts --no-audit --no-fund
 dsh-wb-cli --version
 dsh-wb-cli doctor
 ```
 
-激活后在新项目父目录执行 `dsh-wb-cli init --prepare`，填写需求配置，再 `dsh-wb-cli init my-workbench`。已有配置用 `--config`；更新脚手架用 `dsh-wb-cli sync`（仅干净 Git 克隆、快进更新）。生成项目会记录脚手架版本/commit，并保留自身开发修改。完整操作见 [Git 与 CLI 指南](docs/CLI-GIT.md)。当前尚未指定远端仓库。
+激活后在新项目父目录执行 `dsh-wb-cli init --prepare`，填写需求配置，再 `dsh-wb-cli init my-workbench`。已有配置用 `--config`；更新脚手架用 `dsh-wb-cli sync`（仅干净 Git 克隆、快进更新）。生成项目会记录脚手架版本/commit，并保留自身开发修改。完整操作见 [Git 与 CLI 指南](docs/CLI-GIT.md)。远端已由社区确认，`sync` 更新此仓库的跟踪分支。
 
 `init` 初始化开发项目，`npm link` 激活命令；它们不等于把插件装入 Desktop。
 

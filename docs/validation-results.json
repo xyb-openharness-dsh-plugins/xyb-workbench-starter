@@ -36,5 +36,12 @@
     "pack": "actual tgz produced; lifecycle scripts refused before execution",
     "remotePush": "not performed; remote not specified",
     "desktopInstall": false
+  },
+  "gitDistribution": {
+    "repository": "https://github.com/xyb-openharness-dsh-plugins/xyb-workbench-starter.git",
+    "confirmedAt": "2026-10-16",
+    "initialRemoteState": "ls-remote succeeded with no refs",
+    "branch": "main",
+    "scope": "source Git distribution; no npm or workbench market publication"
   }
 }

@@ -7,8 +7,7 @@ CLI 版本：1.1.0。Git 管理社区脚手架版本，`npm link` 将克隆目�
 需要 Git、Node.js 22+、npm 和可用 shell。无需先装 DSH 才能准备开发目录；实际插件验收需要目标 Desktop。
 
 ```bash
-# 将引号内文字替换成社区正式仓库地址；当前尚未指定远端。
-git clone '替换成社区正式仓库地址' xyb-workbench-starter
+git clone https://github.com/xyb-openharness-dsh-plugins/xyb-workbench-starter.git
 cd xyb-workbench-starter
 npm link --ignore-scripts --no-audit --no-fund
 dsh-wb-cli --version

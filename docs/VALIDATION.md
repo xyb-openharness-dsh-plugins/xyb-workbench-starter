@@ -30,4 +30,6 @@
 
 本机已通过 npm link 激活 dsh-wb-cli，实际 PATH 命令返回 1.1.0，doctor 确认 Git/Node/npm 与应用目录可见（不据此认定 Desktop 已接入）。npm run check 通过，全部 15 项测试通过；新增 Git 本地 bare 远端的 dry-run/快进同步、脏树拒绝/分叉拒绝、prepare 配置无覆盖、来源标记纳入预检查、实际 tgz 与生命周期脚本拒绝测试。
 
-测试曾实际捕获 npm 10.9.2 的 --ignore-scripts 仍运行 prepare；已改为 pack 前拒绝 prepack/prepare/postpack，回归通过。CLI sync 只更新脚手架源码，不更新已有业务项目；尚无用户指定的脚手架远端，未对外推送。当前平台仍仅 macOS arm64，未安装新业务包至 Desktop。
+测试曾实际捕获 npm 10.9.2 的 --ignore-scripts 仍运行 prepare；已改为 pack 前拒绝 prepack/prepare/postpack，回归通过。CLI sync 只更新脚手架源码，不更新已有业务项目；本轮最初验收时尚无用户指定的脚手架远端，未对外推送。当前平台仍仅 macOS arm64，未安装新业务包至 Desktop。
+
+2026-10-16 补充：用户确认独立仓库 `xyb-openharness-dsh-plugins/xyb-workbench-starter`；初次 ls-remote 成功且无现有分支。已补齐 README/CLI 指南和 package repository。远端同步以 Git 提交与 upstream 对照结果为准。

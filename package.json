@@ -32,5 +32,9 @@
     "check": "node --check bin/dsh-wb-cli.mjs && node --check cli/main.mjs && node --check scripts/init.mjs && node scripts/check-starter.mjs",
     "test": "node --test test/*.test.mjs"
   },
-  "license": "UNLICENSED"
+  "license": "UNLICENSED",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xyb-openharness-dsh-plugins/xyb-workbench-starter.git"
+  }
 }
