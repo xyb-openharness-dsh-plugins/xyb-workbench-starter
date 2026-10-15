@@ -1,0 +1,270 @@
+{
+  "capturedAt": "2026-10-15T14:14:34.403495+00:00",
+  "method": "按文件/主题读取、提交stat与受影响diff；未全量读取聊天日志/数据库/私有凭据",
+  "sources": [
+    {
+      "id": "O01",
+      "kind": "official",
+      "sourcePath": "/tmp/xyb-workbench-official-development.md",
+      "url": "https://dshdesktop.com/workbench/docs/development.md",
+      "bytes": 26687,
+      "sha256": "751fcd5a7f481cb1ebc1f553f9e3775e699c4e8c07fd16cad4e76b90f1cf2fc6",
+      "gitTracked": false,
+      "worktreeStatus": null,
+      "snapshot": "reference/official/development-2026-10-09.md"
+    },
+    {
+      "id": "O02",
+      "kind": "official-local",
+      "sourcePath": "/Users/qinxiaoqiang/Downloads/dsh-desktop/docs/workbench-standard.zh.md",
+      "url": null,
+      "bytes": 22727,
+      "sha256": "d648e9d22275a5f33f70ed392349b54ffcead6692e1ece4a949850ff6bee026d",
+      "gitTracked": true,
+      "worktreeStatus": "",
+      "snapshot": null
+    },
+    {
+      "id": "D01",
+      "kind": "community-design",
+      "sourcePath": "/Users/qinxiaoqiang/Downloads/dsh-desktop/docs/xyb-workbench/V3-TAB-IMPLEMENTATION-STRATEGY.md",
+      "url": null,
+      "bytes": 9089,
+      "sha256": "dab979e83ef98527dbb9078a626943adc2de2e9cf91c9e576b32b61ccf31d5b2",
+      "gitTracked": false,
+      "worktreeStatus": "?? docs/xyb-workbench/V3-TAB-IMPLEMENTATION-STRATEGY.md",
+      "snapshot": null
+    },
+    {
+      "id": "D02",
+      "kind": "community-design",
+      "sourcePath": "/Users/qinxiaoqiang/Downloads/dsh-desktop/docs/xyb-workbench/V3-REBUILD-PARITY-STATUS.md",
+      "url": null,
+      "bytes": 7616,
+      "sha256": "6139e7067a7c9abe366313fd8e5bfd89c938ac1cd2464dab0b55c9d8592d4fbb",
+      "gitTracked": false,
+      "worktreeStatus": "?? docs/xyb-workbench/V3-REBUILD-PARITY-STATUS.md",
+      "snapshot": null
+    },
+    {
+      "id": "D03",
+      "kind": "community-design",
+      "sourcePath": "/Users/qinxiaoqiang/Downloads/dsh-desktop/docs/xyb-workbench/V3-FEATURE-INVENTORY.md",
+      "url": null,
+      "bytes": 7100,
+      "sha256": "8926ea3309957ddba2a9a3ba81ddc3cc05204fd3e8bddad130af158ddc6ebb54",
+      "gitTracked": false,
+      "worktreeStatus": "?? docs/xyb-workbench/V3-FEATURE-INVENTORY.md",
+      "snapshot": null
+    },
+    {
+      "id": "D04",
+      "kind": "community-design",
+      "sourcePath": "/Users/qinxiaoqiang/Downloads/dsh-desktop/docs/xyb-workbench/UI-DESIGN.md",
+      "url": null,
+      "bytes": 52654,
+      "sha256": "f2807945eaaf50c235ed55499450792ab7e296fa44979e6f9598be5a038c855a",
+      "gitTracked": false,
+      "worktreeStatus": "?? docs/xyb-workbench/UI-DESIGN.md",
+      "snapshot": null
+    },
+    {
+      "id": "D05",
+      "kind": "community-design",
+      "sourcePath": "/Users/qinxiaoqiang/Downloads/dsh-desktop/docs/xyb-workbench/DESKTOP-ADAPTATION-1.2.2.md",
+      "url": null,
+      "bytes": 11506,
+      "sha256": "ecedda2a9f980a903dac41b969b9169783fb03b3c561842e62da9ba8435806ba",
+      "gitTracked": false,
+      "worktreeStatus": "?? docs/xyb-workbench/DESKTOP-ADAPTATION-1.2.2.md",
+      "snapshot": null
+    },
+    {
+      "id": "D06",
+      "kind": "community-design",
+      "sourcePath": "/Users/qinxiaoqiang/Downloads/dsh-desktop/docs/xyb-workbench/AGENT-QUERY-DESIGN.md",
+      "url": null,
+      "bytes": 6433,
+      "sha256": "322a014d17ab11cd7da7f8c4951c916d5dd9ff445ec121e495af6d0037c64125",
+      "gitTracked": false,
+      "worktreeStatus": "?? docs/xyb-workbench/AGENT-QUERY-DESIGN.md",
+      "snapshot": null
+    },
+    {
+      "id": "D07",
+      "kind": "community-design",
+      "sourcePath": "/Users/qinxiaoqiang/Downloads/dsh-desktop/docs/xyb-workbench/IMPLEMENTATION-QUEUE.md",
+      "url": null,
+      "bytes": 3982,
+      "sha256": "08ad492131effabc3bf980cd799090563f2d9bc7b55da8e4bf71f969c8ed3c19",
+      "gitTracked": false,
+      "worktreeStatus": "?? docs/xyb-workbench/IMPLEMENTATION-QUEUE.md",
+      "snapshot": null
+    },
+    {
+      "id": "D08",
+      "kind": "community-design",
+      "sourcePath": "/Users/qinxiaoqiang/Downloads/dsh-desktop/docs/xyb-workbench/REPORT-GENERATION-DESIGN.md",
+      "url": null,
+      "bytes": 2092,
+      "sha256": "5768f06de43369d3afa340426de4973810b0a77bfe46412d4c901beb022a2a0c",
+      "gitTracked": false,
+      "worktreeStatus": "?? docs/xyb-workbench/REPORT-GENERATION-DESIGN.md",
+      "snapshot": null
+    },
+    {
+      "id": "D09",
+      "kind": "community-design",
+      "sourcePath": "/Users/qinxiaoqiang/Downloads/dsh-desktop/docs/xyb-workbench/DATA-SCHEMA-DESIGN.md",
+      "url": null,
+      "bytes": 17108,
+      "sha256": "0cdb5cea28ba0352d1c70d66c89d0647fd8e44c38d1d49c30965880a2396afc1",
+      "gitTracked": false,
+      "worktreeStatus": "?? docs/xyb-workbench/DATA-SCHEMA-DESIGN.md",
+      "snapshot": null
+    },
+    {
+      "id": "D10",
+      "kind": "community-design",
+      "sourcePath": "/Users/qinxiaoqiang/Downloads/dsh-desktop/docs/xyb-workbench/SCHEMA-REVIEW-2026-10-13.md",
+      "url": null,
+      "bytes": 10348,
+      "sha256": "673e228ba941ffe3a42292ab9eb1da6f977e9827e19ea1c396fec9bed1156f9a",
+      "gitTracked": false,
+      "worktreeStatus": "?? docs/xyb-workbench/SCHEMA-REVIEW-2026-10-13.md",
+      "snapshot": null
+    },
+    {
+      "id": "D11",
+      "kind": "community-design",
+      "sourcePath": "/Users/qinxiaoqiang/Downloads/dsh-desktop/docs/xyb-workbench/DEV-LOG.md",
+      "url": null,
+      "bytes": 17863,
+      "sha256": "29b1f25589952fed84a8c24337d665d1f4ddb4754f424bf15963cafdd66fed61",
+      "gitTracked": false,
+      "worktreeStatus": "?? docs/xyb-workbench/DEV-LOG.md",
+      "snapshot": null
+    },
+    {
+      "id": "D12",
+      "kind": "community-guide",
+      "sourcePath": "/Users/qinxiaoqiang/Downloads/xyb-workbench/docs/WORKBENCH-DEVELOPMENT-WITH-CODEX.md",
+      "url": null,
+      "bytes": 17148,
+      "sha256": "71c3592c719198afb824864511cc3f97af045f778aba94954ec4ee51714684cf",
+      "gitTracked": true,
+      "worktreeStatus": "",
+      "snapshot": null
+    },
+    {
+      "id": "P01",
+      "kind": "psych-support-project",
+      "sourcePath": "/Users/qinxiaoqiang/Downloads/cancer-psych-support-workbench/docs/DSH-Desktop-集成问题与修复经验.md",
+      "url": null,
+      "bytes": 12280,
+      "sha256": "58a0a719c6ad97af61301259c2893786d624a081fe88687d1ada5061f9bfc165",
+      "gitTracked": true,
+      "worktreeStatus": "M \"docs/DSH-Desktop-\\351\\233\\206\\346\\210\\220\\351\\227\\256\\351\\242\\230\\344\\270\\216\\344\\277\\256\\345\\244\\215\\347\\273\\217\\351\\252\\214.md\"",
+      "snapshot": null
+    },
+    {
+      "id": "P02",
+      "kind": "psych-support-project",
+      "sourcePath": "/Users/qinxiaoqiang/Downloads/cancer-psych-support-workbench/docs/开发日志.md",
+      "url": null,
+      "bytes": 24552,
+      "sha256": "8e5cd318382615f6721c2e8c39537a6a8e20c27578075386d80528b708e064af",
+      "gitTracked": true,
+      "worktreeStatus": "M \"docs/\\345\\274\\200\\345\\217\\221\\346\\227\\245\\345\\277\\227.md\"",
+      "snapshot": null
+    },
+    {
+      "id": "P03",
+      "kind": "psych-support-project",
+      "sourcePath": "/Users/qinxiaoqiang/Downloads/cancer-psych-support-workbench/SPEC.md",
+      "url": null,
+      "bytes": 8452,
+      "sha256": "54954ae5ea7416be7e13f9b402ea35d987ad7fe4029977dce29d1be69c47895d",
+      "gitTracked": true,
+      "worktreeStatus": "",
+      "snapshot": null
+    },
+    {
+      "id": "P04",
+      "kind": "psych-support-project",
+      "sourcePath": "/Users/qinxiaoqiang/Downloads/cancer-psych-support-workbench/docs/WB-技能与记忆方案.md",
+      "url": null,
+      "bytes": 5003,
+      "sha256": "40de252900b677a143f6d9fc792e1df5553575917babd3eca2dc88fa9160a0d2",
+      "gitTracked": true,
+      "worktreeStatus": "",
+      "snapshot": null
+    },
+    {
+      "id": "P05",
+      "kind": "psych-support-project",
+      "sourcePath": "/Users/qinxiaoqiang/Downloads/cancer-psych-support-workbench/src/prompt.mjs",
+      "url": null,
+      "bytes": 12708,
+      "sha256": "6abc2d81ae4cd3032cfb4367383d3587f6768423b3a3bf14a1750e1053ddd25b",
+      "gitTracked": false,
+      "worktreeStatus": "?? src/prompt.mjs",
+      "snapshot": null
+    },
+    {
+      "id": "O03",
+      "kind": "official",
+      "sourcePath": "https://dshdesktop.com/workbench/docs/market-acceptance.md",
+      "url": "https://dshdesktop.com/workbench/docs/market-acceptance.md",
+      "bytes": 13492,
+      "sha256": "deb32ef297d1e7cfcfac696b64346fde9703ca19c910faea3de2a1b1c5149e96",
+      "gitTracked": false,
+      "worktreeStatus": null,
+      "snapshot": "reference/official/market-acceptance-2026-09-29.md"
+    }
+  ],
+  "history": [
+    {
+      "id": "G01",
+      "commit": "11e9f4af864ecaa4cbe693956f61aec9821a3de2",
+      "date": "2026-10-15T08:24:17+08:00",
+      "subject": "Initial 0.1.15 release of Xiao Yi Bao workbench",
+      "url": "https://github.com/xyb-openharness-dsh-plugins/xyb-workbench/commit/11e9f4af864ecaa4cbe693956f61aec9821a3de2"
+    },
+    {
+      "id": "G02",
+      "commit": "cea34a32fad92eb779a9f9e70bc1fb40c4cc7ac7",
+      "date": "2026-10-15T15:55:28+08:00",
+      "subject": "release: xiaoyibao workbench 0.1.22",
+      "url": "https://github.com/xyb-openharness-dsh-plugins/xyb-workbench/commit/cea34a32fad92eb779a9f9e70bc1fb40c4cc7ac7"
+    },
+    {
+      "id": "G03",
+      "commit": "10951fbfb31ee9d85833fbbc39486905f2f2b0dd",
+      "date": "2026-10-15T20:17:27+08:00",
+      "subject": "Improve clinical indicator flip charts",
+      "url": "https://github.com/xyb-openharness-dsh-plugins/xyb-workbench/commit/10951fbfb31ee9d85833fbbc39486905f2f2b0dd"
+    },
+    {
+      "id": "PG01",
+      "commit": "241841145bba294b3e84f0d8d24f0045532778b4",
+      "date": "2026-10-15T15:08:44+08:00",
+      "subject": "Initial commit",
+      "url": "https://github.com/xyb-openharness-dsh-plugins/xiaoxinbao-workbench/commit/241841145bba294b3e84f0d8d24f0045532778b4"
+    },
+    {
+      "id": "PG02",
+      "commit": "38eed310f8e6e1d19747b884220a6c49d65658e0",
+      "date": "2026-10-15T21:27:39+08:00",
+      "subject": "修复工作台注册渲染报错，补齐 README、界面截图与集成经验",
+      "url": "https://github.com/xyb-openharness-dsh-plugins/xiaoxinbao-workbench/commit/38eed310f8e6e1d19747b884220a6c49d65658e0"
+    },
+    {
+      "id": "PG03",
+      "commit": "437ae311dc2c12c3dc42d133b5714e28320f4d61",
+      "date": "2026-10-15T21:29:36+08:00",
+      "subject": "补充 0.3.11 开发日志，打包排除界面截图",
+      "url": "https://github.com/xyb-openharness-dsh-plugins/xiaoxinbao-workbench/commit/437ae311dc2c12c3dc42d133b5714e28320f4d61"
+    }
+  ]
+}

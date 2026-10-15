@@ -1,0 +1,17 @@
+{
+  "packageName": "@community/example-workbench",
+  "title": "填写你的工作台名称",
+  "repository": "https://github.com/community/example-workbench",
+  "description": "填写业务用途",
+  "slug": "example-workbench",
+  "layoutMode": "business-first",
+  "businessWidth": 0.65,
+  "targetUsers": "填写目标用户",
+  "scenario": "填写业务场景",
+  "coreFlow": [
+    "填写进入后的第一步",
+    "填写主要操作",
+    "填写完成和回顾"
+  ],
+  "completion": "填写可观察的完成结果"
+}

@@ -1,0 +1,68 @@
+import test from 'node:test'
+import assert from 'node:assert/strict'
+import { mkdtemp, readFile, writeFile, mkdir, rm, cp, access, symlink } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { join, resolve, dirname } from 'node:path'
+import { fileURLToPath } from 'node:url'
+import { spawnSync } from 'node:child_process'
+import { readOwnership } from '../examples/ownership-adapter.mjs'
+const root=resolve(dirname(fileURLToPath(import.meta.url)),'..')
+const config={ packageName:'@community/demo-workbench',title:'测试工作台',repository:'https://github.com/community/demo-workbench',description:'仅离线生成检查，不安装到宿主',slug:'demo-workbench',layoutMode:'business-first',businessWidth:.65,targetUsers:'虚构测试用户',scenario:'管理虚构任务记录',coreFlow:['打开列表','记录并回顾结果'],completion:'可回顾的虚构条目' }
+const run=(file,args=[],cwd=root)=>spawnSync(process.execPath,[file,...args],{cwd,encoding:'utf8',timeout:20000})
+async function fixture(t,cfg=config){const dir=await mkdtemp(join(tmpdir(),'wb-starter-'));t.after(()=>rm(dir,{recursive:true,force:true}));const source=join(dir,'config.json');await writeFile(source,JSON.stringify(cfg));return {dir,source,target:join(dir,'project')}}
+const init=(f,source=root,extra=[])=>run(join(source,'scripts/init.mjs'),['--config',f.source,'--target',f.target,...extra])
+test('dry run writes nothing; generate split/customFrame; refuse overwrite without changing files',async t=>{
+ const f=await fixture(t);let r=init(f,root,['--dry-run']);assert.equal(r.status,0,r.stderr);await assert.rejects(access(f.target))
+ r=init(f);assert.equal(r.status,0,r.stderr)
+ const path=join(f.target,'lib/client.js'),before=await readFile(path)
+ assert.equal(run(join(root,'scripts/check-workbench-package.mjs'),[f.target]).status,0)
+ assert.equal(run('--check',[path]).status,0)
+ assert.equal(run('--check',[join(f.target,'dsh/index.js')]).status,0)
+ assert.match(before.toString(),/"customFrame":true/)
+ r=init(f);assert.notEqual(r.status,0);assert.match(r.stderr,/Existing files/);assert.deepEqual(await readFile(path),before)
+ const split=await fixture(t,{...config,layoutMode:'split'});r=init(split);assert.equal(r.status,0,r.stderr);assert.match(await readFile(join(split.target,'lib/client.js'),'utf8'),/"businessWidth":0.65/)
+})
+test('unclear business requirement, unsafe slug/repository, invalid layout reject before writes',async t=>{
+ for(const delta of [{targetUsers:''},{coreFlow:[]},{slug:'../../escape'},{repository:'https://not-github.invalid/a/b'},{layoutMode:'unknown'},{layoutMode:'split',businessWidth:.9}]){
+  const f=await fixture(t,{...config,...delta});assert.notEqual(init(f).status,0);await assert.rejects(access(f.target))
+ }
+})
+test('destination conflicts preflight; symlink directory rejected',async t=>{
+ const f=await fixture(t);await mkdir(f.target);await writeFile(join(f.target,'README.md'),'keep me');assert.notEqual(init(f).status,0);assert.equal(await readFile(join(f.target,'README.md'),'utf8'),'keep me');await assert.rejects(access(join(f.target,'package.json')))
+ const other=await fixture(t);await mkdir(other.target);await mkdir(join(other.dir,'outside'));await symlink(join(other.dir,'outside'),join(other.target,'docs'),'dir');assert.notEqual(init(other).status,0);await assert.rejects(access(join(other.target,'package.json')))
+})
+test('relocated starter has no dependency on original source paths',async t=>{
+ const f=await fixture(t);const copied=join(f.dir,'copied-starter');await cp(root,copied,{recursive:true});const r=init(f,copied);assert.equal(r.status,0,r.stderr);assert.equal(run(join(copied,'scripts/check-workbench-package.mjs'),[f.target],f.dir).status,0)
+})
+test('checker detects mismatched loader identity and missing runtime entry',async t=>{
+ const f=await fixture(t);assert.equal(init(f).status,0)
+ const path=join(f.target,'lib/client.js');const s=await readFile(path,'utf8');await writeFile(path,s.replace('id: "@community/demo-workbench"','id: "wrong-package"'));const result=run(join(root,'scripts/check-workbench-package.mjs'),[f.target]);assert.notEqual(result.status,0);assert.match(result.stdout,/loader id/)
+ await rm(path);assert.notEqual(run(join(root,'scripts/check-workbench-package.mjs'),[f.target]).status,0)
+})
+test('caller data is encoded once, not evaluated or recursively substituted',async t=>{
+ const f=await fixture(t,{...config,title:'测试 " 引号 @@TITLE@@ ${process.exit(1)}'});const result=init(f);assert.equal(result.status,0,result.stderr);assert.equal(run('--check',[join(f.target,'lib/client.js')]).status,0);assert.equal(JSON.parse(await readFile(join(f.target,'package.json'),'utf8')).description,config.description)
+})
+test('ownership guard is unavailable by default; never silently false or new session',()=>{
+ const service={ownsSession(){throw new Error('Workbench registration requires a client package entry name.')}}
+ assert.deepEqual(readOwnership({service,sessionId:'s1',entryId:'a/b'}),{status:'unavailable',reason:'service-context-guard'})
+ assert.equal(readOwnership({service:{ownsSession(){return false}},sessionId:'s1',entryId:'a/b'}).status,'not-owned')
+ assert.equal(readOwnership({service:{},sessionId:'s1',entryId:'a/b'}).status,'unavailable')
+})
+test('legacy UI-only ownership fallback is explicit, version-bound, read-only',()=>{
+ const bindings=Object.freeze({s1:'a/b',s2:'other/project'}),service={ownsSession(){throw new Error('Workbench registration requires a client package entry name.')}}
+ const legacy={enabled:true,desktopVersion:'0.11.1',harnessVersion:'0.2.0-rc.2',readBindings:()=>bindings}
+ assert.equal(readOwnership({service,sessionId:'s1',entryId:'a/b',legacy}).status,'owned')
+ assert.equal(readOwnership({service,sessionId:'s2',entryId:'a/b',legacy}).status,'not-owned')
+ assert.equal(readOwnership({service,sessionId:'s1',entryId:'a/b',legacy:{...legacy,desktopVersion:'future'}}).status,'unavailable')
+ assert.equal(readOwnership({service:{ownsSession(){return false}},sessionId:'s1',entryId:'a/b',legacy}).status,'not-owned')
+ assert.deepEqual(bindings,{s1:'a/b',s2:'other/project'})
+})
+
+test('generated asset provenance has no developer absolute path; standard npm git+ repository accepted',async t=>{
+ const f=await fixture(t);assert.equal(init(f).status,0)
+ const assets=await readFile(join(f.target,'assets/manifest.json'),'utf8');assert.doesNotMatch(assets,/\/Users\/|[A-Z]:\\/)
+ const path=join(f.target,'package.json'),p=JSON.parse(await readFile(path,'utf8'));p.repository.url='git+https://github.com/community/demo-workbench.git';await writeFile(path,JSON.stringify(p));const check=run(join(root,'scripts/check-workbench-package.mjs'),[f.target]);assert.equal(check.status,0,check.stdout+check.stderr)
+})
+test('initializer rejects unexpected secret fields rather than copying them',async t=>{
+ const f=await fixture(t,{...config,apiToken:'example-not-a-real-token'});const result=init(f);assert.notEqual(result.status,0);assert.match(result.stderr,/Unknown config key/);await assert.rejects(access(f.target))
+})

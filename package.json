@@ -1,0 +1,36 @@
+{
+  "name": "dsh-wb-cli",
+  "version": "1.1.0",
+  "private": true,
+  "description": "小胰宝/小x宝社区 DSH Workbench Git 分发与项目初始化工具",
+  "type": "module",
+  "bin": {
+    "dsh-wb-cli": "./bin/dsh-wb-cli.mjs"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "files": [
+    "bin",
+    "cli",
+    "scripts",
+    "project-template",
+    "project.config.example.json",
+    "AGENTS.md",
+    "README.md",
+    "NOTICE.md",
+    "docs",
+    "spec",
+    "templates",
+    "prompts",
+    "assets",
+    "reference",
+    "examples",
+    "test"
+  ],
+  "scripts": {
+    "check": "node --check bin/dsh-wb-cli.mjs && node --check cli/main.mjs && node --check scripts/init.mjs && node scripts/check-starter.mjs",
+    "test": "node --test test/*.test.mjs"
+  },
+  "license": "UNLICENSED"
+}
