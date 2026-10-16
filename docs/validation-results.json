@@ -56,5 +56,13 @@
     "marketSubmission": false,
     "poiNormalizationTests": 3,
     "poiLiveApiTested": false
+  },
+  "verification1_2_1": {
+    "version": "1.2.1",
+    "date": "2026-10-16",
+    "check": "passed",
+    "files": 87,
+    "scope": "dialog design contract and templates; no new runtime implementation or tests",
+    "desktopInstall": false
   }
 }

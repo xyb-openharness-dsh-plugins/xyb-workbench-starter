@@ -1,6 +1,6 @@
 # 小胰宝 / 小x宝社区 Workbench 开发脚手架
 
-当前版本：**1.2.0**。变更记录见 [CHANGELOG](CHANGELOG.md)。本版增加目录/会话双状态、渐进披露UI、可复用开发经验、可选高德POI指南，以及人工验收优先的工作台市场投稿流程。文档、模板和示例随初始化提供，真实业务/宿主能力按项目接入；市场流程单独授权执行。
+当前版本：**1.2.1**。本版补充长内容弹窗滚动规则。变更记录见 [CHANGELOG](CHANGELOG.md)。本版增加目录/会话双状态、渐进披露UI、可复用开发经验、可选高德POI指南，以及人工验收优先的工作台市场投稿流程。文档、模板和示例随初始化提供，真实业务/宿主能力按项目接入；市场流程单独授权执行。
 
 把业务需求、交互原型变成可在 DSH Desktop 安装使用的工作台。面向社区新手与协作开发 Agent，提供互动设计、数据建模、界面实现、测试修复和部署验收流程，并整理项目实践中的典型错误和修复方法。
 
@@ -22,12 +22,12 @@ dsh-wb-cli doctor
 
 `init` 初始化开发项目，`npm link` 激活命令；它们不等于把插件装入 Desktop。
 
-本版源码发布：[v1.2.0](https://github.com/xyb-openharness-dsh-plugins/xyb-workbench-starter/releases/tag/v1.2.0)。已有干净Git克隆并通过链接激活CLI时，更新方式为：
+本版 Git 源码：[v1.2.1](https://github.com/xyb-openharness-dsh-plugins/xyb-workbench-starter/tree/v1.2.1)。已有干净Git克隆并通过链接激活CLI时，更新方式为：
 
 ```bash
 dsh-wb-cli sync
 dsh-wb-cli --version
-# 本版应输出 1.2.0；已生成的业务项目仍须比较差异后自行合并。
+# 本版应输出 1.2.1；已生成的业务项目仍须比较差异后自行合并。
 ```
 
 ## 不激活命令也可直接使用
