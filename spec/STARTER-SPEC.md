@@ -33,3 +33,11 @@ AGENTS 为短规则入口；docs 为分主题指南；templates 为需求、规�
 - 文档避免业务案例身份与个人绝对路径，保留必要的来源、署名和版本适用边界。
 
 当前检查记录见 docs/VALIDATION.md；CLI 行为与验证见 spec/CLI-SPEC.md。
+
+## 1.2.0 增补
+
+- 目录持久化/Agent协作项目采用 docs/09-WORKBENCH-STATUS.md 的独立状态合同和真实判据；examples提供无依赖参考，不能把示例存在当接入完成。
+- 工作台市场发布采用 docs/10-MARKET-PUBLISHING.md：官方依据、安装来源、人工清单、YAML、市场PR命令和审核/上架判断；用户指定版本的手工确认只补变化或失败项，不默认重复电脑自动化。
+- init复制上述文档、模板、提示词和示例；README、CHANGELOG、CLI与溯源marker的版本一致。已认可的项目复盘见docs/11-REUSABLE-PATTERNS.md；新增经验先审阅再纳入。
+- 本机更新必须交付到实际安装版本；UI渐进披露和外部信息可信度原则分别进入设计/API/验收合同，并在不同业务主题中复用。
+- POI需求按docs/12-AMAP-POI.md选用高德能力，提供归一化示例、配置/范围/坐标与验证模板，不引入通用必需地图依赖或真实凭据。

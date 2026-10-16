@@ -1,5 +1,7 @@
 # 小胰宝 / 小x宝社区 Workbench 开发脚手架
 
+当前版本：**1.2.0**。变更记录见 [CHANGELOG](CHANGELOG.md)。本版增加目录/会话双状态、渐进披露UI、可复用开发经验、可选高德POI指南，以及人工验收优先的工作台市场投稿流程。文档、模板和示例随初始化提供，真实业务/宿主能力按项目接入；市场流程单独授权执行。
+
 把业务需求、交互原型变成可在 DSH Desktop 安装使用的工作台。面向社区新手与协作开发 Agent，提供互动设计、数据建模、界面实现、测试修复和部署验收流程，并整理项目实践中的典型错误和修复方法。
 
 **开发灵魂文件是 [AGENTS.md](AGENTS.md)**。完整方案与任务验收见 [spec/STARTER-SPEC.md](spec/STARTER-SPEC.md)。不是把整个 DSH Desktop 仓库复制一遍，也不是一套预设医疗业务。
@@ -19,6 +21,14 @@ dsh-wb-cli doctor
 激活后在新项目父目录执行 `dsh-wb-cli init --prepare`，填写需求配置，再 `dsh-wb-cli init my-workbench`。已有配置用 `--config`；更新脚手架用 `dsh-wb-cli sync`（仅干净 Git 克隆、快进更新）。生成项目会记录脚手架版本/commit，并保留自身开发修改。完整操作见 [Git 与 CLI 指南](docs/CLI-GIT.md)。远端已由社区确认，`sync` 更新此仓库的跟踪分支。
 
 `init` 初始化开发项目，`npm link` 激活命令；它们不等于把插件装入 Desktop。
+
+本版源码发布：[v1.2.0](https://github.com/xyb-openharness-dsh-plugins/xyb-workbench-starter/releases/tag/v1.2.0)。已有干净Git克隆并通过链接激活CLI时，更新方式为：
+
+```bash
+dsh-wb-cli sync
+dsh-wb-cli --version
+# 本版应输出 1.2.0；已生成的业务项目仍须比较差异后自行合并。
+```
 
 ## 不激活命令也可直接使用
 
@@ -50,6 +60,10 @@ node scripts/init.mjs --config ./project.config.json --target ../my-workbench
 | 社区风格、Logo、UI/UX 技能、图表/动效 | [03-DESIGN-SYSTEM](docs/03-DESIGN-SYSTEM.md) |
 | SQLite、可扩展指标、来源与文件目录 | [04-DATA](docs/04-DATA.md) |
 | 给我建议、技能/MCP、离线数据与结果回流 | [05-AGENT-AND-RESOURCES](docs/05-AGENT-AND-RESOURCES.md) |
+| 顶部目录/会话状态、绑定绿灯与切换竞态 | [09-WORKBENCH-STATUS](docs/09-WORKBENCH-STATUS.md) |
+| 人工验收、官方要求、命令与工作台市场收录 PR | [10-MARKET-PUBLISHING](docs/10-MARKET-PUBLISHING.md) |
+| 任务分层、原型一致性、产物检查与可选视觉方案 | [11-REUSABLE-PATTERNS](docs/11-REUSABLE-PATTERNS.md) |
+| 可选高德POI、Key配置、地图/坐标与结果校验 | [12-AMAP-POI](docs/12-AMAP-POI.md) |
 | 测试、安装、旧版本、发布和回滚 | [06-VALIDATION-AND-RELEASE](docs/06-VALIDATION-AND-RELEASE.md) |
 | 开发典型错误和修复经验 | [LESSONS](docs/LESSONS.md) |
 | 来源规则、官网版本差异、复盘方法 | [SOURCES](docs/SOURCES.md) / [HISTORY](docs/HISTORY.md) |
@@ -64,6 +78,12 @@ node scripts/check-workbench-package.mjs /absolute/path/to/generated-project
 ```
 
 [examples/metric-card.html](examples/metric-card.html) 是离线交互参考：独立翻面、等比折线、普通/大字、减少动效和数据表。它不是 DSH 已安装业务页。
+
+[examples/workbench-status.mjs](examples/workbench-status.mjs) 是不依赖框架的状态读模型示例，区分目录就绪、当前项目/会话匹配、归属不可验证与过期快照；不创建会话或授予权限。
+
+[examples/progressive-disclosure.html](examples/progressive-disclosure.html) 可离线打开，演示默认折叠的配置、💡教学与常显任务/错误。输入不提交到任何服务。
+
+有位置检索需求时，使用[POI接入记录](templates/POI-CAPABILITY.md)和[高德候选归一化示例](examples/amap-poi-normalize.mjs)。不携带Key，也不会自动为其它主题安装地图或调用外部服务。
 
 文档可离线读。初始化/校验工具只依赖 Node 内置模块；实际工作台还依赖 DSH Desktop 和宿主 peers。SQLite 项目需核验 `node:sqlite` 所需 Node 版本；MinerU、MCP、自动任务、导出转换器各有自己的运行条件。没有一键生成 dmg/exe：本交付产物是 DSH 工作台插件包；独立桌面安装器是另一项工程。
 

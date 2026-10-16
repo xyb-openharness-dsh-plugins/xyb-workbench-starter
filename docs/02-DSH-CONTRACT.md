@@ -46,6 +46,8 @@ npm 包名、patch 插件条目 ID、从 GitHub repository 推导的 `owner/repo
 
 ## 模板兼容声明
 
+资料目录与原生会话关联状态遵循[双状态合同](09-WORKBENCH-STATUS.md)：当前 owner、业务项目映射与目录就绪分别核验，社区快照字段不当作宿主原生 API。
+
 `project-template` 使用经项目实践核对的 webServer.register 与 connection.requestRejection 形态实现只读健康接口。目标 Desktop 需要提供这些服务；缺能力时拒绝请求/显示错误，而不绕过鉴权。peer 范围需按目标宿主核验；预发布范围不能仅用排除 prerelease 的普通版本范围。
 
 模板静态通过只说明文件与声明一致。实际列表、会话、customFrame、生命周期与跨平台行为仍需实机验收。

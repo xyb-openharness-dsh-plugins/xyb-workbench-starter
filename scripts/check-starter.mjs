@@ -14,7 +14,7 @@ async function walk(path) {
   return files
 }
 const files=await walk(root)
-for(const name of ['README.md','AGENTS.md','spec/STARTER-SPEC.md','docs/SOURCES.md','docs/LESSONS.md','project.config.example.json']) {
+for(const name of ['README.md','CHANGELOG.md','AGENTS.md','spec/STARTER-SPEC.md','docs/SOURCES.md','docs/LESSONS.md','docs/09-WORKBENCH-STATUS.md','docs/10-MARKET-PUBLISHING.md','docs/11-REUSABLE-PATTERNS.md','examples/workbench-status.mjs','examples/progressive-disclosure.html','templates/MARKET-ACCEPTANCE.md','prompts/MARKET-PUBLISH.md','project.config.example.json']) {
   try {await readFile(join(root,name))}catch{errors.push('Missing '+name)}
 }
 for(const path of files.filter(p=>p.endsWith('.json'))) {

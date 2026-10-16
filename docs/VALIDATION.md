@@ -33,3 +33,9 @@
 测试曾实际捕获 npm 10.9.2 的 --ignore-scripts 仍运行 prepare；已改为 pack 前拒绝 prepack/prepare/postpack，回归通过。CLI sync 只更新脚手架源码，不更新已有业务项目；本轮最初验收时尚无用户指定的脚手架远端，未对外推送。当前平台仍仅 macOS arm64，未安装新业务包至 Desktop。
 
 2026-10-16 补充：用户确认独立仓库 `xyb-openharness-dsh-plugins/xyb-workbench-starter`；初次 ls-remote 成功且无现有分支。已补齐 README/CLI 指南和 package repository。远端同步以 Git 提交与 upstream 对照结果为准。
+
+## 1.2.0：全局状态与工作台市场流程
+
+2026-10-16，`npm run check` 通过，22/22项测试通过；新增4项状态检查覆盖假绑定绿灯、跨项目过期快照、目录/会话独立和预览/异常状态，3项POI检查覆盖异常类型/坐标、同名分支与原始获取时点。CLI实际返回1.2.0，初始化检查证明状态/市场/复用方法/可选POI文档、模板和示例随新项目复制。CLI版本和溯源测试改从package元数据读取。POI示例无联网，未使用真实Key或验证新账号权限。
+
+官方市场规范与目录协议在本轮重新抓取并记录SHA-256；开发规范内容与已有快照一致。README、CHANGELOG、SPEC和设计/验收/发布模板已更新。上述检查不代表新业务项目的Desktop归属或市场投稿已完成；参考状态函数不访问真实文件系统或创建会话。本轮未替脚手架本身新增市场条目。

@@ -56,7 +56,7 @@ try {
     if(!p.files?.some(f=>normalized===f.replace(/^\.\//,'')||normalized.startsWith(f.replace(/^\.\//,'').replace(/\/$/,'')+'/'))) errors.push('Runtime entry absent from files allowlist: '+path)
   }
   if(/preserveAspectRatio\s*[:=]\s*['"]none['"]/.test(client)) warnings.push('Non-uniform SVG scaling found; manually review circles/text/chart geometry')
-  if(/\.ownsSession\s*\(/.test(client)) warnings.push('Review service caller context and unavailable ownership; see psych integration case')
+  if(/\.ownsSession\s*\(/.test(client)) warnings.push('Review service caller context and unavailable ownership; see docs/LESSONS.md')
   warnings.push('Peer ranges, API signatures, credentials/assets, actual tgz contents and Desktop UI require separate verification')
   console.log(JSON.stringify({ package:p.name, version:p.version, staticPass:errors.length===0, errors, warnings },null,2))
   if(errors.length) process.exitCode=1

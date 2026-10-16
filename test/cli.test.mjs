@@ -6,6 +6,7 @@ import { dirname, resolve, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { spawnSync } from 'node:child_process'
 const root=resolve(dirname(fileURLToPath(import.meta.url)),'..')
+const starterVersion=JSON.parse(await readFile(join(root,'package.json'),'utf8')).version
 const invoke=(args,cwd,source=root)=>spawnSync(process.execPath,[join(source,'bin/dsh-wb-cli.mjs'),...args],{cwd,encoding:'utf8',timeout:30000})
 const git=(cwd,args)=>{const p=spawnSync('git',args,{cwd,encoding:'utf8',timeout:15000});assert.equal(p.status,0,p.stdout+p.stderr);return p.stdout.trim()}
 const commit=(cwd,message)=>{git(cwd,['add','.']);git(cwd,['-c','user.name=Starter Test','-c','user.email=starter-test@example.invalid','commit','-m',message])}
@@ -13,9 +14,9 @@ async function temp(t){const path=await mkdtemp(join(tmpdir(),'dsh-wb-cli-'));t.
 const cfg={packageName:'@community/cli-fixture',title:'CLI 合成测试',repository:'https://github.com/community/cli-fixture',description:'仅用于离线检查',slug:'cli-fixture',targetUsers:'虚构测试用户',scenario:'回看虚构记录',completion:'生成可检查的记录',coreFlow:['打开','回看'],layoutMode:'business-first'}
 test('CLI version/help/doctor are usable and readonly',async t=>{
  const cwd=await temp(t)
- assert.equal(invoke(['--version'],cwd).stdout.trim(),'1.1.0')
+ assert.equal(invoke(['--version'],cwd).stdout.trim(),starterVersion)
  assert.equal(invoke(['init','--help'],cwd).status,0)
- const report=invoke(['doctor','--json'],cwd);assert.equal(report.status,0,report.stderr);const data=JSON.parse(report.stdout);assert.equal(data.cli.version,'1.1.0');assert.equal(data.desktop.installed,'未核验')
+ const report=invoke(['doctor','--json'],cwd);assert.equal(report.status,0,report.stderr);const data=JSON.parse(report.stdout);assert.equal(data.cli.version,starterVersion);assert.equal(data.desktop.installed,'未核验')
  assert.notEqual(invoke(['unknown-command'],cwd).status,0)
 })
 test('CLI prepare never overwrites, init discovers cwd config and records provenance',async t=>{
@@ -27,7 +28,8 @@ test('CLI prepare never overwrites, init discovers cwd config and records proven
  const target=join(cwd,'business')
  assert.equal(invoke(['init','business','--dry-run'],cwd).status,0);await assert.rejects(access(target))
  const result=invoke(['init','business'],cwd);assert.equal(result.status,0,result.stdout+result.stderr)
- const source=JSON.parse(await readFile(join(target,'.dsh-wb-starter.json'),'utf8'));assert.equal(source.version,'1.1.0');assert.equal(source.starter,'dsh-wb-cli');assert.equal(invoke(['check',target],cwd).status,0)
+ const source=JSON.parse(await readFile(join(target,'.dsh-wb-starter.json'),'utf8'));assert.equal(source.version,starterVersion);assert.equal(source.starter,'dsh-wb-cli');assert.equal(invoke(['check',target],cwd).status,0)
+ for(const name of ['docs/09-WORKBENCH-STATUS.md','examples/workbench-status.mjs','docs/10-MARKET-PUBLISHING.md','templates/MARKET-ACCEPTANCE.md','prompts/MARKET-PUBLISH.md','docs/11-REUSABLE-PATTERNS.md','examples/progressive-disclosure.html','docs/12-AMAP-POI.md','examples/amap-poi-normalize.mjs','templates/POI-CAPABILITY.md']) await access(join(target,name))
  const pkg=await readFile(join(target,'package.json'));assert.notEqual(invoke(['init','business'],cwd).status,0);assert.deepEqual(await readFile(join(target,'package.json')),pkg)
 })
 test('provenance marker participates in preflight conflict checks',async t=>{

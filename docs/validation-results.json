@@ -43,5 +43,18 @@
     "initialRemoteState": "ls-remote succeeded with no refs",
     "branch": "main",
     "scope": "source Git distribution; no npm or workbench market publication"
+  },
+  "verification1_2_0": {
+    "version": "1.2.0",
+    "date": "2026-10-16",
+    "check": "passed",
+    "tests": 22,
+    "passed": 22,
+    "actualPathCommandVersion": "1.2.0",
+    "newProjectResources": "status, market, reusable-pattern and optional POI guides/templates/examples copied",
+    "desktopInstall": false,
+    "marketSubmission": false,
+    "poiNormalizationTests": 3,
+    "poiLiveApiTested": false
   }
 }
