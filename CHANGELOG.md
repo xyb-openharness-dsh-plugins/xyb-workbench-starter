@@ -1,5 +1,12 @@
 # 变更记录
 
+## 1.4.0 — 2026-10-19（本地待发布）
+
+- 将 DSH 原生 Agent 面板要求写入生成项目模板：全局顶栏拉起按钮、真实连接状态、独立隐藏/重开、会话和页面状态保留、面板宽度调节与偏好恢复。
+- 明确 CustomFrame 可使用 35% 默认、25%–45% 范围的可访问 splitter；split 形态只遵循 Desktop 宿主布局能力，不重复实现宽度控制或伪造原生对话。
+- 新增 ACC-28–31，将入口、隐藏重开、鼠标/触控/键盘调宽、窄窗和重启偏好纳入验收，并加入 T07 实施任务。
+- **修正 20 号文档的关键误判（实证）**：原表把「可拖 25%–45%」判给 CustomFrame、并让 split 形态沿用宿主能力。经 `dsh-desktop` 源码核对：split 下宿主把 `--workbench-business-width` 写成注册时的静态值，服务只暴露 register/isActive/ownsSession/add/open/home/ensureSession/currentSession/**subscribe**，**没有** setBusinessWidth/togglePane、也无 splitter 节点——**split 形态根本无法实现拖宽与收起**。20 号文档已加「2026-10-19 实证修正」：需求含「面板可调」必须由 split 改为 customFrame（宿主以 `conversation` prop 交出原生会话节点）。表格第 1 节现状示例同步为乳腺癌工作台 v0.6.0（customFrame=true），并给出可直接照抄的四个实现要点（五态入口 / `role=separator` splitter / 按容器 rect 夹取 / 会话恒定挂载只切 display）。
+
 ## 1.3.9 — 2026-10-18（本地待发布）
 
 - 新增 [一图秀动效与事件交互提示词](prompts/TIMELINE-MOTION-AND-EVENTS.md)，沉淀小巢宝原型的趋势重播、独立事件泳道、节点/标签同ID联动、日期对齐、密集事件避让和减少动效终态；接入AGENTS、README索引、19号原型工艺与UI-REVIEW，init随prompts目录自动分发。品牌与癌种医学场景按项目替换。

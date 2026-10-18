@@ -6,21 +6,36 @@
 
 动手前逐项填表，缺证据就写「未验证」，不写「已完成」：
 
-| 项 | 填法 | 示例（乳腺癌工作台，2026-10-18） |
+| 项 | 填法 | 示例（乳腺癌工作台，2026-10-19 已改 customFrame） |
 | --- | --- | --- |
-| 包级合同 V1 | 校验脚本实测输出 | 通过（46 项）：v0.4.0 · `/api/<pkg-name>/ui/` · right 0.65 · customFrame=false |
-| Desktop 装机 V2 | 是否在目标 RC 实机装过 | **未验证**——原生会话是否渲染无从谈起 |
-| 业务侧 AI/会话代码 | 全文检索 agent/conversation | **零**（如实写，不把计划写成已实现） |
-| 顶栏入口 | 现有按钮清单 | 只有品牌、字体开关、档案按钮；无「AI 对话」 |
+| 包级合同 V1 | 校验脚本实测输出 | 通过（49 项）：v0.6.0 · `/api/<pkg-name>/ui/` · left 0.65 · **customFrame=true** |
+| Desktop 装机 V2 | 是否在目标 RC 实机装过 | **未验证**——拖动/收起/抽屉的观感与边界需重启 Desktop 人工确认 |
+| 业务侧 AI/会话代码 | 全文检索 conversation / ensureSession / splitter | 顶栏五态入口 + splitter（鼠标拖 + 键盘 ←/→ 步进 2%、Home/End）+ 宽度持久化 |
+| 顶栏入口 | 现有按钮清单 | 「AI 对话 / 正在连接… / 收起 AI 对话 / 打开 AI 对话 / AI 对话暂不可用」+ 独立「×」收起控件 |
 | 可移植参考 | 其他工作台已写的同功能纯函数 | `deriveAgentPanel()`：requested × sessionView × slotReady × viewport 三态判定，不调宿主 API |
 
+新项目若要「可拖宽 + 可收起」，可直接照抄乳腺癌工作台 `src/client.js` 的四个部分：顶栏五态按钮、`role="separator"` 的 splitter（含 `aria-valuenow`）、指针拖动按**容器 rect** 夹取、以及**会话恒定挂载只切 display**（卸载会丢输入框与草稿，宿主明确要求不重挂输入树）。宽度区间常量放项目自己的 `lib/layout.js`，由构建注入客户端，别在客户端里写第二份。
+
 ## 2. 版式判定：分两种形态，先判断再套基线
+
+> **2026-10-19 实证修正（重要，先读这一条）**：如果需求里包含「面板可拖动调宽」或「可收起/重开」，**split 形态做不到**，只能选 customFrame。源码依据（`dsh-desktop` `@xyb-dsh-workbench` 分支 v0.11.1，`packages/dsh-desktop-workbenches/client.js`）：
+>
+> 1. split 下宿主把业务宽度写成**注册时的静态值**，之后不再变：
+>    `h('div',{className:'dshWbBody',hidden:customFrame,style:{'--workbench-business-width':`${entry?.layout?.businessWidth ?? 0.36)*100}%`}})`
+> 2. 服务（`ctx.reflect.provide('desktopWorkbenches', service)`）只暴露
+>    `register / isActive / ownsSession / add / open / home / setMarketOpen / showMarket / ensureSession / currentSession / subscribe`
+>    ——**没有** `setBusinessWidth`、`togglePane`，DOM 里也不存在 splitter 节点。
+> 3. customFrame 下宿主走另一条分支（同文件约 2000 行）：
+>    `h(item.Component, { service, entry, active, conversation: <原生会话挂载点> })`
+>    原生会话节点作为 **`conversation` prop 交给插件排版**，于是拖动、键盘调整、收起/重开、宽度记忆都由工作台自己实现。
+>
+> 因此下方表格里 split 那一列只适用于**用户不要求拖宽/收起**的项目；一旦提出「面板可调」，必须改 customFrame，别再写「用宿主原生面板自带能力」这种无法兑现的承诺（乳腺癌工作台 2026-10-18 犯过这个错，10-19 已改）。
 
 提示词的「Agent 展开默认 35%、可拖 25%–45%」是 **CustomFrame 形态**的基线。工作台若是 split 合同（`businessSide` / `businessWidth`），适用方式不同：
 
 | 提示词条目 | CustomFrame 工作台 | split 工作台（示例判定） |
 | --- | --- | --- |
-| Agent 展开宽度 35%，可拖 25%–45% | 直接适用 | **不适用**。原生会话节点由宿主渲染，在业务区**对侧**，宽度随宿主分栏合同；工作台代码里不出现第二份宽度来源。会话栏挤压业务区时，调整走 `businessWidth`（宿主允许范围内），不自建 splitter |
+| Agent 展开宽度 35%，可拖 25%–45% | 直接适用 | **不适用**（且**无法**实现拖动/收起：宿主无接口，见上方实证）。原生会话节点由宿主渲染，在业务区**对侧**，宽度随宿主分栏合同；工作台代码里不出现第二份宽度来源。会话栏挤压业务区时，只能调 `businessWidth`（宿主允许 0.25–0.7），且**改完要重装/重启才生效** |
 | 双状态稿（主区 + Agent 栏） | 主区 + 右栏 | **形态改为「业务区 + 对侧原生会话占位」**，覆盖的状态不变：默认关/开、会话栏窄/宽、加载/失败、草稿冲突 |
 | 顶栏 620–760px 换行、<620 折叠导航 | 归 CustomFrame 布局 | 归宿主 split 布局与业务区响应式共同承担；**业务区断点一律按业务容器宽度算，不按整窗** |
 
@@ -51,6 +66,9 @@
 
 ## 5. 验收清单（按项目改写，但七条骨架不删）
 
+- [ ] 全局顶栏有可见的「AI 对话/打开 AI 对话」入口；入口文案与未打开、连接中、已连接、暂不可用状态匹配宿主真实回执。
+- [ ] 可独立隐藏并重开同一个原生会话；隐藏不结束会话，不丢工作台状态或原生草稿。
+- [ ] 面板宽度可按当前宿主形态调整。CustomFrame 测鼠标/触控/键盘 splitter；split 只测 Desktop 支持的布局控制，不在业务组件复制宽度来源。
 - [ ] 业务区仍是主体：宿主分栏下页面级横向溢出复测为 0（沿用既有实测口径）。
 - [ ] 入口四态可观察；隐藏/重开不丢工作台状态（筛选、草稿、滚动位置）。
 - [ ] 首次点击至多创建一个正确归属的会话；重复点击/慢返回不重复创建。
