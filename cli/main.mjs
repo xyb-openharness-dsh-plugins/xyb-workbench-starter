@@ -34,14 +34,16 @@ export async function runCli({ root, args, cwd }) {
   if (command === '--version' || command === '-v') { console.log(metadata.version); return 0 }
   if (!command || ['--help','-h','help'].includes(command)) {
     console.log(`dsh-wb-cli ${metadata.version}
-  init [目录] --config <配置.json> [--dry-run]  按已确认需求生成项目
+  init [目录] --config <配置.json> [--dry-run]  按初始用户/场景/流程生成项目，再对齐设计者
   init --prepare [--config <配置.json>]        仅生成待填写配置，不写业务代码
+  文档入口                                 init生成 docs/RELEASE.md；市场步骤见 docs/10-MARKET-PUBLISHING.md
   doctor [--json]                             只读检查本机与脚手架 Git 状态
   sync [--dry-run]                            从跟踪分支 git pull --ff-only
   check [项目目录]                           社区静态包合同检查
   pack [项目目录] [--dry-run]                 先静态检查，再打包（不运行生命周期脚本）
 
 激活：在 Git 克隆目录执行 npm link --ignore-scripts --no-audit --no-fund。
+init 输出设计提示词绝对路径和对话首问；当前Agent读取后接力，CLI不自行调用模型。
 init 不安装到 Desktop；sync 不覆盖已生成业务项目。Desktop 安装以目标版入口为准。`)
     return 0
   }
@@ -54,7 +56,7 @@ init 不安装到 Desktop；sync 不覆盖已生成业务项目。Desktop 安装
       if (positions.length || flags['--target']) throw new Error('--prepare 只准备配置，不接受项目目录')
       if (flags['--dry-run']) { console.log(JSON.stringify({prepare:config,dryRun:true})); return 0 }
       await writeFile(config, await readFile(join(root,'project.config.example.json')), { flag:'wx' })
-      console.log('已生成待填写配置：' + config + '\n先确认用户、场景、核心流程与布局，再执行 init。')
+      console.log('已生成待填写配置：' + config + '\n先提供用户、场景、核心流程与初始布局，再执行 init；这些素材将用于设计者对齐和SPEC关键对话。')
       return 0
     }
     if (!(await readable(config))) throw new Error('找不到需求配置。先运行 dsh-wb-cli init --prepare，填好后再 init；也可用 --config 指定已有配置。')
@@ -63,7 +65,9 @@ init 不安装到 Desktop；sync 不覆盖已生成业务项目。Desktop 安装
     if (flags['--dry-run']) childArgs.push('--dry-run')
     const result = capture(process.execPath,childArgs,cwd,30000)
     if (result.code) return printResult(result)
-    return printResult(result)
+    // Successful init is structured data, not a log tail. Keep every generated path intact.
+    console.log(JSON.stringify(JSON.parse(result.stdout)))
+    return 0
   }
   if (command === 'doctor') {
     const { flags, positions } = parseFlags(rest, {'--json':'boolean'})

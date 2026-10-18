@@ -29,6 +29,27 @@
 
 命令使用项目自己的真实脚本及包管理器；先读 `package.json`。例如使用 npm 的项目可 `npm pack --dry-run` / `npm pack`，已有 release 打包脚本时优先复用。源码路径不要求先发 Release，但必须提交构建产物，市场不代跑 build。禁止把只改版本号当成完成分发。
 
+## 从本地版本到市场条目的实际发布步骤
+
+这部分归纳本地开发中验证过的发布顺序。Git 源码发布、GitHub Release、市场目录 PR 是三个不同交付物；需要哪个就完成哪个，不能用其中一个替代另一个。
+
+### A. 发布工作台代码与安装包
+
+1. 确认目标版本、仓库、默认分支和安装目标。确认改动进入最终提交后，使用项目已有的 build/check/test/package 脚本；不要另造命令。记录包内版本、客户端版本、tar 包哈希、目标 Desktop/Profile 和平台。
+2. 如需在本机安装，先备份 Desktop Profile 的 `package.json`、锁文件及插件投影/链接清单。macOS 需使用目标 Desktop 自带的 generation-aware runner，并显式设定 `DSH_HOME` 和对应 `.desktop-bin`；省略 `DSH_HOME` 可能调用到错误的 CLI/Profile。安装命令必须以项目当前 [安装文档](06-VALIDATION-AND-RELEASE.md) 和本机 Desktop 版本为准。
+3. 安装返回成功后，再核对 Profile 依赖路径、Profile 插件列表、安装目录中的 `package.json`、客户端版本，以及 tar 包与安装副本文件哈希。仅看到 CLI 的 `Done` 不足以证明装到了目标 Profile。
+4. 若 Desktop 已运行，磁盘上的 Profile 更新不证明当前进程已加载新版。不要擅自结束承载会话的 Desktop；请记录“包已安装，运行界面待重开确认”。未完成实际界面/宿主验收时使用预发布版，并明确未验证项；不能报告“已加载”。
+5. 将开发分支合并到默认分支并推送。需要固定版本时，创建与包版本一致的 tag，再用项目的真实 tar 包和校验文件创建 GitHub Release。发布后从公开 Release 地址下载附件，核对哈希、包名、版本和入口与本地安装证据一致。预发布/正式发布根据验收完成状态和用户授权决定。
+
+### B. 投稿 Awesome Workbench 市场
+
+1. 先按仓库身份检查市场是否已有该工作台条目或开放 PR。已有 PR 时优先更新/继续该条目，不能因每次代码版本升级另建重复条目。
+2. 依据市场目录协议选择安装来源：`npm → YAML 显式 tarball 指定的 GitHub Release → 默认分支源码`。仓库有 Release 并不代表市场会自动安装 Release；YAML 未写 `tarball` 时，市场仍按源码路径探测。若要从源码切换到 Release，需在现有投稿 PR 中更新 YAML 的 tarball，而不是只创建 Release。
+3. 仅在首次收录或目录元数据变化时向 `dataelement/awesome-dsh-workbench` 提交目录 PR。按官方协议只改 `data/workbenches/<owner>__<repo>.yml`；默认分支的代码发布和市场条目编辑分别在各自仓库完成。
+4. 复用已由作者确认、且仍匹配当前界面的截图与手工验收；不因上下文切换重复 Computer Use、逐图检查或重跑全套门禁。若本轮改变了截图所展示的界面、安装来源、宿主合同或已知失败项，只重验受影响范围。最终截图须真实、可公开并符合当前市场协议。
+5. 用 `gh pr view` 确认真实 PR URL/状态，用 `gh pr checks` 确认本轮检查。PR 描述应写清来源、版本/commit、Desktop 与平台、手工确认者和范围、自动检查及剩余限制。若检查跳过或来源探测未完成，明确标出，不能说检查通过。
+6. 区分报告状态：业务仓库已推送、GitHub Release 已创建、市场 PR 已提交/待审、PR 已合并、市场目录可读且 Desktop 可安装。只有最后一项才能说“已上架”。
+
 ## 3. 自动检查一次，实机手工验收优先
 
 推荐分工：Agent 检查包结构、版本/hash、打包内容、敏感信息和目录格式；开发者在 Desktop 按[人工验收单](../templates/MARKET-ACCEPTANCE.md)完成交互并提供真实截图。

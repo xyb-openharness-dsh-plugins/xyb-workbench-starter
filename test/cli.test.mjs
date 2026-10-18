@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { mkdtemp, readFile, writeFile, mkdir, rm, cp, access } from 'node:fs/promises'
+import { mkdtemp, readFile, writeFile, mkdir, rm, cp, access, realpath } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { dirname, resolve, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -28,6 +28,9 @@ test('CLI prepare never overwrites, init discovers cwd config and records proven
  const target=join(cwd,'business')
  assert.equal(invoke(['init','business','--dry-run'],cwd).status,0);await assert.rejects(access(target))
  const result=invoke(['init','business'],cwd);assert.equal(result.status,0,result.stdout+result.stderr)
+ const handoff=JSON.parse(result.stdout);assert.equal(handoff.stage,'designer-alignment')
+ assert.equal(await realpath(handoff.designerPrompt),await realpath(join(target,'docs/DESIGN-PROMPT.md')))
+ assert.ok(handoff.firstQuestion);await access(handoff.cancerPrompt)
  const source=JSON.parse(await readFile(join(target,'.dsh-wb-starter.json'),'utf8'));assert.equal(source.version,starterVersion);assert.equal(source.starter,'dsh-wb-cli');assert.equal(invoke(['check',target],cwd).status,0)
  for(const name of ['docs/09-WORKBENCH-STATUS.md','examples/workbench-status.mjs','docs/10-MARKET-PUBLISHING.md','templates/MARKET-ACCEPTANCE.md','prompts/MARKET-PUBLISH.md','docs/11-REUSABLE-PATTERNS.md','examples/progressive-disclosure.html','docs/12-AMAP-POI.md','examples/amap-poi-normalize.mjs','templates/POI-CAPABILITY.md']) await access(join(target,name))
  const pkg=await readFile(join(target,'package.json'));assert.notEqual(invoke(['init','business'],cwd).status,0);assert.deepEqual(await readFile(join(target,'package.json')),pkg)
@@ -35,6 +38,17 @@ test('CLI prepare never overwrites, init discovers cwd config and records proven
 test('provenance marker participates in preflight conflict checks',async t=>{
  const cwd=await temp(t),target=join(cwd,'business');await mkdir(target);await writeFile(join(cwd,'project.config.json'),JSON.stringify(cfg));await writeFile(join(target,'.dsh-wb-starter.json'),'existing marker')
  assert.notEqual(invoke(['init','business'],cwd).status,0);await assert.rejects(access(join(target,'package.json')));assert.equal(await readFile(join(target,'.dsh-wb-starter.json'),'utf8'),'existing marker')
+})
+test('successful init keeps structured handoff intact for long project paths',async t=>{
+ const cwd=await temp(t)
+ await writeFile(join(cwd,'project.config.json'),JSON.stringify(cfg))
+ const target=join(cwd,...Array.from({length:8},(_,i)=>String(i)+'x'.repeat(94)),'business')
+ const result=invoke(['init',target],cwd)
+ assert.equal(result.status,0,result.stdout+result.stderr)
+ assert.ok(result.stdout.length>4000)
+ const handoff=JSON.parse(result.stdout)
+ assert.equal(await realpath(handoff.designerPrompt),await realpath(join(target,'docs/DESIGN-PROMPT.md')))
+ assert.equal(handoff.stage,'designer-alignment')
 })
 test('Git sync dry-run/fast-forward work; dirty and diverged clones are preserved',async t=>{
  const cwd=await temp(t),remote=join(cwd,'remote.git'),seed=join(cwd,'seed'),local=join(cwd,'local')

@@ -33,7 +33,7 @@ async function main() {
   for (const key of ['packageName','title','repository','description','slug','targetUsers','scenario','completion']) {
     if (typeof cfg[key] !== 'string' || !cfg[key].trim() || cfg[key].length > 1000 || /[\u0000-\u001f]/.test(cfg[key]) || /填写|TODO|<[^>]+>/.test(cfg[key])) throw new Error('Fill a real value: ' + key)
   }
-  if (!Array.isArray(cfg.coreFlow) || cfg.coreFlow.length < 2 || cfg.coreFlow.some((step) => typeof step !== 'string' || !step.trim() || /填写|TODO/.test(step))) throw new Error('coreFlow needs at least two confirmed steps')
+  if (!Array.isArray(cfg.coreFlow) || cfg.coreFlow.length < 2 || cfg.coreFlow.some((step) => typeof step !== 'string' || !step.trim() || /填写|TODO/.test(step))) throw new Error('coreFlow needs at least two initial steps')
   if (!/^(?:@[a-z0-9][a-z0-9._-]*\/)?[a-z0-9][a-z0-9._-]*$/.test(cfg.packageName)) throw new Error('Invalid npm packageName')
   if (!/^[a-z][a-z0-9-]*$/.test(cfg.slug)) throw new Error('slug must be a lower-case URL segment')
   if (!/^https:\/\/github\.com\/[a-zA-Z0-9][a-zA-Z0-9-]*\/[a-zA-Z0-9][a-zA-Z0-9._-]*\/?$/.test(cfg.repository)) throw new Error('repository must be a canonical GitHub HTTPS URL')
@@ -55,7 +55,7 @@ async function main() {
     }
   }
   await collect(join(starter, 'project-template'), '')
-  for (const dir of ['docs','templates','prompts','assets','reference','examples']) {
+  for (const dir of ['docs','templates','prompts','assets','reference','examples','skills']) {
     await collect(join(starter, dir), dir, (name) => name !== 'VALIDATION.md')
   }
   plan.set('AGENTS.md', await readFile(join(starter, 'AGENTS.md')))
@@ -94,8 +94,12 @@ async function main() {
   for (const item of assetManifest.assets) if (typeof item.source === 'string' && /^(?:\/|[a-zA-Z]:[\\/])/.test(item.source)) item.source = 'Community starter reference asset; see repository reference/sources.json'
   plan.set('assets/manifest.json', Buffer.from(JSON.stringify(assetManifest,null,2)+'\n'))
   plan.set('project.config.json', Buffer.from(JSON.stringify(cfg,null,2)+'\n'))
-  plan.set('docs/BRIEF.md', Buffer.from(`# 需求确认\n\n目标用户：${cfg.targetUsers}\n\n场景：${cfg.scenario}\n\n核心流程：\n${cfg.coreFlow.map((s,i)=>`${i+1}. ${s}`).join('\n')}\n\n完成结果：${cfg.completion}\n\n布局选择：${cfg.layoutMode}\n\n待补：Desktop 版本/平台、原型 hash、当前授权与离线/联网边界。\n`))
-  for (const name of ['SPEC','TASKS','ACCEPTANCE']) plan.set('docs/'+name+'.md', await readFile(join(starter,'templates',name+'.md')))
+  plan.set('docs/BRIEF.md', Buffer.from(`# 需求起点\n\n来源：初始化配置。用户、场景和流程是有效的SPEC互动素材；继承会话中已有明确确认，其余不能仅因配置通过校验就当成设计定稿或研究验证。\n\n目标用户：${cfg.targetUsers}\n\n场景：${cfg.scenario}\n\n核心流程：\n${cfg.coreFlow.map((s,i)=>`${i+1}. ${s}`).join('\n')}\n\n完成结果：${cfg.completion}\n\n初始布局选择：${cfg.layoutMode}\n\n先读取 docs/DESIGN-PROMPT.md，对齐设计者与研究/取舍原则，再逐项完善SPEC。待补：确认来源、Desktop 版本/平台、原型 hash、当前授权与离线/联网边界。\n`))
+  for (const name of ['SPEC','TASKS','ACCEPTANCE','RELEASE']) plan.set('docs/'+name+'.md', await readFile(join(starter,'templates',name+'.md')))
+  for (const name of ['DESIGNER-BRIEF','DESIGN-SESSION','DESIGN-REVIEW','SCHEMA','API-CONTRACT','UI-DESIGN','SETTINGS-DESIGN','PROTOTYPE-REVIEW','HVT-REVIEW','ONE-CHART-SPEC']) plan.set('docs/'+name+'.md', await readFile(join(starter,'templates',name+'.md')))
+  plan.set('docs/17-CLOSED-LOOP-PROJECT-FLOW.md', await readFile(join(starter,'docs/17-CLOSED-LOOP-PROJECT-FLOW.md')))
+  plan.set('docs/PARITY.csv', await readFile(join(starter,'templates/PARITY.csv')))
+  plan.set('docs/DESIGN-PROMPT.md', await readFile(join(starter,'prompts/DESIGNER-FIRST.md')))
   // Preflight every planned path before creating anything. No silent overwrite or symlink traversal.
   let starterMetadata = {name:'dsh-wb-cli',version:'unknown'}, revision = null, dirty = null
   try { starterMetadata = JSON.parse(await readFile(join(starter,'package.json'),'utf8')) } catch {}
@@ -137,6 +141,21 @@ async function main() {
     for (const path of created.reverse()) await unlink(path).catch(()=>{})
     throw error
   }
-  console.log(JSON.stringify({ generated:target, files:plan.size, layout:cfg.layoutMode, next:'Read AGENTS.md and docs/SPEC.md; then run npm run check. No install/publish performed.' }))
+  console.log(JSON.stringify({ generated:target, files:plan.size, layout:cfg.layoutMode,
+    stage:'designer-alignment',
+    designerPrompt:join(target,'docs/DESIGN-PROMPT.md'),
+    cancerPrompt:join(target,'prompts/NEW-CANCER-WORKBENCH.md'),
+    agentPanePrompt:join(target,'prompts/DSH-AGENT-PANE-INTEGRATION.md'),
+    designerBrief:join(target,'docs/DESIGNER-BRIEF.md'),
+    designSession:join(target,'docs/DESIGN-SESSION.md'),
+    prototypeReview:join(target,'docs/PROTOTYPE-REVIEW.md'),
+    settingsDesign:join(target,'docs/SETTINGS-DESIGN.md'),
+    oneChartSpec:join(target,'docs/ONE-CHART-SPEC.md'),
+    hvtReview:join(target,'docs/HVT-REVIEW.md'),
+    releaseChecklist:join(target,'docs/RELEASE.md'),
+    publishingGuide:join(target,'docs/10-MARKET-PUBLISHING.md'),
+    firstQuestion:'已有用户、场景和流程会继承。先按 prompts/DSH-AGENT-PANE-INTEGRATION.md 对照已有原型与当前实现；工作台保持中间主区，Agent 在右侧。请指出最影响用户完成任务的一个实现差距及其证据，再围绕未决设计者问题继续对话，不重复已知答案。',
+    next:'当前Agent现在立即展示 docs/DESIGN-PROMPT.md 与 prompts/DSH-AGENT-PANE-INTEGRATION.md 的实际路径并读取；如果集成原生Agent，先核对右侧可调宽、可隐藏重开、按需创建/复用会话及一键带入保护，再与用户互动。接着完善设计者章程与提示词，再开展研究/场景/SPEC，先交付HTML交互工作台由用户确认对应模块，再开发生产业务；新癌种HTML必须包含全局设置页，要求见docs/SETTINGS-DESIGN.md；模型独立于UI和流程。发布记录模板为docs/RELEASE.md，市场步骤为docs/10-MARKET-PUBLISHING.md。CLI只输出交接，不自动推送Git、创建Release、安装或投稿；逐项按用户授权执行。'
+  }))
 }
 main().catch(error=>{ console.error(error.message); process.exitCode=1 })

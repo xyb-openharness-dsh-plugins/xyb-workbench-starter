@@ -105,3 +105,17 @@ L23（本脚手架 test/cli.test.mjs）：macOS arm64 / npm 10.9.2 的实际测�
 ## 首次工作台市场投稿：避免重复验收消耗
 
 症状：作者已在指定版本手工验收并提供真实截图，Agent仍反复电脑操作、目录点击和界面扫描，消耗token/时间且可能扰动焦点。修复：自动检查包与来源，交互使用一张 [人工验收单](../templates/MARKET-ACCEPTANCE.md)；明确记录作者/版本/范围，复用确认，只有新改动、失败或缺项才补验。Computer Use受阻转人工，不循环尝试。投稿动作必须是向工作台市场仓库提交一条YAML的真实PR，不能用业务Git推送代替。完整命令及官方要求见 [市场发布流程](10-MARKET-PUBLISHING.md)。
+
+## 2026-10-17：小肺宝首版开发阶段经验
+
+- **原型冻结不等于实现完成**：保留用户确认的 v4 HTML 与 hash，再从 HTML 逐项建立功能 parity。开发期间不直接改冻结原型，也不把原型示例打进生产包；包清单检查应证明原型未混入。
+- **品牌资源走可复现构建**：不要把开发者机器绝对路径或文件读取放进客户端；将 Logo 作为构建输入，客户端嵌入数据 URI，并以测试核验资源存在。产品 `VERSION` 成为客户端与包版本的单一来源。
+- **RC peer 下限按目标 Desktop 实际版本锁定**：宽泛允许任意早期 RC 可能包含尚无目标接口的版本。对照目标 DSH Desktop app 内实际依赖及 API，明确最低 peer（本案核实为 `0.2.0-rc.2`），不要只按参考项目 lockfile 推断。
+- **DSH Desktop app 不等于 dsh web profile**：用户指定桌面 app 后，CLI 的 `web` profile 不可作为安装或验收替身。只读失败（如权限拒绝）后不要重复探测或写入；改查 Desktop app 自身的关于/插件管理/受支持诊断。运行中的目标 app 不由其内部 Agent 重启。
+- **`node:sqlite` 按目标 runtime 验证**：本机测试通过且出现 `ExperimentalWarning` 只能证明当前 Node 可运行，不能证明目标 DSH Desktop runtime。记录准确 Node/SQLite 能力；不支持时再按数据规模和迁移合同选择适配方案。
+- **代码推进时同步权威状态表**：若 `TASKS`、`PARITY`、`ACCEPTANCE` 仍写“未开始/全部未执行”，而代码与测试已变化，审查者无法确认真实状态。每个切片结束更新这些表，区分单测、浏览器、Desktop 实机、患者与临床审查证据。
+- **打包门禁不得泄露本机环境**：sandbox 下 npm 默认 cache/log 可能写到仓库外。将其定向到允许的临时目录，以结构化 JSON 核验 tarball 的客户端、服务端、数据库快照、版本和禁止文件；管道测试保留真实退出码。
+- **Desktop profile 安装需匹配 pnpm，并让 DSH CLI 完成注册同步**：`dsh plugin --profile desktop add` 可能在 PATH 中找到全局 pnpm，而 Desktop profile 自身声明另一个 `packageManager`；本案遇到 workspace-root 保护和 store 主版本冲突。读取 profile `packageManager`，让 `dsh plugin` 通过该确切 pnpm 版本执行（必要时用临时 PATH shim）并明确 `-w`。单独运行 pnpm 即使把 tarball 写进 `dependencies`，也不会同步 `dsh.profile.bundles`，工作台仍不会出现在 Desktop；以官方 DSH 插件入口完成安装/协调，并核对 profile manifest 注册数组、包版本和工作台列表。相同路径 tarball 更新必须递增版本；避免 Corepack 意外改写业务仓库的 `packageManager` 字段。
+- **开发候选包必须显式标 RC**：即使产品页面写着“开发中/未发布”，稳定版本号仍可能被误认为正式版。候选包统一使用 semver prerelease（如 `0.1.2-rc.1`），并校验 `package.json`、`VERSION`、客户端可见版本、tgz 名称和 Desktop profile specifier 五者完全一致；候选通过验收后再发布 stable。
+
+此案例仍在开发中。自动测试与静态包检查通过不代表 DSH Desktop app 已安装/加载，也不代表医学或患者验收通过。项目后续结果见该项目的 `docs/DEVELOPMENT-RETRO.md`。

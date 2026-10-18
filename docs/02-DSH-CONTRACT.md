@@ -36,6 +36,8 @@ npm 包名、patch 插件条目 ID、从 GitHub repository 推导的 `owner/repo
 - 报表、审核、宽表格等业务为主：优先评估 `customFrame: true`，首页先可用；用户主动请求 AI 才显示宿主传入的 conversation 节点。模板只演示业务壳，真实创建/恢复会话要另按目标 API 接入。
 - 对话为主：标准分栏，layout.businessWidth 合同范围 0.25–0.7；不要因 65% 不够就侵占宿主侧栏。
 - 根容器 min-width/min-height 为 0，内部滚动有界；用容器查询/ResizeObserver，不以整窗断点假设业务宽度。
+- CustomFrame 原生 Agent 的默认基线为右侧 35%，可调 25%–45%；工作区 620–760px 时顶栏换行且导航保留文字，窄于 620px 才折叠导航文字。按容器宽度设置断点；产品 SPEC 或用户明确确认后可调整。
+- AI-IDE 原生会话集成必须有配套的工作台+右栏 HTML 状态稿，覆盖关闭/打开、尺寸、拖动、重开、窄屏、加载失败与草稿冲突。原型可模拟布局，不得伪称已连接 DSH 会话；将每个状态记录到项目 `docs/AGENT-PANE-DESIGN.md`。
 - 不覆盖公共导航、设置、模式与窗口按钮。macOS 自定义 header 按 `--dsh-frame-leading-clearance` 避让。
 
 ## 文件与会话

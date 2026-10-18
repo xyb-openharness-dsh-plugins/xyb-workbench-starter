@@ -66,3 +66,32 @@ test('generated asset provenance has no developer absolute path; standard npm gi
 test('initializer rejects unexpected secret fields rather than copying them',async t=>{
  const f=await fixture(t,{...config,apiToken:'example-not-a-real-token'});const result=init(f);assert.notEqual(result.status,0);assert.match(result.stderr,/Unknown config key/);await assert.rejects(access(f.target))
 })
+
+test('init hands off existing designer documents before product specification, including relocated paths',async t=>{
+ const f=await fixture(t);f.target=join(f.dir,'患者 project')
+ const dry=init(f,root,['--dry-run']);assert.equal(dry.status,0,dry.stderr)
+ assert.equal(JSON.parse(dry.stdout).dryRun,true);await assert.rejects(access(f.target))
+ const result=init(f);assert.equal(result.status,0,result.stderr)
+ const handoff=JSON.parse(result.stdout);assert.equal(handoff.stage,'designer-alignment')
+ for(const key of ['designerPrompt','cancerPrompt','agentPanePrompt','designerBrief','designSession','prototypeReview','settingsDesign']) {
+  assert.ok(handoff[key].startsWith(f.target+'/'),key)
+  assert.ok((await readFile(handoff[key],'utf8')).length>100,key)
+ }
+ assert.ok(handoff.firstQuestion);assert.match(handoff.next,/Agent/);assert.match(handoff.firstQuestion,/右侧/)
+ const brief=await readFile(join(f.target,'docs/BRIEF.md'),'utf8')
+ assert.match(brief,/初始化配置/);assert.match(brief,/不是|不能/)
+ const session=await readFile(handoff.designSession,'utf8');assert.match(session,/designer-alignment/)
+ const cancer=await readFile(handoff.cancerPrompt,'utf8')
+ assert.match(cancer,/患者与照护者/);assert.match(cancer,/独立 review/)
+ const agentPane=await readFile(handoff.agentPanePrompt,'utf8')
+ assert.match(agentPane,/右侧/);assert.match(agentPane,/可拖动/);assert.match(agentPane,/隐藏与重开/);assert.match(agentPane,/创建一次/)
+ assert.doesNotMatch(cancer,/\/Users\/qinxiaoqiang/)
+ await access(join(f.target,'docs/DESIGN-REVIEW.md'))
+ for(const name of ['SCHEMA.md','API-CONTRACT.md','UI-DESIGN.md','SETTINGS-DESIGN.md','PARITY.csv','PROTOTYPE-REVIEW.md','17-CLOSED-LOOP-PROJECT-FLOW.md']) await access(join(f.target,'docs',name))
+ const lifecycle=await readFile(join(f.target,'docs/17-CLOSED-LOOP-PROJECT-FLOW.md'),'utf8')
+ assert.match(lifecycle,/DSH Desktop app/);assert.match(lifecycle,/>98%/);assert.match(lifecycle,/9 个月/)
+ assert.match(await readFile(handoff.prototypeReview,'utf8'),/待制作\/预览\/用户确认/)
+ const preserved=await readFile(handoff.designerPrompt)
+ assert.notEqual(init(f).status,0)
+ assert.deepEqual(await readFile(handoff.designerPrompt),preserved)
+})

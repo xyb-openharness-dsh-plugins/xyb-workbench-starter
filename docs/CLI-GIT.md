@@ -1,6 +1,6 @@
 # Git 同步、CLI 激活与项目初始化
 
-CLI 版本：1.1.0。Git 管理社区脚手架版本，`npm link` 将克隆目录激活为本机命令，`init` 把确认后的规范/模板/资产生成到业务项目。DSH Desktop 安装是业务包完成后的独立步骤。
+CLI 本地版本：1.3.0（待发布）。Git 管理社区脚手架版本，`npm link` 将克隆目录激活为本机命令，`init` 接收用户/场景/流程素材，生成规范/模板/资产和设计者对话入口。DSH Desktop 安装是业务包完成后的独立步骤。
 
 ## 首次部署脚手架
 
@@ -32,7 +32,7 @@ dsh-wb-cli check
 
 已有配置可用 `--config /path/to/confirmed-config.json`；不需要反复填写。没有确认业务时，prepare 仅生成需求配置，不创建业务代码。默认配置仍是示例，填写完成才允许 init。所有计划文件含 `.dsh-wb-starter.json` 一起做冲突预检查，不覆盖同名文件。
 
-生成目录保存 `AGENTS.md`、docs/SPEC/BRIEF/TASKS/ACCEPTANCE、功能/契约模板、assets、官方快照和接入骨架；`.dsh-wb-starter.json` 记录 CLI 版本、Git commit、dirty 状态和生成时间，不含原机器路径。它是可开发起点，不代表业务已实现或 Desktop 已加载。
+生成目录保存 `AGENTS.md`、docs/SPEC/BRIEF/TASKS/ACCEPTANCE/RELEASE、市场发布指南、功能/契约模板、assets、官方快照和接入骨架；`.dsh-wb-starter.json` 记录 CLI 版本、Git commit、dirty 状态和生成时间，不含原机器路径。`docs/RELEASE.md` 记录发布授权和结果；`docs/10-MARKET-PUBLISHING.md` 说明Git、Release与市场PR的边界。init只生成文档，不推送、不安装、不创建Release或投稿。它是可开发起点，不代表业务已实现或 Desktop 已加载。
 
 ## 日常同步
 
@@ -65,3 +65,8 @@ pack 先运行社区静态包检查，再检查 prepack/prepare/postpack；存�
 ## 本机验收与跨平台
 
 本版在 macOS arm64 / Node v23.6.1 验证。Windows/Linux 未实机验证；命令使用 Node 参数数组而非拼接用户 shell，npm 在 Windows 的入口仍需目标平台检验。CLI doctor 只报告工具与 Git、应用目录是否存在，不探测进程、不读取 token、不确定运行版本与 profile，也不重启 Desktop。
+
+
+## init后的设计者对齐
+
+init输出 `designerPrompt`、`cancerPrompt`、`designerBrief`、`designSession` 的绝对路径、`stage: designer-alignment` 和首问示意。脚手架不调用模型或启动聊天；当前Agent读取提示词后立即展示路径，以已有输入为素材对齐角色/研究/取舍，再开展调研与SPEC。已有确认继续有效，配置完整不等于研究/设计验证完成。按 [流程](13-DESIGNER-FIRST.md) 更新项目提示词和设计会话；泛用项目不强制使用癌种内容。

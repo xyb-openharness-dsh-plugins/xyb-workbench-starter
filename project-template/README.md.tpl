@@ -2,7 +2,11 @@
 
 @@DESCRIPTION@@
 
-这是接入骨架，尚未实现真实业务。需求见 [docs/BRIEF.md](docs/BRIEF.md)，设计见 [docs/SPEC.md](docs/SPEC.md)，任务见 [docs/TASKS.md](docs/TASKS.md)。阅读 [AGENTS.md](AGENTS.md) 后再开发。
+这是接入骨架，尚未实现真实业务。初始化后先将 [项目设计提示词](docs/DESIGN-PROMPT.md) 交给当前Agent；它应展示实际路径并以已有用户/场景/流程素材对齐设计者、研究与取舍原则。癌种项目另有 [完整专用提示词](prompts/NEW-CANCER-WORKBENCH.md)。需求见 [BRIEF](docs/BRIEF.md)，规格见 [SPEC](docs/SPEC.md)，任务见 [TASKS](docs/TASKS.md)；先读 [AGENTS](AGENTS.md)。CLI输出交接与首问，实际对话由Agent接续。
+
+## 开发顺序
+
+先共创SPEC和候选数据关系，再交付HTML交互工作台；由用户确认对应版本/模块后，复核SCHEMA/API并实现生产功能。确认记录见docs/PROTOTYPE-REVIEW.md；模型不依赖前端Tab/流程。模板骨架不是业务已确认。
 
 ## 当前能力
 
@@ -30,3 +34,7 @@ Logo 来源与使用限制见 assets/README.md。许可证、作者、仓库/发
 感谢小x宝社区、DataElement 社区，以及 sam / hhx / 繁华的 ❤️ 贡献。
 
 初始化来源记录见 `.dsh-wb-starter.json`。更新社区脚手架不会覆盖本项目；需要升级时先用相同确认配置在临时目录生成，再审阅差异。CLI 用法见 [docs/CLI-GIT.md](docs/CLI-GIT.md)。
+
+## HTML先行与数据演进
+
+业务开发前先交付HTML交互工作台原型、实际预览并由用户确认版本/hash和范围。数据设计先区分领域事实、流程状态和页面读模型，走查前端/流程变化、兼容与迁移；原型对象不直接作为表。见[规范](docs/14-HTML-AND-DATA-CONTRACT.md)。

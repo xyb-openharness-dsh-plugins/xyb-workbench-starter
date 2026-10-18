@@ -22,7 +22,23 @@
 
 ## 安装到正确 Desktop
 
+发布目标必须由用户和项目明确。若目标为 **DSH Desktop app**，不可把 `dsh web`、通用 `--profile web`、全局 CLI 安装或“官方版”视为等价目标。先从正在运行/待验收的 Desktop app 核对版本、RC 标记、安装入口和活动 profile/generation；包 peer 范围须含目标 RC，构建/Node runtime/包管理器要与实际安装环境一致。若应用版本信息暂时不可见，记录“未核实”，先查 app 的关于/插件管理或受支持诊断入口，不推测版本。不要为了发现版本改写活动 profile。
+
 **本机更新必须交付到已安装版本，而不止推送代码。** 用户要求“更新到 Desktop”“部署新版”“让我在本机看到修改”时，Agent应连续完成构建版本化安装包、通过目标宿主支持的入口更新、核对实际安装版本，并由用户或Agent打开确认。只有用户明确要求Git推送时，交付范围才止于Git。
+
+**明确区分 DSH Desktop app 与通用 DSH CLI profile。** `dsh plugin --profile desktop add` 成功、`~/.dsh/profiles/desktop` 中依赖/bundle 已登记，只证明通用 CLI profile 被修改；不能推断它是 `/Applications/DSH Desktop.app` 使用的内部 profile，也不能把重启后仍未出现的工作台归因于缓存。要交付到 Desktop app，先从该 app 当版开发指南、已安装工作台管理页或受支持的诊断/CLI 确认本地 `.tgz` 安装入口和目标内部 profile/generation。安装后核验 app 自己的 workbench 注册状态、已安装列表与切换器条目，再重启验证加载；不得直接改 app 的状态 JSON、lockfile、活动链接或插件投影来绕过安装器。若找不到 app 明确支持的入口，保留 tarball 与 hash，报告“CLI profile 已安装、Desktop app 未安装”，不得声称已部署。
+
+macOS 上若当前 Desktop 随附的 CLI 明确支持本地 tarball，且该 app 的 `.desktop-bin/pnpm` 是其 profile package runner，先从 app 帮助确认 profile 名，再显式设置 app 自己的 DSH_HOME 与 runner。示意：
+
+```bash
+export DSH_HOME='<DSH Desktop app 的 Harness 数据目录>'
+export PATH="$DSH_HOME/.desktop-bin:$PATH"
+dsh plugin --profile '<app 内部 profile>' add -w --save-exact 'file:/absolute/path/workbench-version.tgz'
+```
+
+此处 app 内部 profile 即使叫 `web`，也必须确认 `DSH_HOME` 指向 DSH Desktop app 的 Harness；不要运行 `dsh web`，也不要省略 DSH_HOME。安装后核对 app profile 的 `package.json` dependency 与 `dsh.profile.bundles`、node_modules 版本、`desktop-workbenches/state.json` 注册及 tarball hash；在另一 profile 核实没有意外安装。CLI 的 `--dump-config` 若无法加载 app 提供的私有 bundle，不应作为错误 profile 的证据，也不代表 Desktop UI 已加载。
+
+若 CUA 看不到 Desktop 窗口，先用 app 自身受支持方式打开/检查；macOS 上可只读核验 `Contents/MacOS/<CFBundleExecutable>` 是否存在，并运行 `codesign --verify --deep --strict '<目标 Desktop.app>'`。如 Launch Services 返回启动错误或签名无效，记录原始结果和 app 版本，暂停宿主 UI 验收并交由 app 维护方恢复。不要通过改二进制、移除 quarantine、重签、重装覆盖或直接编辑 app bundle 来绕过；也不要把该宿主故障误判为工作台加载失败或工作台兼容证据。
 
 正常更新按最短路径执行：
 
