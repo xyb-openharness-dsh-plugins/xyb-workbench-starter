@@ -1,5 +1,17 @@
 # 变更记录
 
+## 1.3.9 — 2026-10-18（本地待发布）
+
+- 新增 [一图秀动效与事件交互提示词](prompts/TIMELINE-MOTION-AND-EVENTS.md)，沉淀小巢宝原型的趋势重播、独立事件泳道、节点/标签同ID联动、日期对齐、密集事件避让和减少动效终态；接入AGENTS、README索引、19号原型工艺与UI-REVIEW，init随prompts目录自动分发。品牌与癌种医学场景按项目替换。
+
+- 新增 [docs/21-RESEARCH-PLAYBOOK.md](docs/21-RESEARCH-PLAYBOOK.md)：罕见病/新病种**调研手册**（设计→执行→输出）。来源：FSHD 工作台首调研（组织与患者证据部分）。要点：①输入=社群基础资料+关键人物+已确认 V 清单；②四条检索线（人物→组织→研究→管线，无药病种必须保留失败/停止管线）；③证据 A/B/未核实分级 + 资源条目七字段（`limit` 强制存在，防名单变推荐）；④输出三件套（RESEARCH 主文档 7 节结构 / research/ 证据稿 / 回写 SPEC·SCENARIOS·原型）；⑤发布前质量自查五条。不绑定病种。
+
+- 新增 [docs/22-PHASES-AND-GATES.md](docs/22-PHASES-AND-GATES.md)：**三阶段×三闸口开发流程速查**（必记心智模型）。来自 FSHD 工作台流程对齐：Phase1 设计（schema 只是草案）→ G1/G2/G3 三道签认闸口（顺序不可跳、逐个留痕；HTML 是 G2 权限闸口，G3 未过不建表）→ Phase2 数据（正式迁移+冻结+demo manifest）→ Phase3 开发与三层验证（V1 npm check / V2 装机 / V3 业务）→ 反馈进台账循环。含与 17 号 10 阶段的映射表和 4 个最易踩坑。STARTER-SPEC「开发流程」节与 README 阅读表已接线。
+
+## 1.3.8 — 2026-10-18（本地待发布）
+
+- docs/06-VALIDATION-AND-RELEASE「安装到正确 Desktop」补**本机实证案例**（breast-cancer-workbench 首装踩坑，同日两轮修正）：**DSH Desktop 实际读 `~/Library/Application Support/dsh-desktop/harness/profiles/web`**——`~/.dsh/profiles/web`（CLI 用）和 `~/.dsh/profiles/desktop`（名字带 desktop 但 Desktop 不读）都装错过一次，重启后列表没有就是没装对地方。附完整清单：判定法（看 harness profile 里已显示工作台的同款登记）、file:tgz + `dsh.profile.bundles` 双登记、corepack 遵循 profile 的 `packageManager`、**pnpm 同版本号不替换内容必须 remove+add**、`NODE_OPTIONS` shim 拦 symlink、CLI 短启验证的错误排除法、cordis `apply` 非 async 契约。
+
 ## 1.3.7 — 2026-10-18（本地待发布）
 
 - 沉淀乳腺癌工作台 `docs/AGENT-PANE-DESIGN.md` 为**不绑定癌种的通用模板**：新增 [docs/20-AGENT-PANE-DESIGN.md](docs/20-AGENT-PANE-DESIGN.md)。要点：①先摆集成现状证据（V1/V2/AI 代码/入口/可移植参考五项，未验证就写未验证）；②版式判定分 CustomFrame 与 split 两形态——35%/25–45% 拖宽基线只适用 CustomFrame，split 下会话节点归宿主、工作台不自建 splitter；③交互合同七条逐项落地（入口四态、会话创建、来源页四类衔接——**未核对候选禁止进草稿**、宿主 API 缺位走剪贴板回退不自建聊天框、草稿冲突三选、AI 输出零沉淀、私密默认不进草稿）；④数据模型解耦四行表；⑤验收清单七条骨架（V2 实机才算验收）；⑥未决问题固定四问。

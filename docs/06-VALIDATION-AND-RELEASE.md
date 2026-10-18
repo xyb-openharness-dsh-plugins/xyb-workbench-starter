@@ -38,6 +38,17 @@ dsh plugin --profile '<app 内部 profile>' add -w --save-exact 'file:/absolute/
 
 此处 app 内部 profile 即使叫 `web`，也必须确认 `DSH_HOME` 指向 DSH Desktop app 的 Harness；不要运行 `dsh web`，也不要省略 DSH_HOME。安装后核对 app profile 的 `package.json` dependency 与 `dsh.profile.bundles`、node_modules 版本、`desktop-workbenches/state.json` 注册及 tarball hash；在另一 profile 核实没有意外安装。CLI 的 `--dump-config` 若无法加载 app 提供的私有 bundle，不应作为错误 profile 的证据，也不代表 Desktop UI 已加载。
 
+**本机实证（2026-10-18，breast-cancer-workbench 首装踩坑实录，同日两轮修正）——装错 profile 是最容易犯的错：**
+
+- **DSH Desktop app 实际读的 profile 是 `~/Library/Application Support/dsh-desktop/harness/profiles/web`**（name 叫 "dsh-profile-web"，pnpm 10.34.5，带 generationProjection）。**两个都不对**：`~/.dsh/profiles/web`（全局 CLI 用）和 `~/.dsh/profiles/desktop`（CLI 的另一个 profile，名字带 desktop 但 Desktop 不读它）——两次都装错过，重启后列表里没有就是没装对地方。
+- 判定法（唯一可靠）：看 `harness/profiles/web/package.json` 里已正常显示的工作台的 `file:` tgz 登记，照抄同款装法；`harness/` 下每个工作台还有同名数据目录可交叉印证。不要凭 profile 目录名猜。
+- 安装约定 = 机器既有：该 profile `package.json` 加 `file:` tgz 依赖 + `dsh.profile.bundles` 数组登记包名（两处都改，缺一不可）；改完校验 JSON 合法性。
+- **用 profile 自己声明的 pnpm**：在 `harness/profiles/web` 里 `corepack pnpm add -w <tgz>` 自动遵循 `packageManager` 字段（10.34.5）。装完 `grep -c <新代码特征>` 核对安装副本真的是新版。
+- **pnpm 同版本号不替换内容**：改包重装若版本号没变，`added 0`，装进去的还是旧文件。改包后要么升版本号，要么 `pnpm remove -w <pkg> && pnpm add -w <tgz>`。
+- 本机 WorkBuddy 环境的 `NODE_OPTIONS` 注入 shim 会拦 pnpm 的 symlink 写入（`ERR_PNPM_CODEBUDDY_BROKER_DENY`）：`NODE_OPTIONS= corepack pnpm …` 且需关 bash 沙箱。
+- CLI 短启验证 profile 时，错误列表里**没有自己包的名字**才算通过；存量包报错（版本倾斜、凭据格式）先对照实验（摘掉自己的包再启一次）排除，不要顺手改用户凭据文件。
+- cordis 对宿主 `apply` 的返回值严格检查：**必须非 async、返回 undefined**，实例走模块级单例 + 导出 getter 给测试；async resolve 普通对象直接 `Invalid effect`。
+
 若 CUA 看不到 Desktop 窗口，先用 app 自身受支持方式打开/检查；macOS 上可只读核验 `Contents/MacOS/<CFBundleExecutable>` 是否存在，并运行 `codesign --verify --deep --strict '<目标 Desktop.app>'`。如 Launch Services 返回启动错误或签名无效，记录原始结果和 app 版本，暂停宿主 UI 验收并交由 app 维护方恢复。不要通过改二进制、移除 quarantine、重签、重装覆盖或直接编辑 app bundle 来绕过；也不要把该宿主故障误判为工作台加载失败或工作台兼容证据。
 
 正常更新按最短路径执行：

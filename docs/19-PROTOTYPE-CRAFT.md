@@ -4,17 +4,19 @@
 
 **颜色不锁定**：令牌只有结构是合同，色值按癌种替换（第 9 节给出四个癌种的覆盖示例）。参考实现路径只在社区仓库 `xfb-workbench/prototypes/v0.3/`（style.css 428 行 / app.js 单文件），本页所有规则都能在那里找到原句。
 
+配套可直接交给开发模型的完整提示词：[一图秀动画、事件节点与标签](../prompts/TIMELINE-MOTION-AND-EVENTS.md)。覆盖重播保留状态、统一描边动画、独立事件泳道、同日避让、节点与标签同ID联动、来源详情、候选隔离及减少动效终态；与16号数据合同一起使用。初始化项目时自动携带，具体色值与治疗场景按项目替换。
+
 ## 1. 设计令牌：只定结构，不定颜色
 
 `:root` 令牌分五组，换癌种只动其中三组：
 
-| 组 | 变量（breast 参考值） | 换肤规则 |
-| --- | --- | --- |
-| 中性层 | `--paper:#fbf8f9`（页底）、`--surface:#fff`（卡面）、`--ink/--ink-2/--muted`（三级文字） | 保持"纸感微暖底 + 纯白卡"结构；色相往品牌色方向偏 3–5 度 |
-| 品牌三档 | `--pink-soft:#fff0f5`（块面）/`--pink:#ffa1bd`（装饰）/`--pink-deep:#983654`（文字级品牌色，必须过对比度） | **soft 档永远浅到能当背景、deep 档深到能当正文色**，中间档只做点缀（圆点、光标、hover） |
-| 行动色 | `--action:#a8410a`（橙）+ `--action-hover` | **与品牌色刻意分离**：粉品牌 + 橙主按钮，按钮因此一眼可辨。新癌种行动色取品牌色的互补方向（冷品牌配暖行动，反之亦然） |
-| 语义色 | `--ok/--warn/--warn-bg` + pill 五色（green/pink/yellow/rose/grey） | pill 是"浅底深字"对，不是纯色块；语义色不与品牌色混用 |
-| 结构 | `--line/--line-strong`、`--radius:16px`/`--radius-sm:10px`、`--shadow`（两层极淡）、`--font:15px`（`body.large` 时 17px） | 线色 = 品牌色掺灰；阴影永远 `rgba(品牌深色, .04~.07)` 两层，**不用黑** |
+| 组    | 变量（breast 参考值）                                                                                                | 换肤规则                                                           |
+| ---- | ------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| 中性层  | `--paper:#fbf8f9`（页底）、`--surface:#fff`（卡面）、`--ink/--ink-2/--muted`（三级文字）                                      | 保持"纸感微暖底 + 纯白卡"结构；色相往品牌色方向偏 3–5 度                              |
+| 品牌三档 | `--pink-soft:#fff0f5`（块面）/`--pink:#ffa1bd`（装饰）/`--pink-deep:#983654`（文字级品牌色，必须过对比度）                           | **soft 档永远浅到能当背景、deep 档深到能当正文色**，中间档只做点缀（圆点、光标、hover）          |
+| 行动色  | `--action:#a8410a`（橙）+ `--action-hover`                                                                       | **与品牌色刻意分离**：粉品牌 + 橙主按钮，按钮因此一眼可辨。新癌种行动色取品牌色的互补方向（冷品牌配暖行动，反之亦然） |
+| 语义色  | `--ok/--warn/--warn-bg` + pill 五色（green/pink/yellow/rose/grey）                                                | pill 是"浅底深字"对，不是纯色块；语义色不与品牌色混用                                 |
+| 结构   | `--line/--line-strong`、`--radius:16px`/`--radius-sm:10px`、`--shadow`（两层极淡）、`--font:15px`（`body.large` 时 17px） | 线色 = 品牌色掺灰；阴影永远 `rgba(品牌深色, .04~.07)` 两层，**不用黑**               |
 
 全局硬规则：`font-variant-numeric:tabular-nums` 加在 body 与一切数字上（数值列不跳宽）；`min-height:44px` 触达底线；`:focus-visible` 3px 品牌深色 outline + 2px offset；正文行高 1.68；`h1` 用 `clamp(26px,2.3vw,33px)` 负字距。
 
@@ -32,36 +34,36 @@
 
 ## 3. 组件要素（CSS 要点直录）
 
-| 组件 | 要素 |
-| --- | --- |
-| 页头 | `.eyebrow`（11px/字距1.4/全大写品牌深色）→ `h1` → 一句 62ch 上限的说明；右侧 `.actions` 按钮组 |
-| 卡片 | 白底 1px 线 16px 圆角 20px 内边距；`.card-head` 标题 + 右侧小字；`.card.accent` 用 160deg 双色浅渐变做"重点卡" |
-| pill | 五色语义标签，`border-radius:20px`、11px 字、浅底深字；状态一律有 pill，不靠颜色单通道 |
-| 空态 | 虚线边框 + 居中 + 明确下一步（"扩大时间范围，或在左侧加选一个指标"）——**空态必须教用户怎么走** |
-| notice | 四种：默认灰 / pink 提示 / warn 黄 / plain 米；免责与说明的固定载体 |
-| hero | 135deg 浅渐变 + 20px 圆角 + 右侧圆形吉祥物（白圈 5px 边 + 大阴影）；<900px 吉祥物隐藏不占位 |
-| 任务入口 | 网格 28px 图标 + 标题 + 副文案 + 箭头；hover `translateY(-2px)` + 阴影 + 描边加深 |
-| chips | `aria-pressed` 开关组：选中**反转为深底白字**（breast 用 `#3b2f36` 墨色，不用品牌色，避免和大选中） |
-| rail 侧栏 | `position:sticky;top:76px`；`details.pick` 折叠选择器（`summary::after` 用 ▸/▾ 字符）；`.metric-list` 限高 300px + **底部 mask-image 渐隐**提示可滚 |
-| 表格 | 表头 11px 灰不加粗线、行间线浅到 `#f5ebef`、数字列 `td.num` tabular-nums；`.table-wrap{overflow-x:auto}` 只在容器内滚 |
-| subnav | 下边框 tab：选中 = 文字变品牌深色 + 2px 下划线，无背景块 |
-| dialog | `width:min(660px,100vw-32px)`；**外壳固定**：head/body/foot 三段，只有 body 滚（`max-height:calc(100vh-250px)`）；`::backdrop` 加 `blur(2px)`；关闭按钮是 38px 圆形 icon-button |
-| toast | 底部居中，`translate(-50%,14px)→0` + opacity 过渡，`role="status" aria-live="polite"` |
-| private 卡 | 淡紫底淡紫边（与品牌色区分的"另一系"），标题 12.5px 深紫——私密内容视觉上就与其他卡不同 |
-| ver-chip | 顶栏常驻版本号胶囊，tabular-nums 防宽度跳动，点开"关于" |
+| 组件        | 要素                                                                                                                                                      |
+| --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 页头        | `.eyebrow`（11px/字距1.4/全大写品牌深色）→ `h1` → 一句 62ch 上限的说明；右侧 `.actions` 按钮组                                                                                  |
+| 卡片        | 白底 1px 线 16px 圆角 20px 内边距；`.card-head` 标题 + 右侧小字；`.card.accent` 用 160deg 双色浅渐变做"重点卡"                                                                    |
+| pill      | 五色语义标签，`border-radius:20px`、11px 字、浅底深字；状态一律有 pill，不靠颜色单通道                                                                                              |
+| 空态        | 虚线边框 + 居中 + 明确下一步（"扩大时间范围，或在左侧加选一个指标"）——**空态必须教用户怎么走**                                                                                                  |
+| notice    | 四种：默认灰 / pink 提示 / warn 黄 / plain 米；免责与说明的固定载体                                                                                                          |
+| hero      | 135deg 浅渐变 + 20px 圆角 + 右侧圆形吉祥物（白圈 5px 边 + 大阴影）；<900px 吉祥物隐藏不占位                                                                                          |
+| 任务入口      | 网格 28px 图标 + 标题 + 副文案 + 箭头；hover `translateY(-2px)` + 阴影 + 描边加深                                                                                         |
+| chips     | `aria-pressed` 开关组：选中**反转为深底白字**（breast 用 `#3b2f36` 墨色，不用品牌色，避免和大选中）                                                                                    |
+| rail 侧栏   | `position:sticky;top:76px`；`details.pick` 折叠选择器（`summary::after` 用 ▸/▾ 字符）；`.metric-list` 限高 300px + **底部 mask-image 渐隐**提示可滚                           |
+| 表格        | 表头 11px 灰不加粗线、行间线浅到 `#f5ebef`、数字列 `td.num` tabular-nums；`.table-wrap{overflow-x:auto}` 只在容器内滚                                                           |
+| subnav    | 下边框 tab：选中 = 文字变品牌深色 + 2px 下划线，无背景块                                                                                                                     |
+| dialog    | `width:min(660px,100vw-32px)`；**外壳固定**：head/body/foot 三段，只有 body 滚（`max-height:calc(100vh-250px)`）；`::backdrop` 加 `blur(2px)`；关闭按钮是 38px 圆形 icon-button |
+| toast     | 底部居中，`translate(-50%,14px)→0` + opacity 过渡，`role="status" aria-live="polite"`                                                                           |
+| private 卡 | 淡紫底淡紫边（与品牌色区分的"另一系"），标题 12.5px 深紫——私密内容视觉上就与其他卡不同                                                                                                       |
+| ver-chip  | 顶栏常驻版本号胶囊，tabular-nums 防宽度跳动，点开"关于"                                                                                                                     |
 
 ## 4. 动效系统（时长、缓动、降级三件套）
 
-| 动效 | 参数 |
-| --- | --- |
-| 页面进入 | `pageIn .34s cubic-bezier(.2,.7,.3,1)`：opacity 0→1 + `translateY(7px)→0`，每次 hash 切页都重放 |
-| 折线绘制 | **`pathLength="1"`** 归一 + `stroke-dasharray:1;stroke-dashoffset:1` + `animation:draw .85s cubic-bezier(.3,.7,.3,1) forwards`。曲线长短不同也统一 0.85s 画完，不用按长度算时长 |
-| 数据点 | `pop .28s` scale .4→1；sparkline 逐点 `animation-delay:${i*45}ms` 波次进场 |
-| 指标卡翻转 | **真 3D**：`.mcard{perspective:1200px}` + `-inner{transform-style:preserve-3d;transition:transform .62s cubic-bezier(.2,.72,.2,1)}` + 两面 `backface-visibility:hidden`、背面预置 `rotateY(180deg)`；**固定高度 194px**——不是展开插入内容；`will-change:transform` |
-| hover 微浮 | 卡片 `translateY(-2px)` + 阴影 + 描边加深，`.18s`；按钮底色/描边 `.16s` |
-| 进度条 | `width .6s ease`（载入后从 0 长到位） |
-| tooltip | opacity `.12s`，`translate(-50%,-118%)` 悬在点上方 |
-| **减少动效** | `@media(prefers-reduced-motion:reduce)`：所有动画/过渡压到 `.01ms`，**折线单独恢复终态**（`stroke-dasharray:none;stroke-dashoffset:0`）——不能让用户看到空白图 |
+| 动效       | 参数                                                                                                                                                                                                                                          |
+| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 页面进入     | `pageIn .34s cubic-bezier(.2,.7,.3,1)`：opacity 0→1 + `translateY(7px)→0`，每次 hash 切页都重放                                                                                                                                                      |
+| 折线绘制     | **`pathLength="1"`** 归一 + `stroke-dasharray:1;stroke-dashoffset:1` + `animation:draw .85s cubic-bezier(.3,.7,.3,1) forwards`。曲线长短不同也统一 0.85s 画完，不用按长度算时长                                                                                    |
+| 数据点      | `pop .28s` scale .4→1；sparkline 逐点 `animation-delay:${i*45}ms` 波次进场                                                                                                                                                                         |
+| 指标卡翻转    | **真 3D**：`.mcard{perspective:1200px}` + `-inner{transform-style:preserve-3d;transition:transform .62s cubic-bezier(.2,.72,.2,1)}` + 两面 `backface-visibility:hidden`、背面预置 `rotateY(180deg)`；**固定高度 194px**——不是展开插入内容；`will-change:transform` |
+| hover 微浮 | 卡片 `translateY(-2px)` + 阴影 + 描边加深，`.18s`；按钮底色/描边 `.16s`                                                                                                                                                                                     |
+| 进度条      | `width .6s ease`（载入后从 0 长到位）                                                                                                                                                                                                                |
+| tooltip  | opacity `.12s`，`translate(-50%,-118%)` 悬在点上方                                                                                                                                                                                                |
+| **减少动效** | `@media(prefers-reduced-motion:reduce)`：所有动画/过渡压到 `.01ms`，**折线单独恢复终态**（`stroke-dasharray:none;stroke-dashoffset:0`）——不能让用户看到空白图                                                                                                             |
 
 缓动只用三个：进出场 `cubic-bezier(.2,.7,.3,1)`、线条 `cubic-bezier(.3,.7,.3,1)`、翻转 `cubic-bezier(.2,.72,.2,1)`。不引入动画库。
 

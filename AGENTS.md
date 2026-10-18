@@ -27,6 +27,8 @@ init后先读取并向用户展示 `docs/DESIGN-PROMPT.md` 的实际路径，以
 
 多指标趋势页按 [docs/16-ONE-CHART-SPEC.md](docs/16-ONE-CHART-SPEC.md) 做，项目口径填在 `docs/ONE-CHART-SPEC.md`（来自 `templates/ONE-CHART-SPEC.md`）。三条不可让步：每条线按**该指标全期** min/max 归一化并写明不可比；单点不连线、空窗口给空态；治疗条与数据区分层。移动端网格轨道一律 `minmax(0,1fr)`，图表的横向滚动只能发生在图表容器内。指标卡翻转为固定高度 + `preserve-3d`，不是展开插入内容。C1–C12 断言属 G2 签认范围，不做"开发自测"了事。
 
+设计或改造一图秀时，同时读取 [prompts/TIMELINE-MOTION-AND-EVENTS.md](prompts/TIMELINE-MOTION-AND-EVENTS.md)，把动画重播、独立事件泳道、事件标签与节点同ID联动、日期映射、减少动效终态纳入原型和 parity 审核。提示词参数是复刻目标，不是已完成证据；先用HTML呈现并记录确认范围，再同步正式工作台。品牌与医学场景按项目适配。
+
 ## HTML确认与数据合同（实施前）
 
 必须先交付可打开、可点击的HTML工作台，展示路径和操作路线，用户明确确认对应版本/模块后才实现生产业务。记录HTML版本/hash、预览、反馈、确认范围到docs/PROTOTYPE-REVIEW.md/PARITY；静态截图或文字SPEC不代替交互确认。模拟数据/壳/MockAdapter不等于业务接通。模型以稳定领域/证据/主体/版本关系为核心，UI和流程为可变读模型/命令用例，不按Tab建事实表或直接存整页state。SCHEMA/API候选可并行设计，HTML确认后再复核落实生产schema/迁移。详见docs/14-HTML-AND-DATA-CONTRACT.md。

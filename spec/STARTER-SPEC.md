@@ -10,6 +10,8 @@ AGENTS 为短规则入口；docs 为分主题指南；templates 为需求、规�
 
 ## 开发流程
 
+整体推进顺序与签认闸口见 [docs/22-PHASES-AND-GATES](../docs/22-PHASES-AND-GATES.md)（三阶段×三闸口速查；详细规则见 docs/17）。要点：G1 业务 → G2 HTML → G3 数据模型，三道闸口顺序不可跳、逐个留痕；G3 未过不建表。
+
 1. 检查现状并继承已明确需求，模板就绪后通过互动完成填写。
 2. 选择实际可用的 UI 专用技能，可结合 Taste Seed；完成原型、预览和开发者确认。
 3. 建立功能树/PARITY、数据/API 与宿主能力矩阵；比较 JSON、SQLite 和可选记忆方案。

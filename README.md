@@ -1,6 +1,6 @@
 # 小胰宝 / 小x宝社区 Workbench 开发脚手架
 
-当前本地版本：**1.3.7（待发布）**。新增原型工艺复刻指南（令牌骨架/动效系统/交互细节，颜色按癌种换）、DSH 原生 Agent 右侧面板复用提示词与对应的落地设计模板（CustomFrame/split 双形态判定，不绑定癌种）；保留init的用户、场景、流程前置输入。变更见 [CHANGELOG](CHANGELOG.md)。本地修改尚未推送或创建远端tag。
+当前本地版本：**1.3.9（待发布）**。新增 22 号「三阶段×三闸口」开发流程速查与 21 号调研手册；docs/06 补 Desktop 装机实证（**Desktop 读 `~/.dsh/profiles/desktop` 不是 web**、pnpm 同版本不替换须 remove+add、cordis apply 契约）；另有原型工艺复刻指南（令牌骨架/动效系统/交互细节，颜色按癌种换）、DSH 原生 Agent 右侧面板复用提示词与对应的落地设计模板（CustomFrame/split 双形态判定，不绑定癌种）；保留init的用户、场景、流程前置输入。变更见 [CHANGELOG](CHANGELOG.md)。本地修改尚未推送或创建远端tag。
 
 把业务需求、交互原型变成可在 DSH Desktop 安装使用的工作台。面向社区新手与协作开发 Agent，提供互动设计、数据建模、界面实现、测试修复和部署验收流程，并整理项目实践中的典型错误和修复方法。
 
@@ -76,7 +76,10 @@ python3 skills/hvt-requirement-review/scripts/hvt_scan.py --project . --profile 
 | **癌种特有高价值场景是否真的落地（G1 需求审核）** | [15-HVT-REVIEW](docs/15-HVT-REVIEW.md) + [技能包](skills/hvt-requirement-review/SKILL.md) |
 | **多指标时间轴（一图秀）与指标卡翻转** | [16-ONE-CHART-SPEC](docs/16-ONE-CHART-SPEC.md) + [项目填写模板](templates/ONE-CHART-SPEC.md) |
 | **原型工艺复刻：令牌骨架、动效系统、交互细节（颜色按癌种换）** | [19-PROTOTYPE-CRAFT](docs/19-PROTOTYPE-CRAFT.md) |
+| **一图秀动画重播、事件泳道与标签联动的完整实现提示词** | [TIMELINE-MOTION-AND-EVENTS](prompts/TIMELINE-MOTION-AND-EVENTS.md) |
 | **Agent 对话面板落地设计（先判定版式形态、摆证据、列未决，不绑定癌种）** | [20-AGENT-PANE-DESIGN](docs/20-AGENT-PANE-DESIGN.md) |
+| **三阶段×三闸口开发流程速查（必记心智模型，G1/G2/G3 签认规则）** | [22-PHASES-AND-GATES](docs/22-PHASES-AND-GATES.md) |
+| **罕见病/新病种调研手册（设计→执行→输出，证据分级）** | [21-RESEARCH-PLAYBOOK](docs/21-RESEARCH-PLAYBOOK.md) |
 | 包声明、注册、原生会话、宿主边界 | [02-DSH-CONTRACT](docs/02-DSH-CONTRACT.md) |
 | 社区风格、Logo、UI/UX 技能、图表/动效 | [03-DESIGN-SYSTEM](docs/03-DESIGN-SYSTEM.md) |
 | SQLite、可扩展指标、来源与文件目录 | [04-DATA](docs/04-DATA.md) |
