@@ -119,3 +119,15 @@ L23（本脚手架 test/cli.test.mjs）：macOS arm64 / npm 10.9.2 的实际测�
 - **开发候选包必须显式标 RC**：即使产品页面写着“开发中/未发布”，稳定版本号仍可能被误认为正式版。候选包统一使用 semver prerelease（如 `0.1.2-rc.1`），并校验 `package.json`、`VERSION`、客户端可见版本、tgz 名称和 Desktop profile specifier 五者完全一致；候选通过验收后再发布 stable。
 
 此案例仍在开发中。自动测试与静态包检查通过不代表 DSH Desktop app 已安装/加载，也不代表医学或患者验收通过。项目后续结果见该项目的 `docs/DEVELOPMENT-RETRO.md`。
+
+## 2026-10-19：二级页签与内容不一致（肠癌工作台返工）
+
+症状：我的分型 / 治疗历程 / 肠道功能与造口 / 检查与指标四个页面都声明了二级页签（SUBPAGES），点页签高亮正常切换，但正文永远不变——有的页面重复渲染全部章节，有的 tab 叫「影像评估」内容还是指标卡。只有后加的「病情整理」页是按页签分流渲染的。
+
+根因：SUBPAGES 配置表与视图函数是两处独立代码。页签栏由 pageHead() 统一渲染（所以看起来"能用"），但视图函数没有读 `state.sub[view]`。声明了页签 ≠ 实现了页签；冒烟测试只渲染每个视图的默认 sub（0），四个非默认页签从未被验证过。
+
+修复与沉淀（规则已进 19-PROTOTYPE-CRAFT §5.14 / §8 清单）：
+- 视图函数第一个动作读 `state.sub[view] || 0`，按 bodies[i] 分流；每个 tab 只含自己的内容。
+- 无数据的档案给专属空态（每个 tab 一句"为什么没有 + 下一步"），不是一个空态复用四个 tab。
+- 校验矩阵必须覆盖 **视图 × 全部 sub 页签 × 全部档案**，断言：各 tab HTML 互不相同、含该 tab 关键词、标签配平。实现方式：DOM shim（querySelector 返回可复用假元素、querySelectorAll 返回 []）+ 读入 demo-data.js 与 app.js 源码后 `new Function(src)()` 注入 `__T = { state, VIEWS, SUBPAGES }`，直接调 `VIEWS[view]()` 取 HTML 字符串做断言。参考实现：肠癌工作台的 /tmp/check-tabs.mjs 模式（可固化进项目 scripts/）。
+- 通用教训：**配置表驱动的 UI，测试必须穷举配置表的每个键**；只测默认值时，"配置了但没接线"这类 bug 永远不会被发现（与 SUBPAGES 漏键导致空白页是同一族问题的反面）。
