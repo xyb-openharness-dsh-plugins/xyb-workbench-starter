@@ -14,6 +14,9 @@ const init=(f,source=root,extra=[])=>run(join(source,'scripts/init.mjs'),['--con
 test('dry run writes nothing; generate split/customFrame; refuse overwrite without changing files',async t=>{
  const f=await fixture(t);let r=init(f,root,['--dry-run']);assert.equal(r.status,0,r.stderr);await assert.rejects(access(f.target))
  r=init(f);assert.equal(r.status,0,r.stderr)
+ await access(join(f.target,'docs/METRIC-TREND-SPEC.md'))
+ await access(join(f.target,'docs/24-METRIC-TREND-TAB-DESIGN.md'))
+ await access(join(f.target,'prompts/METRIC-TREND-TAB.md'))
  const path=join(f.target,'lib/client.js'),before=await readFile(path)
  assert.equal(run(join(root,'scripts/check-workbench-package.mjs'),[f.target]).status,0)
  assert.equal(run('--check',[path]).status,0)

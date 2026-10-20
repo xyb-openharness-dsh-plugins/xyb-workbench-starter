@@ -96,7 +96,7 @@ async function main() {
   plan.set('project.config.json', Buffer.from(JSON.stringify(cfg,null,2)+'\n'))
   plan.set('docs/BRIEF.md', Buffer.from(`# 需求起点\n\n来源：初始化配置。用户、场景和流程是有效的SPEC互动素材；继承会话中已有明确确认，其余不能仅因配置通过校验就当成设计定稿或研究验证。\n\n目标用户：${cfg.targetUsers}\n\n场景：${cfg.scenario}\n\n核心流程：\n${cfg.coreFlow.map((s,i)=>`${i+1}. ${s}`).join('\n')}\n\n完成结果：${cfg.completion}\n\n初始布局选择：${cfg.layoutMode}\n\n先读取 docs/DESIGN-PROMPT.md，对齐设计者与研究/取舍原则，再逐项完善SPEC。待补：确认来源、Desktop 版本/平台、原型 hash、当前授权与离线/联网边界。\n`))
   for (const name of ['SPEC','TASKS','ACCEPTANCE','RELEASE']) plan.set('docs/'+name+'.md', await readFile(join(starter,'templates',name+'.md')))
-  for (const name of ['DESIGNER-BRIEF','DESIGN-SESSION','DESIGN-REVIEW','SCHEMA','API-CONTRACT','UI-DESIGN','SETTINGS-DESIGN','PROTOTYPE-REVIEW','HVT-REVIEW','ONE-CHART-SPEC']) plan.set('docs/'+name+'.md', await readFile(join(starter,'templates',name+'.md')))
+  for (const name of ['DESIGNER-BRIEF','DESIGN-SESSION','DESIGN-REVIEW','SCHEMA','API-CONTRACT','UI-DESIGN','SETTINGS-DESIGN','PROTOTYPE-REVIEW','HVT-REVIEW','ONE-CHART-SPEC','METRIC-TREND-SPEC']) plan.set('docs/'+name+'.md', await readFile(join(starter,'templates',name+'.md')))
   plan.set('docs/17-CLOSED-LOOP-PROJECT-FLOW.md', await readFile(join(starter,'docs/17-CLOSED-LOOP-PROJECT-FLOW.md')))
   plan.set('docs/PARITY.csv', await readFile(join(starter,'templates/PARITY.csv')))
   plan.set('docs/DESIGN-PROMPT.md', await readFile(join(starter,'prompts/DESIGNER-FIRST.md')))

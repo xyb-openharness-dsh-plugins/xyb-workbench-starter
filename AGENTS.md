@@ -29,6 +29,10 @@ init后先读取并向用户展示 `docs/DESIGN-PROMPT.md` 的实际路径，以
 
 设计或改造一图秀时，同时读取 [prompts/TIMELINE-MOTION-AND-EVENTS.md](prompts/TIMELINE-MOTION-AND-EVENTS.md)，把动画重播、独立事件泳道、事件标签与节点同ID联动、日期映射、减少动效终态纳入原型和 parity 审核。提示词参数是复刻目标，不是已完成证据；先用HTML呈现并记录确认范围，再同步正式工作台。品牌与医学场景按项目适配。
 
+## 指标趋势 Tab 与 3D 卡片
+
+有检验趋势/指标卡时，先读 [docs/24-METRIC-TREND-TAB-DESIGN.md](docs/24-METRIC-TREND-TAB-DESIGN.md)，填 `docs/METRIC-TREND-SPEC.md`（模板在 `templates/METRIC-TREND-SPEC.md`），复用提示词 `prompts/METRIC-TREND-TAB.md`。按病情整理五Tab建立来源→核对→档案→分类指标→汇总；疾病特有入口映射保留。卡片按类别分组，两列/窄容器单列；正面最近值/单位/可比差值/次数/日期/来源，背面固定高度3D rotateY趋势，不上下展开。方法/单位/机构变化拆可比组，数据点打开来源不冒泡，隐藏面inert；同一目录供指标页与一图秀共用。MT01–MT15在HTML中实际验证与确认，再接生产业务。大病例必须验证曲线不被事件撑出首屏。
+
 ## 指标分析与卡片提醒
 
 有检验指标和身体感受的页面按 [docs/23-METRIC-GRADING-AND-ALERTS.md](docs/23-METRIC-GRADING-AND-ALERTS.md) 做。四条不可让步：①指标卡**按类别分组**，组顺序与一图秀同一来源，两页组名/顺序/项数必须一致；②指标若有国际分级标准（现为 CTCAE v5.0）**直接用标准阈值对照**，不自创"轻/中/重"，且只启用标准里有绝对数值界限的项（"×ULN"型在拿到结构化参考范围上限前不启用也不近似）；③分级是**对照**不是诊断——徽章写"对照 CTCAE v<版本> · N 级"，必须显示区间、来源与免责，用了通用下限要标出来；④首页/看板提醒只把"表达面（感受）"与"指标面"**两列并置**，不写因果、不写处置；提醒是否出现由读模型算 `paired`/`labsOnly`，只有一侧不弹提醒。标准原文放 `assets/reference/<standard>/` 随包分发一份，服务端只读接口按元信息常量给文件名并校验目录边界，界面给普通链接。分级结果是派生值：读取时算、不落库。

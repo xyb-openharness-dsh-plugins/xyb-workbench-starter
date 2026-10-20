@@ -77,3 +77,6 @@ UI 质量是单独验收的交付项。新设计优先采用一个匹配任务�
 ## 社区风格决策参考：Taste Seed
 
 纳入 hhx465453939 的 [agent-taste-seed-system](https://github.com/hhx465453939/agent-taste-seed-system)：先确定体验感受，再选择主辅风格并转译成界面参数，与 frontend 专用技能配合。工作台适配、路径差异、来源与许可范围见 [Taste Seed 指南](08-TASTE-SEED.md)。具体决策与开发者反馈写入 UI-DESIGN；不机械照搬海报规则。
+
+
+指标趋势卡片按 [分类与3D卡片规范](24-METRIC-TREND-TAB-DESIGN.md) 设计，使用单一分类目录，固定高度rotateY翻面，不能以上下展开代替。

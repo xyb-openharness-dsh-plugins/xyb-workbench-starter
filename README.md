@@ -1,6 +1,11 @@
 # 小胰宝 / 小x宝社区 Workbench 开发脚手架
 
-当前本地版本：**1.4.3（待发布）**。在 SPEC、UI 设计、任务与验收模板中明确 DSH 原生 Agent 的顶栏拉起入口、独立隐藏/重开和可调宽要求；区分 CustomFrame splitter 与 split 宿主布局合同，增加 ACC-28–31 验收项。DSH 原生 Agent 复用提示词补 **§6.1 上下文草稿落地细则**（服务端按范围出文本、三个范围各带什么、四条不可让步、postMessage 双校验、空态与独立运行降级）。新增 23 号「指标分析与卡片提醒原则」（指标卡分组 / 用 CTCAE v5.0 做分级对照 / 表达面与指标面两侧并置提醒，含 M1–M11 验收与三条反例）、22 号「三阶段×三闸口」开发流程速查与 21 号调研手册；docs/06 补 Desktop 装机实证（**Desktop 读 `~/.dsh/profiles/desktop` 不是 web**、pnpm 同版本不替换须 remove+add、cordis apply 契约）；另有原型工艺复刻指南（令牌骨架/动效系统/交互细节，颜色按癌种换）、DSH 原生 Agent 右侧面板复用提示词与对应的落地设计模板（CustomFrame/split 双形态判定，不绑定癌种）；保留init的用户、场景、流程前置输入。变更见 [CHANGELOG](CHANGELOG.md)。本地修改尚未推送或创建远端tag。
+## Git开发快照 · 2026-10-20
+
+新增24号指标趋势Tab设计、参考截图、可复用提示词和项目填写模板；init生成指标趋势规格副本，更新AGENTS/一图秀合同/设计系统及检查测试。 包版本保持`1.4.3`；这是开发快照，正式发布状态另行记录。核验结果、已知问题及同步范围见 [本次Git记录](docs/GIT-SYNC-2026-10-20.md)。
+
+
+当前本地版本：**1.4.3（待发布）**。在 SPEC、UI 设计、任务与验收模板中明确 DSH 原生 Agent 的顶栏拉起入口、独立隐藏/重开和可调宽要求；区分 CustomFrame splitter 与 split 宿主布局合同，增加 ACC-28–31 验收项。DSH 原生 Agent 复用提示词补 **§6.1 上下文草稿落地细则**（服务端按范围出文本、三个范围各带什么、四条不可让步、postMessage 双校验、空态与独立运行降级）。新增 23 号「指标分析与卡片提醒原则」（指标卡分组 / 用 CTCAE v5.0 做分级对照 / 表达面与指标面两侧并置提醒，含 M1–M11 验收与三条反例）、22 号「三阶段×三闸口」开发流程速查与 21 号调研手册；docs/06 补 Desktop 装机实证（**安装前核验Desktop实际使用的Harness profile**、pnpm 同版本不替换须 remove+add、cordis apply 契约）；另有原型工艺复刻指南（令牌骨架/动效系统/交互细节，颜色按癌种换）、DSH 原生 Agent 右侧面板复用提示词与对应的落地设计模板（CustomFrame/split 双形态判定，不绑定癌种）；保留init的用户、场景、流程前置输入。变更见 [CHANGELOG](CHANGELOG.md)。本次Git开发快照范围与检查见下方记录；尚未创建正式发布tag。
 
 把业务需求、交互原型变成可在 DSH Desktop 安装使用的工作台。面向社区新手与协作开发 Agent，提供互动设计、数据建模、界面实现、测试修复和部署验收流程，并整理项目实践中的典型错误和修复方法。
 
@@ -130,3 +135,6 @@ UI 共创补充：已纳入 [Taste Seed 风格决策适配](docs/08-TASTE-SEED.m
 ## HTML确认与可演进数据模型
 
 先交付可交互HTML工作台，用户确认对应版本/模块后再实现业务。数据模型与UI/业务流程变化解耦：领域/证据/主体/版本稳定，命令API和版本化读模型适配页面。init生成SCHEMA/API/UI/PARITY和PROTOTYPE-REVIEW的docs副本，均为待填写/待确认，不能冒充完成。参见 [详细合同](docs/14-HTML-AND-DATA-CONTRACT.md)。
+
+
+指标页复用入口：[分类指标趋势Tab与3D卡片规范](docs/24-METRIC-TREND-TAB-DESIGN.md)；包含两张开发者参考图、导航映射、可比读模型、翻面CSS、状态矩阵与MT01–MT15验收。配套 `prompts/METRIC-TREND-TAB.md`、`templates/METRIC-TREND-SPEC.md`，init会生成项目`docs/METRIC-TREND-SPEC.md`。
