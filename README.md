@@ -1,6 +1,6 @@
 # 小胰宝 / 小x宝社区 Workbench 开发脚手架
 
-当前本地版本：**1.4.2（待发布）**。在 SPEC、UI 设计、任务与验收模板中明确 DSH 原生 Agent 的顶栏拉起入口、独立隐藏/重开和可调宽要求；区分 CustomFrame splitter 与 split 宿主布局合同，增加 ACC-28–31 验收项。新增 23 号「指标分析与卡片提醒原则」（指标卡分组 / 用 CTCAE v5.0 做分级对照 / 表达面与指标面两侧并置提醒，含 M1–M11 验收与三条反例）、22 号「三阶段×三闸口」开发流程速查与 21 号调研手册；docs/06 补 Desktop 装机实证（**Desktop 读 `~/.dsh/profiles/desktop` 不是 web**、pnpm 同版本不替换须 remove+add、cordis apply 契约）；另有原型工艺复刻指南（令牌骨架/动效系统/交互细节，颜色按癌种换）、DSH 原生 Agent 右侧面板复用提示词与对应的落地设计模板（CustomFrame/split 双形态判定，不绑定癌种）；保留init的用户、场景、流程前置输入。变更见 [CHANGELOG](CHANGELOG.md)。本地修改尚未推送或创建远端tag。
+当前本地版本：**1.4.3（待发布）**。在 SPEC、UI 设计、任务与验收模板中明确 DSH 原生 Agent 的顶栏拉起入口、独立隐藏/重开和可调宽要求；区分 CustomFrame splitter 与 split 宿主布局合同，增加 ACC-28–31 验收项。DSH 原生 Agent 复用提示词补 **§6.1 上下文草稿落地细则**（服务端按范围出文本、三个范围各带什么、四条不可让步、postMessage 双校验、空态与独立运行降级）。新增 23 号「指标分析与卡片提醒原则」（指标卡分组 / 用 CTCAE v5.0 做分级对照 / 表达面与指标面两侧并置提醒，含 M1–M11 验收与三条反例）、22 号「三阶段×三闸口」开发流程速查与 21 号调研手册；docs/06 补 Desktop 装机实证（**Desktop 读 `~/.dsh/profiles/desktop` 不是 web**、pnpm 同版本不替换须 remove+add、cordis apply 契约）；另有原型工艺复刻指南（令牌骨架/动效系统/交互细节，颜色按癌种换）、DSH 原生 Agent 右侧面板复用提示词与对应的落地设计模板（CustomFrame/split 双形态判定，不绑定癌种）；保留init的用户、场景、流程前置输入。变更见 [CHANGELOG](CHANGELOG.md)。本地修改尚未推送或创建远端tag。
 
 把业务需求、交互原型变成可在 DSH Desktop 安装使用的工作台。面向社区新手与协作开发 Agent，提供互动设计、数据建模、界面实现、测试修复和部署验收流程，并整理项目实践中的典型错误和修复方法。
 
