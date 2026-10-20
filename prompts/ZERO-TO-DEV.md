@@ -99,6 +99,11 @@
    `chictr_online`（ChiCTR 实时）、ChiCTR 离线语料、`chinadrugtrials`（CDE，**含研究者 PI**）、小胰宝归档。  
    离线语料（`chictr_pancreatic` / `xyb_cde_pancreatic` / `ctv_index`）是 Release 资产，用 `bootstrap` 或  
    `fetch-corpus` 拉取，**sha256 必须与 `corpora/manifest.json` 一致**，并在文档里写数据截止日。
+   > **已知覆盖限制（别忘，也别假装补上了）**：三个离线语料**目前只有胰腺癌**（ChiCTR 468 条 + 小胰宝归档 139 条）。  
+   > 做其他癌种时只能走**在线通道**（`ictrp` / `ctv` / `chictr_online` / `chinadrugtrials`），离线通道对该癌种  
+   > 属于"未配置/无覆盖"，必须在 `CLINICAL-DATA-<年>.md` 和 sqlite 的来源终态里如实声明，不能算作"已查过"。  
+   > 需要离线补齐时，按 `docs/corpus-lifecycle.md` 的流程自建该癌种语料（下载→sha256→manifest→挂载），  
+   > 语料本身单独发 Release，不塞进工作台仓库。
 3. **用法**：MCP 客户端注册后用工具，别自己拼 URL ——  
    `search_trials`（keyword/keywords/condition/terms 至少一个）、`get_trial_detail`（`<sourceId>:<recordId>`）、  
    `get_record_evidence`（原始 HTML/JSON/Word）、`get_source_status`；维护类 `refresh_ictrp` / `sync_ctv_index` /  

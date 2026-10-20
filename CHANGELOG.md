@@ -8,6 +8,13 @@
   → 3.3 dsh-desktop 发布实测；之后才是 push 与经验回流。
 - 临床试验补多通道口径：改用 unified-trial-mcp（六个通道、MCP 工具面、离线语料 sha256、
   「0 条结果必须带覆盖声明」），不再只写 CT.gov。
+- 加「已知覆盖限制」引用块：三个离线语料（`chictr_pancreatic` 468 条 / `xyb_cde_pancreatic`
+  139 条 / `ctv_index`）**仅覆盖胰腺癌**，其他癌种只能走在线通道，离线通道须在
+  `CLINICAL-DATA-<年>.md` 与 sqlite 来源终态里如实写「未配置/无覆盖」，不算"已查过"；
+  自建语料按 `docs/corpus-lifecycle.md` 流程，语料单独发 Release，不进工作台仓库。
+- README 新增「新手：五步从一个癌种名走到可运行开发版」（装 CLI → `init --prepare` 答三问
+  → `init <name>-workbench` + `npm run check` 钉基线 → 写强约束 → 交 ZERO-TO-DEV 走三闸口），
+  并把两条最常踩的纪律写在段末（闸口不签不往下走；来源终态不许美化）。
 - 排版沿用硬换行；样板基准统一写成 `<癌种英文>-workbench v0.1.0`。
 
 ## 2026-10-21 · 新增「癌种 → 可运行开发版」一次性交付提示词

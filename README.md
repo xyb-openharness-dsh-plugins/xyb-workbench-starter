@@ -1,5 +1,9 @@
 # 小胰宝 / 小x宝社区 Workbench 开发脚手架
 
+## Git开发快照 · 2026-10-21
+
+新增 [提示词 ZERO-TO-DEV v1.1](prompts/ZERO-TO-DEV.md)：从一个癌种名到可运行开发版的一次性交付提示词，把「init → 强约束文档 → 调研/患者流程/schema/多通道临床库/HTML 原型 → 第一次确认 → 开发版 parity → dsh-desktop 实测 → push 与经验回流」整条链路固化成可复制的阶段说明。同时把临床库的**已知覆盖限制**写进去：unified-trial-mcp 的三个离线语料（ChiCTR 468 条、小胰宝归档 139 条、ctv 索引）**目前只有胰腺癌**，做其他癌种只能走在线通道（`ictrp` / `ctv` / `chictr_online` / `chinadrugtrials`），离线通道对该癌种须如实声明为"未配置/无覆盖"。README 补「新手：五步从一个癌种名走到可运行开发版」。
+
 ## Git开发快照 · 2026-10-20
 
 新增24号指标趋势Tab设计、参考截图、可复用提示词和项目填写模板；init生成指标趋势规格副本，更新AGENTS/一图秀合同/设计系统及检查测试。 包版本保持`1.4.3`；这是开发快照，正式发布状态另行记录。核验结果、已知问题及同步范围见 [本次Git记录](docs/GIT-SYNC-2026-10-20.md)。
@@ -28,6 +32,18 @@ dsh-wb-cli doctor
 `init` 初始化开发项目，`npm link` 激活命令；它们不等于把插件装入 Desktop。
 
 本地1.3.2尚未发布。已有干净Git克隆的 `sync` 仅拉取远端已存在版本，不会上传本机更改，也不会覆盖业务项目。
+
+## 新手：五步从一个癌种名走到可运行开发版
+
+不想读完所有文档就先照这条走，每一步都有明确产出，卡住了再回上面查细节。
+
+1. **装 CLI**：`git clone` 本仓库 → `cd xyb-workbench-starter` → `npm link --ignore-scripts --no-audit --no-fund` → `dsh-wb-cli doctor` 自检（Node.js 22+）。
+2. **答前置问题**：`dsh-wb-cli init --prepare`，填「服务谁 / 什么场景 / 一次任务怎么完成」。这三个答案会写进生成项目的 SPEC 骨架，后面不再问第二遍。
+3. **生成项目**：`dsh-wb-cli init <english>-workbench`，得到标准目录与文档体系（AGENTS / spec / docs / templates / prompts / 版本与检查脚本）。进目录先 `npm run check`，能在干净状态下全绿才算基线没坏。
+4. **建强约束再动手**：按 `docs/DEV-REQUIREMENTS-<日期>.md` 写一份本癌种的强约束文档（范围、照抄样板的产品要求、硬约束 H1–Hn、本轮明确未做、我替你定的默认值）。**没有这份文档就不写业务代码**，这是最省返工的一步。
+5. **把提示词整段交给 Agent**：[ZERO-TO-DEV](prompts/ZERO-TO-DEV.md) 填四个空（癌种中文名 / 英文名 / 目标目录 / 样板基准），剩下的按闸口推进——3.1 调研 + 患者流程 + schema + 多通道临床库 + HTML 原型，**第一次人工确认**；3.2 开发版，逐页 parity；3.3 dsh-desktop 实测；确认后 push + 把踩到的坑回流到脚手架。
+
+两条最容易踩的：**闸口不签不往下走**（G1 需求、G2 原型、G3 schema 各签一次，省下的时间远超一次返工）；**临床库要如实写来源终态**，没查到就是"未配置/无覆盖"，不能写成"已查过"。
 
 ## 不激活命令也可直接使用
 
