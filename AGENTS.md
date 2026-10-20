@@ -29,6 +29,10 @@ init后先读取并向用户展示 `docs/DESIGN-PROMPT.md` 的实际路径，以
 
 设计或改造一图秀时，同时读取 [prompts/TIMELINE-MOTION-AND-EVENTS.md](prompts/TIMELINE-MOTION-AND-EVENTS.md)，把动画重播、独立事件泳道、事件标签与节点同ID联动、日期映射、减少动效终态纳入原型和 parity 审核。提示词参数是复刻目标，不是已完成证据；先用HTML呈现并记录确认范围，再同步正式工作台。品牌与医学场景按项目适配。
 
+## 指标分析与卡片提醒
+
+有检验指标和身体感受的页面按 [docs/23-METRIC-GRADING-AND-ALERTS.md](docs/23-METRIC-GRADING-AND-ALERTS.md) 做。四条不可让步：①指标卡**按类别分组**，组顺序与一图秀同一来源，两页组名/顺序/项数必须一致；②指标若有国际分级标准（现为 CTCAE v5.0）**直接用标准阈值对照**，不自创"轻/中/重"，且只启用标准里有绝对数值界限的项（"×ULN"型在拿到结构化参考范围上限前不启用也不近似）；③分级是**对照**不是诊断——徽章写"对照 CTCAE v<版本> · N 级"，必须显示区间、来源与免责，用了通用下限要标出来；④首页/看板提醒只把"表达面（感受）"与"指标面"**两列并置**，不写因果、不写处置；提醒是否出现由读模型算 `paired`/`labsOnly`，只有一侧不弹提醒。标准原文放 `assets/reference/<standard>/` 随包分发一份，服务端只读接口按元信息常量给文件名并校验目录边界，界面给普通链接。分级结果是派生值：读取时算、不落库。
+
 ## HTML确认与数据合同（实施前）
 
 必须先交付可打开、可点击的HTML工作台，展示路径和操作路线，用户明确确认对应版本/模块后才实现生产业务。记录HTML版本/hash、预览、反馈、确认范围到docs/PROTOTYPE-REVIEW.md/PARITY；静态截图或文字SPEC不代替交互确认。模拟数据/壳/MockAdapter不等于业务接通。模型以稳定领域/证据/主体/版本关系为核心，UI和流程为可变读模型/命令用例，不按Tab建事实表或直接存整页state。SCHEMA/API候选可并行设计，HTML确认后再复核落实生产schema/迁移。详见docs/14-HTML-AND-DATA-CONTRACT.md。
