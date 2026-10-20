@@ -1,5 +1,15 @@
 # 变更记录
 
+## 2026-10-21 · ZERO-TO-DEV 升级 v1.1（对齐真实交付链路）
+
+- 补 `init` 与标准文档体系（SPEC / DEV-REQUIREMENTS / DIFF-MATRIX / PATIENT-FLOW / SCHEMA /
+  CLINICAL-DATA / DEV-PLAN），并把「强约束文档」提为阶段 0 的交付物。
+- 明确三阶段闸口：3.1 调研+schema+临床库+HTML demo（第一次确认）→ 3.2 开发版与原型一致性
+  → 3.3 dsh-desktop 发布实测；之后才是 push 与经验回流。
+- 临床试验补多通道口径：改用 unified-trial-mcp（六个通道、MCP 工具面、离线语料 sha256、
+  「0 条结果必须带覆盖声明」），不再只写 CT.gov。
+- 排版沿用硬换行；样板基准统一写成 `<癌种英文>-workbench v0.1.0`。
+
 ## 2026-10-21 · 新增「癌种 → 可运行开发版」一次性交付提示词
 
 - `prompts/ZERO-TO-DEV.md`：把食管癌（EsopPal）那一轮实际跑通的路径固化为 9 段可执行提示词
