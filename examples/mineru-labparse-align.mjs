@@ -2,6 +2,9 @@
 // No API calls, credentials, storage or business writes: the caller owns
 // upload/polling, candidate persistence and confirmation UI.
 // Rules source: docs/18-MINERU-PARSING.md (sections 4-5).
+// Note: MinerU returns tables as HTML — call htmlTablesToPipes() (or pass the
+// raw markdown to extractTableCandidates, which converts for you) before any
+// tag stripping, or the table collapses into a single line.
 
 const numRe = /^[<>≥≤]?\s*\d+(?:\.\d+)?$/
 
@@ -89,6 +92,48 @@ export function alignPositional(match, labels, values, units = []) {
   return rows
 }
 
+/**
+ * MinerU's `full.md` keeps tables as HTML (`<table><tr><td>`), not as pipe
+ * tables. Stripping tags first collapses the whole table into one line
+ * (`Stomach body max diameter 6.8 cm mitoses 12/50 HPF`), and then every
+ * downstream rule reads the wrong cell. Convert HTML tables to pipe rows
+ * BEFORE anything else touches the text.
+ *
+ * `colspan` gets blank placeholders, not copies: `<td colspan="2">6.8 cm</td>`
+ * becomes `| 6.8 cm | |`, so a three-column header (item | result | unit)
+ * still lines up and the unit column stays empty instead of repeating the value.
+ */
+export function htmlTablesToPipes(markdown) {
+  if (typeof markdown !== 'string') return ''
+  return markdown.replace(/<table[\s\S]*?<\/table>/gi, (table) => {
+    const trs = table.match(/<tr[\s\S]*?<\/tr>/gi) || []
+    const lines = trs.map((tr) => {
+      const tds = tr.match(/<t[dh][^>]*>[\s\S]*?<\/t[dh]>/gi) || []
+      const cells = []
+      for (const td of tds) {
+        const attrs = (td.match(/^<t[dh][^>]*>/i) || [''])[0]
+        // `["']?` — writing `"?'` is a literal single quote, not "optional quote",
+        // and silently fails to match colspan="2" (shows up only as a missing column).
+        const span = Number((attrs.match(/colspan\s*=\s*["']?(\d+)/i) || [])[1] || 1)
+        const text = td
+          .replace(/^<t[dh][^>]*>/i, '')
+          .replace(/<\/t[dh]>$/i, '')
+          .replace(/<[^>]+>/g, '')
+          .replace(/\|/g, '/')
+          .replace(/\s+/g, ' ')
+          .trim()
+        cells.push(text, ...Array(Math.max(0, span - 1)).fill(''))
+      }
+      return `| ${cells.join(' | ')} |`
+    })
+    if (!lines.length) return ''
+    // First row is the header; insert a separator so downstream code can use the
+    // same "header + separator + data rows" path for HTML and pipe tables alike.
+    const sep = `| ${lines[0].split('|').slice(1, -1).map(() => '---').join(' | ')} |`
+    return `\n${lines[0]}\n${sep}\n${lines.slice(1).join('\n')}\n`
+  })
+}
+
 /** Split `| a | b |` cells from a markdown table line; HTML tables must be converted first. */
 export function splitMarkdownRow(line) {
   if (typeof line !== 'string') return null
@@ -108,7 +153,8 @@ export function splitMarkdownRow(line) {
  */
 export function extractTableCandidates(lines, entries) {
   const match = buildMetricMatcher(entries)
-  const rows = (Array.isArray(lines) ? lines : String(lines ?? '').split('\n'))
+  const raw = Array.isArray(lines) ? lines : htmlTablesToPipes(String(lines ?? '')).split('\n')
+  const rows = raw
     .map(splitMarkdownRow)
     .filter(Boolean)
     .filter((cells) => !cells.every((c) => /^[-:\s]*$/.test(c)))
