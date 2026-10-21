@@ -74,6 +74,29 @@ node '<Desktop 内置 pnpm.cjs>' add -w --save-exact 'file:/absolute/path/packag
 
 peer warning 不是加载结论；查宿主实际提供服务与日志。不能为消 warning 随手塞入第二份 Cordis/React/runtime。
 
+## 用户侧入口与三层验收（2026-10-21 实测，Desktop 0.12.0）
+
+**不要把「`dsh web` 起网页版 → 浏览器 Settings → Plugins 开关插件」写成 Desktop 的用法。** 那是 CLI / Web 载体：它读的是 `~/.dsh` 那份 Harness，与 Desktop app 自己的 Harness 不是同一个安装位置，装上去 Desktop 不加载。给 Desktop 装的包只能在 Desktop 里验。
+
+用户在 app 内的正规路径：
+
+1. **设置 → 通用**，打开「启用工作台功能」（关掉后所有工作台都不加载，已有会话与数据不受影响）。
+2. 左侧 **工作台市场** 搜索并安装；或按当版提供的本地 `.tgz` 入口安装（有没有这个入口要在「工作台市场／已安装」里实地确认，没有就走命令行，不硬找）。
+3. 出现「工作台安装变更需要重启 Harness 后生效」时点 **立即重启**；没有提示时用菜单 **Harness → 重启 Harness**。
+4. 市场切到 **已安装** 核对条目，再从左侧固定入口打开业务面板。
+
+验收分三层，缺一层不算"装机通过"：
+
+| 层 | 证据 | 只能证明 |
+| --- | --- | --- |
+| 配置层 | `dump-config` 里出现本包插件层 | patch 生效 |
+| 列表层 | 市场「已安装」出现条目 / `desktop-workbenches/market-installs.json` 有记录 | 包被识别、注册成功 |
+| 界面层 | 左侧入口打开，核心流程能点通 | **唯一算"装机通过"的证据** |
+
+只拿到前两层时写"配置已加载、UI 未验证"，不写"装机通过"。
+
+机器可复核：新项目模板自带 `scripts/check-install.mjs`（只读），它自动探测 Desktop Harness（app 自带 → `DSH_HOME` → `~/.dsh`），打印判定依据与"市场安装 / 手工 native 安装"的区别。换机器、换 Desktop 版本或用户改过 Harness 位置时先跑它看基准目录，不要照抄命令里的路径。
+
 ## 重启与真实验收
 
 Agent 在目标 Desktop 内时，安装后不自动重启或杀进程，让用户完整退出重开；返回后检查列表、左侧入口、版本号、业务页面和会话。外部 Agent 可按已授权且受支持的流程完成重启。

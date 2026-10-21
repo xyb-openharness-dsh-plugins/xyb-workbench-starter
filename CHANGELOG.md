@@ -1,5 +1,13 @@
 # 变更记录
 
+## 2026-10-21 · 回流：Desktop Harness 判定与装机自检脚本（L2，肺 + 结直肠两处复现）
+
+- `docs/06-VALIDATION-AND-RELEASE.md` 新增「用户侧入口与三层验收」：写明 **不要** 用 `dsh web` + 浏览器 Settings → Plugins 冒充 Desktop 用法；正规入口是设置 → 通用开「启用工作台功能」→ 工作台市场安装 → 「立即重启」/菜单 Harness → 重启 Harness → 市场「已安装」核对；验收三层（配置 / 列表 / 界面），只有前两层只能写"配置已加载、UI 未验证"。
+- **新项目模板自带 `scripts/check-install.mjs`**（只读）：自动探测 Desktop Harness（app 自带 → `DSH_HOME` → `~/.dsh`）并打印判定依据，核对 dependencies + `dsh.profile.bundles`，区分"市场安装 / 手工 native 安装"，装在别处会明确报错。换机器、换版本先跑它，不照抄路径。
+- `npm run check` 增加对该模板脚本的语法检查。
+
+> 判定事实（Desktop 0.12.0 实测）：app 自己的 Harness 在 `~/Library/Application Support/dsh-desktop/harness`，活动 profile 名恰好叫 `web`；`~/.dsh/profiles/*` 属 CLI 侧，Desktop 不读。既有项目里"装到 `~/.dsh/profiles/desktop`"的硬要求已作废，需按本节更正。
+
 ## 2026-10-21 · ZERO-TO-DEV 升级 v1.1（对齐真实交付链路）
 
 - 补 `init` 与标准文档体系（SPEC / DEV-REQUIREMENTS / DIFF-MATRIX / PATIENT-FLOW / SCHEMA /

@@ -31,7 +31,7 @@
     "test"
   ],
   "scripts": {
-    "check": "node --check bin/dsh-wb-cli.mjs && node --check cli/main.mjs && node --check scripts/init.mjs && node scripts/check-starter.mjs",
+    "check": "node --check bin/dsh-wb-cli.mjs && node --check cli/main.mjs && node --check scripts/init.mjs && node --check project-template/scripts/check-install.mjs && node scripts/check-starter.mjs",
     "test": "node --test test/*.test.mjs"
   },
   "license": "UNLICENSED",
