@@ -4,6 +4,38 @@
 
 参考实现：社区仓库 `xyb-openharness-dsh-plugins/xfb-workbench` 的 `dsh/mineru.js`（客户端）、`lib/zip.js`（零依赖 ZIP 读取）、`dsh/labparse.js`（抽取）。可复用的纯函数示例：[mineru-labparse-align.mjs](../examples/mineru-labparse-align.mjs)。
 
+## 0. 路线选择：统一走 HTTP API，不用本机 CLI 包装
+
+社区里存在两种实现，功能看起来差不多，但在"装到用户机器上"这一步差别很大。**结论是本指南只维护 HTTP 一条路线。**
+
+| | HTTP API v4 客户端 | 本机 CLI `mineru-open-api` 包装 |
+| --- | --- | --- |
+| 代码量 | 约 300 行，零依赖 | 约 80 行，但要 spawn 外部进程 |
+| 用户侧前提 | 只需要一个 Token | **还要装一个二进制并在 PATH 上** |
+| 错误判定 | 结构化（HTTP 状态 + 业务码） | 靠 stderr 正则猜（`401|unauthorized|expired`…） |
+| 模型选择 | 显式传 `vlm` / `pipeline`，可做回退 | 走 CLI 默认，行为随 CLI 版本漂移 |
+| 轮询与超时 | 自己控制节奏、可中断、可重试 | 受 CLI 内部实现约束 |
+| Token 来源 | 显式 > env > `.secrets/mineru.json`，可回 `source` | 还多一个 `~/.mineru/config.yaml`，三处抢优先级 |
+
+四条实际理由：
+
+1. **多一个二进制，就多一个装不上的理由。** CLI 路线要靠 `PATH` 或固定候选目录发现可执行文件。桌面宿主（GUI 进程）的 `PATH` 通常只有 `/usr/bin:/bin:/usr/sbin:/sbin`，`nvm`、`.npm-global` 之类都不在里面；一旦用户把 CLI 装在 node 版本目录下，插件就找不到它，报"没有找到 mineru-open-api"。我们无法替用户安装，也不该把这类失败留给用户自己排查。
+2. **CLI 唯一的独有能力，HTTP 也能做。** `flash-extract` 免鉴权、免 Token，是 CLI 最实在的优点。但它走的是纯 HTTP：
+   ```
+   POST https://mineru.net/api/v1/agent/parse/file
+   body: {"file_name":"report.pdf","language":"ch"}
+   ```
+   实测（2026-10-22）：传一个 `.txt` 返回 `-30002 file type '.txt' is not supported by the lightweight API` 而不是 401，说明该端点**确实不校验 Token**。flash 支持 PDF / 图片 / docx / pptx / xlsx，不支持 `.txt` / `.md` / `.csv`（这几种本来就走本地文本解析）。也就是说"免 Token 轻量模式"可以用几十行 HTTP 复现，不必为此背上一个二进制依赖。
+3. **stderr 判错不可靠。** CLI 路线要把 `401`、`unauthorized`、`token expired` 等字样拼成正则来区分"鉴权失败"与"网络抖动"，一旦上游改了提示文案就会误判成可重试，白烧一次额度。HTTP 路线拿到的是 `response.status` 与 `code`，判断是确定的。
+4. **两处 Token 源会互相掩盖。** `.secrets/mineru.json` 与 `~/.mineru/config.yaml` 同时存在时，谁生效取决于实现细节。真实踩过：残留的环境变量把文件里的 Token 盖住，现象是 401 而不是"没配"，排查很久。单一来源 + 返回 `source` 才能自查。
+
+因此统一口径：
+
+- **默认（precision）**：API v4 四步 + Token，`vlm` 优先、`pipeline` 仅在接口拒绝该参数时回退。
+- **可选（flash）**：`POST /api/v1/agent/parse/file`，免 Token、只出 markdown、不保证表格结构，适合"用户暂时没有 Token"的过渡，界面上必须标明"轻量模式，结果可能不准"。
+- **不再新增** CLI 包装；已有 CLI 实现的仓库按第 10 节的顺序迁到 HTTP。
+- `.secrets/mineru.json` 是**唯一**的本地密钥文件；不要再去读 `~/.mineru/config.yaml`，两处并存就是上面第 4 条的坑。
+
 ## 1. 先决定要不要云端解析
 
 本地优先不等于本地解析。PDF 报告常是扫描件或双栏排版，正则读不出来；一期又不该让用户为导入一份报告去装 Python 模型。所以解析走云端，**原件与解析结果都留在本机**，只把文件内容传给 MinerU 换回 markdown。
@@ -149,3 +181,23 @@
 - [ ] 未验证项如实写进项目文档，不写"扫描件已支持"。
 
 不做文档理解、不求全量还原版式；只要结构化候选。非 PDF/非报告类文件不强行走这条链路。
+
+## 10. 统一模块与迁移顺序
+
+统一后每个工作台只需要照着拼五个部件，**逻辑只有一份实现**（放 `project-template/`，新项目 `init` 直接带走）：
+
+| 部件 | 职责 | 判据（怎么算做对了） |
+| --- | --- | --- |
+| `dsh/mineru.js` | Token 解析 + 四步协议 + 错误分类 | 单测覆盖：来源优先级、掩码、四步顺序、PUT 不带 Content-Type、模型回退判定、ZIP 读取 |
+| `dsh/<topic>parse.js` | markdown → 候选（先 `htmlTablesToPipes`） | 单测覆盖：位置对齐、`colspan` 补位、不等式、单位归一、抽不到返回空、**先剥标签会串位的反例** |
+| `dsh/parse.js` | 编排：读原件 → 调用 → 事务写候选 + 置状态 | 单测覆盖：成功不碰事实表、失败不产候选、非可解析格式不发请求、原件缺失 404、重解析不堆积 |
+| 状态接口 | `GET /api/mineru` → `{configured, source, masked}` | 三态可区分：未配置 / 环境变量生效 / 文件生效 |
+| 任务表 | `parse_job`（或 `extraction_run`） | 重试新增一行，旧失败记录保留；`解析中` 不写进 document 状态 |
+
+迁移顺序（按"风险 × 工作量"排，前两步是已具备能力但没接线）：
+
+1. **清掉写死的 Token 状态**。界面里出现 `MINERU_TOKEN 已配置（掩码：mr-****）` 这类硬编码就是假绿灯——不管有没有 Token 都显示已配置，且 `mr-` 与真实 `sk-` 前缀对不上。改成读状态接口。
+2. **补 HTML 表格转换**。只认 CSV/行式文本的抽取器，遇到 `full.md` 的 `<table>` 会整表压成一行、跨表串位（见 §5.1）。移植 `htmlTablesToPipes()` + 一条反例测试即可。
+3. **补任务历史**。只有 `document.status` 没有 `parse_job` 的实现，用户点十次重试在库里看不出痕迹，也没法把失败原因回给用户。
+4. **CLI 路线改 HTTP**。顺带补上缺失的抽取层——只落 markdown 原文、让用户对着 markdown 手录候选，等于把结构化成本推给患者。
+5. 最后统一跑一遍 §9 采纳清单与契约测试，不一致就不算迁移完。

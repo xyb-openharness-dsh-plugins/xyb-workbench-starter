@@ -1,5 +1,11 @@
 # 变更记录
 
+## 2026-10-22 · 选型：MinerU 统一走 HTTP API，不再用本机 CLI 包装
+
+- `docs/18-MINERU-PARSING.md` 新增 §0「路线选择」：对比 HTTP 客户端与 `mineru-open-api` CLI 两条实现，结论是社区六个工作台统一到 HTTP，不再新增 CLI 包装。四条理由：① 桌面 GUI 的 `PATH` 通常不含 nvm / `.npm-global`，多一个二进制就多一个装不上的理由；② CLI 唯一的独有能力（`flash-extract` 免鉴权）实测走的是 `POST https://mineru.net/api/v1/agent/parse/file`，传 `.txt` 返回 `-30002`（扩展名不支持）而非 401，说明该端点不校验 Token，可用几十行 HTTP 复现；③ stderr 正则判错会被上游文案变更误判成可重试、白烧额度；④ `.secrets/mineru.json` 与 `~/.mineru/config.yaml` 两处 Token 源会互相掩盖，现象是 401 而非"未配置"。
+- 同节定下两档模式：默认 precision（v4 四步 + Token，`vlm` 优先、仅在接口拒参数时回退 `pipeline`）；可选 flash（`/api/v1/agent/parse/file`，免 Token、只出 markdown、界面须标"轻量模式结果可能不准"）。明确 `.secrets/mineru.json` 为唯一本地密钥文件。
+- 新增 §10「统一模块与迁移顺序」：五个部件（client / 抽取 / 编排 / 状态接口 / 任务表）各自的验收判据，迁移按"风险×工作量"排序——先清写死的假绿灯，再补 HTML 表格转换，再补任务历史，最后 CLI 改 HTTP 并补抽取层。
+
 ## 2026-10-21 · 回流：MinerU 的 HTML 表格必须先转竖线表（L2，乳腺癌 + GIST 两处复现）
 
 - `examples/mineru-labparse-align.mjs` 新增 `htmlTablesToPipes(markdown)`：把 `full.md` 里 `<table><tr><td>` 表格转成 `| a | b |` 并补一条 `| --- |` 分隔行，再交给对齐逻辑。`extractTableCandidates(lines)` 支持直接传原始 markdown（内部先转），也支持传已切好的行数组。
