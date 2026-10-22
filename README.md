@@ -41,9 +41,9 @@ dsh-wb-cli doctor
 2. **答前置问题**：`dsh-wb-cli init --prepare`，填「服务谁 / 什么场景 / 一次任务怎么完成」。这三个答案会写进生成项目的 SPEC 骨架，后面不再问第二遍。
 3. **生成项目**：`dsh-wb-cli init <english>-workbench`，得到标准目录与文档体系（AGENTS / spec / docs / templates / prompts / 版本与检查脚本）。进目录先 `npm run check`，能在干净状态下全绿才算基线没坏。
 4. **建强约束再动手**：按 `docs/DEV-REQUIREMENTS-<日期>.md` 写一份本癌种的强约束文档（范围、照抄样板的产品要求、硬约束 H1–Hn、本轮明确未做、我替你定的默认值）。**没有这份文档就不写业务代码**，这是最省返工的一步。
-5. **把提示词整段交给 Agent**：[ZERO-TO-DEV](prompts/ZERO-TO-DEV.md) 填四个空（癌种中文名 / 英文名 / 目标目录 / 样板基准），剩下的按闸口推进——3.1 调研 + 患者流程 + schema + 多通道临床库 + HTML 原型，**第一次人工确认**；3.2 开发版，逐页 parity；3.3 dsh-desktop 实测；确认后 push + 把踩到的坑回流到脚手架。
+5. **把提示词整段交给 Agent**：[ZERO-TO-DEV](prompts/ZERO-TO-DEV.md) 填四个空（癌种中文名 / 英文名 / 目标目录 / 样板基准），剩下的按闸口推进——3.1 调研 + 患者流程 + schema + 多通道临床库 + **指南与分级（G1 出处 / G2 节奏 / G3 分级）** + HTML 原型，**第一次人工确认**；3.2 开发版，逐页 parity + 面板默认在右可拖 + 顶栏开关；3.3 dsh-desktop 实测；确认后 push + 把踩到的坑回流到脚手架。
 
-两条最容易踩的：**闸口不签不往下走**（G1 需求、G2 原型、G3 schema 各签一次，省下的时间远超一次返工）；**临床库要如实写来源终态**，没查到就是"未配置/无覆盖"，不能写成"已查过"。
+三条最容易踩的：**闸口不签不往下走**（G1 需求、G2 原型、G3 schema 各签一次，省下的时间远超一次返工）；**临床库要如实写来源终态**，没查到就是"未配置/无覆盖"，不能写成"已查过"；**×ULN 类指标缺参考上限就写"需参考上限"**，不拿成人通用值凑倍数（详见 [23](docs/23-METRIC-GRADING-AND-ALERTS.md) §2.1）。
 
 ## 不激活命令也可直接使用
 
@@ -103,7 +103,8 @@ python3 skills/hvt-requirement-review/scripts/hvt_scan.py --project . --profile 
 | **从一个癌种名到可运行开发版（init→强约束→调研/schema/多通道临床库/原型→开发版→dsh-desktop 实测→回流）** | [ZERO-TO-DEV](prompts/ZERO-TO-DEV.md) |
 | **三阶段×三闸口开发流程速查（必记心智模型，G1/G2/G3 签认规则）** | [22-PHASES-AND-GATES](docs/22-PHASES-AND-GATES.md) |
 | **罕见病/新病种调研手册（设计→执行→输出，证据分级）** | [21-RESEARCH-PLAYBOOK](docs/21-RESEARCH-PLAYBOOK.md) |
-| **指标分析与卡片提醒：分组、CTCAE v5.0 分级对照、两侧并置提醒** | [23-METRIC-GRADING-AND-ALERTS](docs/23-METRIC-GRADING-AND-ALERTS.md) |
+| **指标分析与卡片提醒：分组、CTCAE v5.0 分级对照（含 ×ULN 型）、两侧并置提醒** | [23-METRIC-GRADING-AND-ALERTS](docs/23-METRIC-GRADING-AND-ALERTS.md) |
+| **指南接进工作台：出处 / 适用 / 节奏 / 分级四层刻度尺（含登记三处一致、不取严、版权边界）** | [25-GUIDELINE-BRIDGE](docs/25-GUIDELINE-BRIDGE.md) |
 | 包声明、注册、原生会话、宿主边界 | [02-DSH-CONTRACT](docs/02-DSH-CONTRACT.md) |
 | 社区风格、Logo、UI/UX 技能、图表/动效 | [03-DESIGN-SYSTEM](docs/03-DESIGN-SYSTEM.md) |
 | SQLite、可扩展指标、来源与文件目录 | [04-DATA](docs/04-DATA.md) |

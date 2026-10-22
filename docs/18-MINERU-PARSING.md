@@ -6,6 +6,21 @@
 
 参考实现：社区仓库 `xyb-openharness-dsh-plugins/xyb-workbench`（`dsh/mineru.js`、`dsh/settings.js`、`dsh/extract.js`）、`xyb-community/cervical-workbench`（`dsh/settings.js` 的可写版本 + `dsh/routes.js` 的设置接口）、`lib/zip.js`（零依赖 ZIP 读取）。可复用的纯函数示例：[mineru-labparse-align.mjs](../examples/mineru-labparse-align.mjs)。
 
+## 0. 本版改了什么（v1 → v2，先看这张表，别按旧版做）
+
+| 项 | v1 写法 | v2 口径 | 不照做的真实现象 |
+| --- | --- | --- | --- |
+| Token 优先级 | 显式 > env > 文件 | **显式 > 文件 > env** | 换了新 Token 还是 401（env 里那把过期 Key 盖住了文件） |
+| 密钥文件 | env 优先，另有 `~/.mineru/config.yaml` | 只有一份 `mineru.json`，**删掉 YAML 分支** | 界面写 A、解析读 B，"已保存"但读不到 |
+| 设置页 | 只读文案 | **GET 状态 + POST 存/清** | 换 Key 要去文件管理器手改 JSON，患者做不到 |
+| flash 通道 | "可选轻量模式" | **作废**（只出 markdown、表格结构不保证） | 同一份报告两条通道排版不同，核对成本上升 |
+| 默认模型 | vlm | **pipeline**（跨工作台统一；接口拒参数才回退 vlm） | 各仓结果没法横向比较；注意 pipeline 对空格分列表格会压平 |
+| 单位 | 纯文本 `10^9/L` | **先剥 LaTeX 外壳**（`$10^9/L$`） | 单测绿、桌面端单位列显示 `$10^9/L$` |
+| `.html` 白名单 | 允许 | **拒收**（-10002） | 留着一个一定失败的入口 |
+| 表格 | 直接正则抽取 | **先 `htmlTablesToPipes()` 再按位置对齐** | 8 个指标写成同一个数，不报错 |
+
+> 这张表是"迁移检查表"：接手一个旧仓，先逐行对照它现在做的是哪一列。
+
 ---
 
 ## 1. 十条开发原则
@@ -411,3 +426,23 @@ Token 有三个使用者：解析客户端要读、路由要给状态、设置�
 5. **补任务历史**。只有 `document.status` 没有 `parse_job` 的实现，用户点十次重试在库里看不出痕迹。
 6. **CLI 路线改 HTTP**。顺带补上缺失的抽取层——只落 markdown 原文、让用户对着 markdown 手录候选，等于把结构化成本推给患者。
 7. 最后统一跑一遍 §13 清单与契约测试，不一致就不算迁移完。
+
+---
+
+## 15. 改动落点表（照这个位置改，别另起一套）
+
+| 要改的事 | 落在哪个文件 | 怎么验 |
+| --- | --- | --- |
+| 默认模型 / 回退判定 | `dsh/mineru.js`（`MINERU_MODEL_DEFAULT` / `MINERU_MODEL_FALLBACK` / `modelFallbackWorthy`） | 单测断言默认提交值、显式传值不被覆盖、文件失败不换模型 |
+| Token 读取与落点 | `dsh/settings.js` 的 `secretFile()` | `env -u MINERU_TOKEN` 下验文件分支；状态接口返回 `source` |
+| 设置页接口 | `dsh/routes.js`（`GET/POST /api/<topic>/settings/mineru`） | 三态可区分；响应体无 `token` 字段；400 与 500 分开 |
+| 设置页界面 | `public/app.js` 的「文档解析」页 | 真实浏览器点一遍：填 → 存 → 读盘 → 清（§5.7） |
+| HTML 表格转换 | `dsh/<topic>parse.js` 的 `htmlTablesToPipes()` | 反例测试：先剥标签 → 整表压成一行、抽不出指标 |
+| 单位归一 | 同上（先剥 LaTeX 再归一） | 夹具用真实 `full.md` 片段，不手写干净版 |
+| 失败分类 | `dsh/mineru.js` 的错误码 + 界面失败卡 | 每类错误一条文案；非 Token 故障不弹 Token 提醒 |
+| 任务历史 | `parse_job` 表 | 重试新增一行，旧记录保留；`解析中` 不进 `document.status` |
+| 文件白名单 | 导入入口的类型判断 | `.html` 不在白名单；`.txt/.md/.csv` 走本地解析 |
+
+**跨工作台口径同步（2026-10-22）**：默认模型统一 `pipeline`、flash 作废、Token 文件优先、唯一密钥文件 `mineru.json`。这四条是**家族级决定**，单个工作台不要自行改回，要改先改这里和 CHANGELOG。
+
+**诚实边界**：这一份文档里写"实测"的，都是真跑过的（乳腺癌 2026-10-17、GIST 2026-10-21、宫颈 2026-10-22）；写"未验证"的（扫描件 OCR、双栏、多页、额度限流、断网重试）不要在新项目文档里写成已支持。
