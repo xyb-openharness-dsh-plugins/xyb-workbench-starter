@@ -112,7 +112,7 @@ python3 skills/hvt-requirement-review/scripts/hvt_scan.py --project . --profile 
 | 本机安装验收、GitHub Release、Awesome Workbench 市场 PR | [10-MARKET-PUBLISHING](docs/10-MARKET-PUBLISHING.md) |
 | 任务分层、原型一致性、产物检查与可选视觉方案 | [11-REUSABLE-PATTERNS](docs/11-REUSABLE-PATTERNS.md) |
 | 可选高德POI、Key配置、地图/坐标与结果校验 | [12-AMAP-POI](docs/12-AMAP-POI.md) |
-| **PDF 报告云端解析（MinerU）：Token、抽取纪律、表格对齐与失败语义** | [18-MINERU-PARSING](docs/18-MINERU-PARSING.md) + [对齐示例](examples/mineru-labparse-align.mjs) |
+| **PDF 报告云端解析（MinerU）：开发原则、设置页维护 Token、抽取纪律与表格对齐** | [18-MINERU-PARSING](docs/18-MINERU-PARSING.md) + [对齐示例](examples/mineru-labparse-align.mjs) |
 | 测试、安装、旧版本、发布和回滚 | [06-VALIDATION-AND-RELEASE](docs/06-VALIDATION-AND-RELEASE.md) |
 | 开发典型错误和修复经验 | [LESSONS](docs/LESSONS.md) |
 | 来源规则、官网版本差异、复盘方法 | [SOURCES](docs/SOURCES.md) / [HISTORY](docs/HISTORY.md) |
