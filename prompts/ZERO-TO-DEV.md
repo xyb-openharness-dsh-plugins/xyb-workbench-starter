@@ -1,8 +1,9 @@
-# 从一个癌种名到可运行开发版：一次性交付提示词 v1.1
+# 从一个癌种名到可运行开发版：一次性交付提示词 v1.2
 
 > 用法：把「你是…」到文件结尾整段复制给一个新会话，先填四个空：癌种中文名 / 癌种英文名 / 目标目录 / 样板基准。  
-> 样板基准默认 `<癌种英文>-workbench v0.1.0`（当前可用样板：`colorectal-workbench`、`gastric-workbench`）。  
-> 本文件由 2026-10 食管癌（EsopPal）实际跑通的一轮沉淀而成；顺序不是建议，是闸口。
+> 样板基准默认 `<癌种英文>-workbench v0.1.0`（当前可用样板：`colorectal-workbench`、`gastric-workbench`；数据/指南/分级三层可参照 `breast-cancer-workbench` v0.12.0）。  
+> 本文件由 2026-10 食管癌（EsopPal）一轮 + 乳腺癌 v0.10–v0.12 三轮（G1 出处 / G2 节奏 / G3 分级）沉淀而成；顺序不是建议，是闸口。  
+> **v1.2 新增**：阶段 1.5（指南与分级标准）、阶段 2.2（面板默认右侧 + 可拖 + 顶栏开关）、末节「假绿清单」。这三块是"做完看着像好了、其实没接上"的高发区。
 
 ---
 
@@ -27,11 +28,12 @@
    执行 `init` 到目标目录，确认 `.dsh-wb-starter.json` 记下 starter 版本与 revision。
 2. 初始化后立刻做三件事，再动业务：
    - 把 `prompts/` 里适用的提示词复制进项目 `prompts/`（至少 `START.md`、`DESIGNER-FIRST.md`、  
-     `DSH-WORKBENCH-TOP-BAR.md`、`DSH-AGENT-PANE-INTEGRATION.md`）；
+     `DSH-WORKBENCH-TOP-BAR.md`、`DSH-AGENT-PANE-INTEGRATION.md`、`ZERO-TO-DEV.md` 本身）；
    - 建标准文档体系（缺的补空壳，不许留"待补"到开发阶段）：  
      `docs/SPEC.md`（范围与不做）｜`docs/DEV-REQUIREMENTS-<日期>.md`（强约束，见 0.2）｜  
      `docs/DIFF-MATRIX.md`（与样板癌种逐项差异）｜`docs/PATIENT-FLOW.md`｜`docs/SCHEMA.md`｜  
      `docs/CLINICAL-DATA-<年>.md`｜`docs/DEV-PLAN.md`（里程碑只认这一份）｜  
+     `docs/METRIC-GRADING.md`（本癌种启用哪几项分级、为什么）｜`docs/GUIDELINE-BRIDGE.md`（若接指南）｜  
      `README.md`、`CHANGELOG.md`、`VERSION`、`AGENTS.md`
    - 跑一次 `npm run check`（脚手架自带骨架应能过），把基线钉住。
 3. **先给遗漏清单再执行**：列出需要澄清的点（受众、分期覆盖、是否含特殊亚型、是否要双营养入口…）。  
@@ -44,8 +46,8 @@
 | 章节 | 必须写什么 |
 | --- | --- |
 | 一、范围 | 交付物 × 落点 × 怎么验，一行一条，可勾选 |
-| 二、照抄样板的产品要求 | 顶栏三段式 + AI 五态、面板 25%–45% 可拖、一图秀、3D 卡；写"不许按比例缩减" |
-| 三、硬约束 | 数据层 / 前端 / 工程 / 本癌种专属四组，**每条带"错误来源"**（哪一轮、哪张截图、哪次 parity 红） |
+| 二、照抄样板的产品要求 | 顶栏三段式 + AI 五态、面板默认右侧且 25%–45% 可拖、一图秀、3D 卡；写"不许按比例缩减" |
+| 三、硬约束 | 数据层 / 前端 / 工程 / **医学口径**四组，**每条带"错误来源"**（哪一轮、哪张截图、哪次 parity 红） |
 | 四、本轮明确未做 | 不许在验收里算通过（如装机、市场投稿、真实病例） |
 | 五、我替你定的默认值 | 默认执行、可回退，写清理由 |
 
@@ -60,7 +62,12 @@
 - **前端**：图标 key 走别名兜底；内联 svg 必须给宽高；页脚贴底（`min-height:calc(100vh - 32px)` + `flex:1`）；  
   `[hidden]{display:none!important}`；二级页签按 `state.sub` 分流且穷举测试；字号基线 12.5px（大字 15px）。
 - **工程**：面板参数唯一来源 `lib/layout.js`；`apiBase` 不含 `/api`；演示数据只有一个来源；  
-  迁移只增不改；所有 INSERT 写显式列名 + 显式问号数。
+  迁移只增不改；所有 INSERT 写显式列名 + 显式问号数；`lib/version.js` 是生成物，不手改。
+- **医学口径**（v1.2 新增，四条，详见阶段 1.5 与 starter `docs/23` / `docs/25`）：  
+  ① 分级只用「对照」，不写"偏高/偏低/严重"，不推断因果、不给处置；  
+  ② ×ULN 型必须用**这张化验单自带的参考上限**，缺了就返回 `needsUln`，**绝不拿成人通用上限凑倍数**；  
+  ③ 指南只做「出处 + 节奏 + 并列口径」，处置推荐只折叠原文，不改写成产品语句；  
+  ④ 未采用的原文分支（如 QTc 的"较基线 >60 ms"）要在注释里写明"未采用"及原因，不是漏做。
 
 > 阶段 0 通过条件：这份文档里每一条都能被某条命令或某张截图验证。写不出验证方式的约束，删掉。
 
@@ -85,6 +92,9 @@
 - `schema/0001_initial.sql`：档案级 + 指标 3 张 + 通用 8 张 + 本癌种专属 N 张；四契约必须落地：  
   ① 看法恒不为结论（无 `is_conclusion`）；② 四点位 1–4 点、缺健侧不生成差值（NULL ≠ 0）；  
   ③ 更正只新增版本（路径切换新增行不覆盖旧行）；④ 事实四层（文档/候选/记录/指标）不合并。
+- **参考值要能落库**（v1.2）：化验记录必须有 `ref_low` / `ref_high` 两列（可空），否则 ×ULN 型分级永远缺上限。  
+  写入时校验：非数字、上限小于下限都要报错；**空值先挡 `null/undefined/''` 再 `Number()`**——  
+  `Number(null) === 0` 会让"没填上限"变成"上限是 0"，本项目在三个不同地方踩过这个坑。
 - 冻结后立刻写 `schema/freeze-contract.md`（sha256 + 内容边界），此后改结构只能新增 `0002_*.sql`。  
   发布前发现漏列（如分节 `*_title`）也走 ALTER 追加，不改 0001。
 
@@ -132,10 +142,69 @@
 - 无头实测：页签穷举（**不能先抓完按钮再点**，`render()` 会重建 DOM）、`aria-selected` 与内容指纹、  
   `body.scrollWidth === innerWidth`、控制台 0 error、0 个 4xx。截图逐张目视过。
 
-### 1.5 交第一次确认（明确停下来）
+### 1.5 指南与分级标准（G1 出处 → G2 节奏 → G3 分级，v1.2 新增）
+
+> 通用规则全文见 starter `docs/25-GUIDELINE-BRIDGE.md`（四层刻度尺）与 `docs/23-METRIC-GRADING-AND-ALERTS.md`（分级与提醒）。  
+> 这一节只写"本阶段要做到什么、怎么验"。**本癌种指南没拿到就先跳过 G1–G3，不要用通用共识凑。**
+
+**先做四问筛**：有权威且带页码的中文指南吗？拿到的是原件还是二手摘编？里面有没有间隔或数值阈值？  
+版权允许引用页码与 ≤200 字摘录吗？——四问全过才动手。
+
+**G1 出处层（必做，成本最低、用户感知最强）**
+
+- 原件入库 `guidebooks/` + `manifest.json`（org / version / published / pages / sha256 / 来源 / 是否 OCR / 允许用途）。  
+  **原件不入包**：`guidebooks/` 不进 `package.json` 的 `files`，`npm pack` 要能证明它没进去。
+- 结构化条目放 `assets/reference/guideline/refs.json`，**只有页码、表号、≤200 字摘录、notes**，不含正文。  
+  **必须随包分发**——放 `guidebooks/derived/` 装机就会缺文件（包目录整份替换）。
+- 界面固定两段式，中间不合成判断：`指南这里写的是：…（版本 · P208 表 9.5）` / `你的记录是：…`。  
+  **不出现"所以/因此/你需要"**。卡片背面一行出处，页面给一个折叠表格。
+- **登记三处必须一致**：`manifest.json` / `refs.json` / `cadence.json` 各带一份 document 元信息，  
+  `id / version / published / sha256` 必须逐字相同，**加一条单测钉住**。（真实事故：三处日期与版本各写各的，界面显示了一个不存在的版本。）
+- **`notes` 会原样显示给用户**，能力一变就要改。写"暂不启用"之前先确认代码确实没启用；  
+  写"在哪一节"之前先回原文看过——曾把"肝损伤分型"那一节当成"分级表"，实际分级表在另一节且限定某类药。
+- 说明条数超过 3 条就别挤成一段，改 `<details>` + `<ul>`，标题写"这几项指南怎么写（N 项）"。
+
+**G2 节奏层（有价值就做，没间隔就别硬造）**
+
+- 结构化 `assets/reference/guideline/cadence.json`：分档间隔 + 检查项清单（项目 / 适用人群 / 频率 / 页码）+ 药名匹配规则。
+- 纯函数 `dsh/cadence.js`：`addMonths`（**月末夹取**，1/31 + 1 月 = 2 月末，不滑到 3/3）、`checkpoints`、  
+  `treatmentTags`、`applicableChecks`、`buildFollowupPlan`。
+- **节点 = 起点（手术日/确诊日）+ k×间隔**，不是"上次复查 + 间隔"——一次都没记过也要能算出两个节点。
+- 三条边界写在文件头：① 只算参考节点不排计划；② **不发提醒不弹通知**，节点只能转成「想问医生的问题」或  
+  「我自己的待办」，新建待办 `due=null`；③ 不做分期判断，分期没记录就只给通用节奏并写"未按分期调整"。
+- **显示带宽必须标注来源**：`±30 天` 是工作台的显示带宽，**不是指南内容**；指南只写间隔。这句话要上界面。
+- 药名匹配**宁缺勿猜**：只写"化疗"两个字匹配不到蒽环，界面写"没匹配到具体药名"，不假设。
+- 匹配不了的条件（如"某转移灶 >4 枚"）列进"无法自动匹配"，**不要**默认判成"不适用"。
+
+**G3 分级层（按 `docs/23` §2.1 做，两类指标两套处理）**
+
+- 分级模块是纯函数（如 `dsh/ctcae.js`），阈值表是**代码里唯一一份**，注释写明"以 `assets/reference/ctcae/` 的 PDF 为准，冲突时改代码"；  
+  每条阈值带页码（乳腺癌参照：ALT/AST/ALP P84、总胆红素 P85、肌酐 P86、QTc P87；换癌种自己查）。
+- **两类指标不许用一套规则**：
+  - **绝对阈值型**（白细胞 / 中性粒细胞 / 血红蛋白 / 血小板 / QTc）：标准给数值界限；缺个人参考值时可用成人通用下限**近似**，  
+    结果带 `approx: true`，界面写"按通用下限"。
+  - **×ULN 型**（ALT / AST / ALP / 总胆红素 / 肌酐）：**必须用这次化验单自带的 `ref_high`**；没有就返回 `needsUln` +  
+    虚线徽章「需参考上限」，**绝不用通用上限凑倍数**（ALT 各实验室 40–55 U/L，差 1.4 倍，一除就能把 2 级说成 1 级）。  
+    一句话记法：**下限可以借，上限不能借。**
+- 有上限时卡面给三样：级别 + 区间 + **实测倍数**（`对照 CTCAE v5.0 · 1 级 · >1.0–3.0 ×ULN · 实测 2.4×ULN`），倍数服务端算。
+- 边界钉**整除不等于越界**：上限 40、值 120 → `ratio=3.0` → 1 级；120.1 → 2 级。两个点都要有单测。
+- **没有数值界限的级不给**（贫血 G4 无门槛 → 最高 3 级）；原文里本地没有数据支撑的分支（QTc"较基线 >60 ms"、  
+  G4 心律失常定义）**写 `maxGrade` + 注释"未采用"**，不是漏做。
+- 单位不对就提示，**不替用户换算**：QTc 填 `0.46`（秒）→ `needsUnit` → "请按毫秒填写"。
+- 三种"没有级别"必须能在界面区分：正常（无徽章）/ 缺上限（虚线徽章「需参考上限」）/ 单位错（虚线徽章「单位待确认」）。
+- **分组别乱动**：像"骨髓抑制页只并置血液学四项"这种前提，靠 `ctcaeCoveredCodes()` 只返回四项来守；加项请另开 `ctcaeAllCodes()`。
+- **双标准并列**（指南也有阈值时才做）：正面只显示一个徽章；背面一行指南口径 + 页码；  
+  级差 ≥1 时只说"两套口径在这一条上不一致，见 Pxxx"，**不自动取严**。  
+  **动手前先逐条比对**——常见结局是"两套口径其实一致"，那就直接写"一致"，不要硬造差异。
+
+**这一节的验收**：`npm run check` 里至少有一条单测覆盖"缺参考上限 → `needsUln` 而不是给级"、  
+一条覆盖"三处登记一致"、一条覆盖"×ULN 边界整除点"；界面上三枚徽章（有级别 / 需参考上限 / 单位待确认）都亲手看到过。
+
+### 1.6 交第一次确认（明确停下来）
 
 给用户：demo 打开方式（`file://` 路径或本地端口）、关键页截图、`DIFF-MATRIX` 三行摘要、  
-`CLINICAL-DATA` 覆盖与缺口、本轮明确未做的清单。**等确认，再进阶段 2。**
+`CLINICAL-DATA` 覆盖与缺口、**指南三层各自做到哪（G1/G2/G3 分别已做/未做）**、本轮明确未做的清单。  
+**等确认，再进阶段 2。**
 
 ---
 
@@ -147,7 +216,8 @@
    `dsh/workbench.js`、`dsh/index.js`（`API_PREFIX='<癌种>'`、`DB_FILE='xyb-<癌种>.sqlite'`）。
 2. `dsh/demo.js`：把 `buildDemoProfiles()` 写进用户资料目录的库；幂等（有 subjects 整批跳过）、单事务、失败整体回滚。
 3. `dsh/readmodels.js`：把行还原成 **demo-data.js 同一形状**（parity 是这一层唯一验收标准）。  
-   有 `ord` 按 `ord`，`events` 按 `rowid`；`kind !== 'numeric'` 才还原 `kind`；分类指标原型里没有 `unit` 键就不能补。
+   有 `ord` 按 `ord`，`events` 按 `rowid`；`kind !== 'numeric'` 才还原 `kind`；分类指标原型里没有 `unit` 键就不能补。  
+   分级/节奏这类**派生值读取时算、不落库**（标准会升版，落库等于把旧标准的判断写成历史事实）。
 4. `public/`：`index.html`（三段式顶栏 + `#agent-splitter`/`#agent-hide`/`#agent-label` + `noindex` + 内联 favicon）、  
    `style.css`（原型 + 只改字号三处 + `[hidden]`）、`shell.css`、`app.js`。  
    `app.js` 用**复制原型 → 定点替换**迁移（数据加载、AI 五态、宽度、版本、启动异步化），不要手抄。
@@ -156,34 +226,79 @@
 6. `test/`：`store.test.mjs`（迁移幂等 / 播种幂等 / parity）、`server.test.mjs`、`ui-parity.test.mjs`  
    （视图 × 档案 × 页签**逐字符**一致 + id 齐全 + css 只差字号 + 顶栏五态 + 前缀同源）。
 
-### 2.2 一致性验收（少一条都不算交付）
+### 2.2 面板：默认在右、可拖、顶栏开关（customFrame 必做，v1.2 展开）
+
+> 原理与源码依据见 starter `docs/20-AGENT-PANE-DESIGN.md` §2 / §2.1–2.3；顶栏规范见 `prompts/DSH-WORKBENCH-TOP-BAR.md`。  
+> **一句话前提**：要"可拖 + 可收起"，只能 `customFrame: true`。标准分栏下宿主把宽度写成注册时的静态值，  
+> 服务里**没有** `setBusinessWidth` / `togglePane`，DOM 里也没有 splitter 节点——那条路上不存在这个能力，  
+> 不要写"用宿主自带能力"这种兑现不了的承诺。
+
+**位置**
+
+- `businessSide: 'left'`：业务区在左、原生会话在最右。家族统一，**不许各仓自定**（用户明确要求过"原生会话面板在最右"）。
+- `businessWidth: 0.65` 与 `AGENT_PANE.default: 0.35` **互补**，用 `assertPanelConfig()` 钉住；改一个必须改另一个。
+- 默认值**只有一份**：`lib/layout.js`，由构建注入客户端。客户端里不许出现第二个 `0.65` / `0.35`。
+- customFrame 下宿主不再用这两个值分栏，但 **register 时仍会校验**（`businessSide ∈ left|right`，  
+  `businessWidth ∈ 0.25–0.7`，越界直接抛错），所以照样传合法值。
+
+**拖动（四条，缺一条就不算"可拖"）**
+
+1. 拖动量按**容器 rect** 夹取，不按 `window.innerWidth`（窗口有侧栏/避让时比例会整体偏移）。
+2. `role="separator"` + `aria-valuemin/max/now` + `tabindex="0"`。
+3. 键盘 `←/→` 步进与拖动同精度（如 2%），`Home/End` 到边界——键盘和鼠标必须能得到同一组取值。
+4. 宽度写 localStorage，**读回时过一遍 `clampAgentWidth()`**（手改过或旧版本存了越界值，否则一开就坏）。
+
+窄容器（< 760px）改**覆盖式抽屉**（≤420px），业务区不让位，splitter 在该形态下**不出现**（不是隐藏一个还能 Tab 到的节点）。
+
+**顶栏开关**
+
+- 开合入口**只在顶栏**：五态按钮 `AI 对话 / 正在连接… / 收起 AI 对话 / 打开 AI 对话 / AI 对话暂不可用` +  
+  独立「×」（带 `aria-label`）。面板内部不放第二组开合控件。
+- 收起只切 `paneOpen` 与 `display`，**不调用任何 close/delete**；再点回到同一会话，草稿还在。  
+  原生会话节点**恒定挂载**（宿主明确要求不重挂输入树，卸载会丢输入框与草稿）。
+- 无会话时按钮是「AI 对话」（点击 `ensureSession`），**不是禁用**；业务区不依赖会话，照常可用。
+- 服务缺失才禁用，文案「AI 对话暂不可用」并写降级原因；**不许自建聊天框**兜底。
+- 根节点首个子元素必须是语义 `<header>`，并避让 `--dsh-frame-leading-clearance`（macOS 窗口按钮占左上角）。
+
+### 2.3 一致性验收（少一条都不算交付）
 
 ```
-npm run build:version      # VERSION 唯一来源；lib/version.js 是生成物，不手改
-npm run check              # 版本→语法→冻结合同→文案红线→列一致性→单测→版本一致→包结构
-npm run pack:check         # 包内容，不发布
-npm start -- --workspace <用户选的目录>    # 再跑一轮无头实测
+NODE_OPTIONS= npm run build:version   # VERSION 唯一来源；lib/version.js 是生成物，不手改
+NODE_OPTIONS= npm run check           # 版本→语法→冻结合同→文案红线→列一致性→单测→版本一致→包结构
+NODE_OPTIONS= npm run pack:check      # 包内容，不发布
+NODE_OPTIONS= npm start -- --workspace <用户选的目录>    # 再跑一轮无头实测
 ```
 
 - 文案红线：禁「建议治疗 / 可能复发 / 可以停药 / 无需就医 / 推荐方案 / 治愈率 / 生存率」；  
+  指南语境扩词：`应该 / 必须 / 建议复查 / 需要治疗 / 暂停用药 / 可以考虑加用`。  
   免责句放否定语境，或词表行末标 `wording-allow`（自检清单本身要出现这些词）。
+- **版本校验的陷阱（v1.2 新增，本项目卡过一次）**：`lib/version.js` 里的 `commit` 记的是**生成时**的 HEAD，  
+  一提交就落后一格。若 `--check` 逐字比对整份文件，提交后**永远假红**。正确做法：比对时**忽略 commit 行**，  
+  再用 `git merge-base --is-ancestor <recorded> HEAD` 核这个 commit 是否真实存在且是祖先（防编造）。
+- **git 成败必须看退出码**：`--is-ancestor` 成功时**没有输出**，用"返回值是不是空串"判会永远判错。  
+  写 `spawnSync(...).status === 0`。改完手工验两个方向（改成假 hash 判失败、改回判通过）。
 - 无头实测要出数字：导航数、面板宽度（开 / 宽 / 收起）、`bodyScrollW` vs `innerWidth`、error / 4xx 计数、  
-  一图秀 `numericLines` 与分类节点数。截图给用户看，不口头说"没问题"。
+  一图秀 `numericLines` 与分类节点数、分级徽章三种态各出现几次。截图给用户看，不口头说"没问题"。
+- 实测要**用干净的目录**：`mkdtemp(join(homedir(),'.xyb-…'))`（不用 `os.tmpdir()`）；  
+  重复跑会污染数据（第一次跑完某项已有十几条记录，读数就对不上了）。
 - 版本可见性放首屏（P1–P5 判据见 starter `skills/hvt-requirement-review/references/publish-readiness.md`）。
 
-### 2.3 完整交付清单
+### 2.4 完整交付清单
 
 ```
 schema/0001_initial.sql + freeze-contract.md (+ 000N)
 demo/build-demo-data.mjs + demo/demo-data.sqlite
 research/<癌种>-cancer/{manifest.json,trials-<年>.jsonl,<癌种>_cancer_trials_<年>.sqlite,README.md}
+assets/reference/ctcae/*.pdf + README.md
+assets/reference/guideline/{refs.json,cadence.json}（接指南时）
+guidebooks/ + manifest.json（原件，不入包）
 prototypes/v0.2/{index.html,style.css,app.js,demo-data.js}
-dsh/{index,server,store,workbench,demo,readmodels}.js
+dsh/{index,server,store,workbench,demo,readmodels}.js (+ ctcae.js / guideline.js / cadence.js)
 lib/{client,layout,version}.js
 public/{index.html,style.css,shell.css,app.js}
 scripts/{dev-server,build-version,fetch-<癌种>-trials-<年>,check-*}.mjs
-test/{store,server,ui-parity}.test.mjs
-docs/{SPEC,DEV-REQUIREMENTS-<日期>,DIFF-MATRIX,PATIENT-FLOW,SCHEMA,CLINICAL-DATA-<年>,DEV-PLAN}.md
+test/{store,server,ui-parity,ctcae,guideline,cadence}.test.mjs
+docs/{SPEC,DEV-REQUIREMENTS-<日期>,DIFF-MATRIX,PATIENT-FLOW,SCHEMA,CLINICAL-DATA-<年>,DEV-PLAN,METRIC-GRADING,GUIDELINE-BRIDGE?}.md
 README.md / CHANGELOG.md / VERSION / package.json
 ```
 
@@ -191,28 +306,57 @@ README.md / CHANGELOG.md / VERSION / package.json
 
 ## 阶段 3（3.3）：按发布规范做 dsh-desktop 实测
 
-1. `npm run build:version` → `npm run check` → `npm pack`，tgz 放 `release/`（`*.tgz` 已被忽略，不入库）。
-2. **装到 dsh-desktop**（不是 web）：profile 用 pnpm store 装，例如  
-   `NODE_OPTIONS= npx --yes pnpm@10.15.0 add -w <绝对路径>.tgz`。
-3. 装机判据只看宿主信号，不看 curl：`package.json` 的 `dsh.profile.bundles`、`state.json` 的 added/pinned、  
-   `harness.log` 有无 import failed；外部直连拿 401/403 是授权闸生效，不代表没装上。
-4. 客户端入口形态：`window.__ModuleLoader__.load({id, factory(require)})` 包装的 React 组件 +  
-   `ctx.desktopWorkbenches.register({...}, Panel)`；给原生 ESM 会被 renderer 拒并触发 plugin-recovery。
-5. 实测项：工作台能打开、各页可切、AI 面板能开 / 收起 / 调宽、数据落盘到用户目录、重开资料还在、  
-   版本号首屏可见。**没跑过就写"未验证"**，不许写"装机通过"。
-6. 逐项截图归档到 `docs/release/<版本>/`，写清宿主版本、profile、tgz sha256。
+1. `NODE_OPTIONS=` 前置，`npm run build:version` → `npm run check` → `npm pack`，tgz 放 `release/`（`*.tgz` 已被忽略，不入库）。
+2. **装机目录要认准**：Desktop 的 profile 在  
+   `~/Library/Application Support/dsh-desktop/harness/profiles/web`，**不是** `~/.dsh/profiles/*`（那是 CLI 侧，Desktop 不读）。  
+   换机器先跑 `scripts/check-install.mjs`（只读探测 + 打印判定依据），不照抄路径。
+3. 装：`DSH_HOME=<harness 目录> NODE_OPTIONS= npx pnpm@10.15.0 --dir <profile> add -w <绝对路径>.tgz`，  
+   然后把包名写进该 profile 的 `dsh.profile.bundles`。profile 的 `dependencies` 会记成 `file:<绝对路径>.tgz`——  
+   所以**仓库根的 tgz 不能随手删**（删了下次 pnpm 解析就断）。
+4. 装机判据只看宿主信号，不看 curl：`package.json` 的 `dsh.profile.bundles`、`state.json` 的 added/pinned、  
+   `harness.log` 有无 import failed；外部直连拿 401/403 是授权闸生效，**不代表没装上**。  
+   再验一条：`import('./dsh/index.js')` 能过，`name` 与 `inject`（如 `["webServer","connection"]`）对得上。
+5. 客户端入口形态：`window.__ModuleLoader__.load({id, factory(require)})` 包装的 React 组件 +  
+   `ctx.desktopWorkbenches.register({...}, Panel)`；给原生 ESM 会被 renderer 拒并触发 plugin-recovery。  
+   页面侧 ESM 走 `lib/bridge.js`；`dsh.client.platform` 必须是 `"web"`。
+6. 实测项：工作台能打开、各页可切、AI 面板能开 / 收起 / **拖宽（鼠标与键盘各一次）**、数据落盘到用户目录、  
+   重开资料还在、版本号首屏可见、**面板默认在右且首屏比例 65/35**。  
+   **没跑过就写"未验证"，不许写"装机通过"。**
+7. 装完要**重启宿主**（Desktop / 菜单 Harness → 重启）才生效；重启前只能写"已安装，待重启确认"。
+8. 逐项截图归档到 `docs/release/<版本>/`，写清宿主版本、profile 路径、tgz sha256。
 
 ---
 
 ## 阶段 4：确认后 push，并把经验回流
 
-1. 用户确认后：`git add -A` → 分主题提交（数据层 / 原型 / 开发版 / 文档）→ push（分支 → PR → 合并，不直推保护分支）。
+1. 用户确认后：`git add -A` → 分主题提交（数据层 / 原型 / 开发版 / 文档）→ push（分支 → PR → 合并，不直推保护分支）。  
+   **不自动提交、不自动推送**——这个家族一律等用户说"可以提交""推"。
 2. 打 tag + release：`v<版本>`，release notes 用 CHANGELOG 对应段落，附 `release/*.tgz` 与 sha256。
 3. **经验回流（这一步不做，下一轮还会踩同样的坑）**：
    - 新踩的坑 → 项目 `docs/DEV-REQUIREMENTS-<日期>.md` 追加一条硬约束（带错误来源）；
-   - 通用坑 → starter：`docs/LESSONS.md` 或对应规范文档，必要时补 / 改 `prompts/`；
-   - 家族共用参数（画布常量、字号档、面板比例、CTCAE 阈值）只改一处来源，其余引用。
+   - 通用坑 → starter：`docs/LESSONS.md` 或对应规范文档（`18` MinerU / `20` 面板 / `23` 分级 / `25` 指南），必要时补 / 改 `prompts/`；
+   - 家族共用参数（画布常量、字号档、面板比例）只改一处来源，其余引用；  
+     **但 ×ULN 的参考上限不属于家族参数**——它随每次化验变，是记录的一部分。
 4. 在 starter 的 CHANGELOG 记一条"本轮从 <癌种> 回收了什么"，让下个癌种直接受益。
+
+---
+
+## 假绿清单（这一轮真踩过的，逐条自问）
+
+| 看着像通过 | 实际是什么 | 怎么验 |
+| --- | --- | --- |
+| `npm run check` 全绿 | 可能只是"测试写得比实现宽容" | 挑 3 条硬约束，手工改成错值，看它会不会红 |
+| 提交后 `check` 报版本不同步 | `commit` 行必然滞后一格，旧校验逐字比对 | 忽略 commit 行 + 用 `merge-base --is-ancestor` 核真实性 |
+| `git fetch` / `ls-remote` 无输出 | 成败判断用了字符串而非退出码 | 一律 `spawnSync(...).status === 0` |
+| 装机"已完成" | 只看了 curl 401，或只加了依赖没进 bundles | 查 `dsh.profile.bundles` + `state.json` + `harness.log` |
+| 面板"可拖" | 只写了 mousemove，没有键盘、没有 aria、没有持久化 | 鼠标 + 键盘各拖一次，重开看宽度 |
+| 面板"可收起" | 收起时卸载了会话节点，草稿丢了 | 收起再打开，输入框内容还在 |
+| 分级"接上了" | 只喂了有参考上限的数据 | 再喂一条**没有** `ref_high` 的，看是不是 `needsUln` 而不是给级 |
+| 指南"接上了" | 三处登记各写各的，界面显示了一个不存在的版本 | 跑"三处一致"单测；点开出处看页码对不对 |
+| 指南说明"已更新" | notes 还是旧口径（"暂不启用"），界面在声明一个不存在的缺口 | 单测扫 notes 里的"未启用/未结构化"，必须与代码一致 |
+| 界面文案"看着对" | 状态由缺失推导，文案却反过来说结果（"超标了但缺上限"） | 逐条问：这句话的前提我有数据支持吗 |
+| 单测全绿但桌面端错 | 夹具比线上干净（手写 `10^9/L`，实际是 `$10^9/L$`） | 夹具用真实产物片段，去掉患者信息 |
+| "0 条结果" | 可能是通道没覆盖该癌种 | 每来源带覆盖声明；离线通道对非胰腺癌一律写"未配置" |
 
 ---
 
@@ -223,4 +367,6 @@ README.md / CHANGELOG.md / VERSION / package.json
 - **不许改绿**：不为让测试通过去改断言、改哈希、改历史迁移。
 - **不许自建聊天框**：缺宿主会话就退化为提示词 / 剪贴板，并在按钮说明里写清降级原因。
 - **不许无据推断**：药物机制未披露就写"未披露"；二手招募文案不能当机制依据；样本量 / 期别要标明。
+- **不许借数据**：下限可以借（标"按通用下限"），上限不能借（缺就 `needsUln`）；指南的关注线不等于分级线。
+- **不许替用户换算**：单位不对就提示换单位，自动乘除会让"填错"永远不被发现。
 - 每阶段汇报 5 行内：**做了什么 / 关键文件 / 实测数字 / 仍缺什么 / 下一步**。中途不抛大段代码。
