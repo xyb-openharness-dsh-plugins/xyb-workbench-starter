@@ -19,6 +19,7 @@
 | [scoring-rubric.md](../skills/hvt-requirement-review/references/scoring-rubric.md) | V/S/F 锚点、HVT 门槛、优先级公式 |
 | [five-layer-check.md](../skills/hvt-requirement-review/references/five-layer-check.md) | 五层判据与假覆盖识别 |
 | [publish-readiness.md](../skills/hvt-requirement-review/references/publish-readiness.md) | 发布可见性 P1–P5：版本号在 HTML 首页与应用首页是否真的看得见 |
+| [interaction-path-consistency.md](../skills/hvt-requirement-review/references/interaction-path-consistency.md) | 交互路径一致性 X1–X4：开发页面与已签认交互路径文档（[28 号](28-INTERACTION-PATH-DESIGN.md)）是否同一张图——无孤儿页 / 逐字走通 / 通道一致 / 无头断言出数字 |
 | [report-template.md](../skills/hvt-requirement-review/references/report-template.md) | 报告与 CSV 结构 |
 | [hvt_scan.py](../skills/hvt-requirement-review/scripts/hvt_scan.py) | 命中统计脚本（启发式，不做判定） |
 | [publish_check.py](../skills/hvt-requirement-review/scripts/publish_check.py) | 版本来源与 HTML 字面量定位（不做判定） |
@@ -33,12 +34,14 @@
 
 五层之外还有一道**发布可见性 P**（P1 HTML 首页 / P2 应用首页 / P3 单一来源 / P4 可追溯 / P5 状态如实）。它不并入五层覆盖分 C，因为版本号不是某个场景的属性，而是整个工作台的发布属性；但 P1 不过，G2 不算可签认的产物，P2 不过，装机验证不能写通过。判据见技能内 `references/publish-readiness.md`。
 
+P 之外还有一道**交互路径一致性 X**（X1 页面覆盖无孤儿页 / X2 路径逐字走通 / X3 CRUD 通道一致 / X4 无头断言出数字）。它问的是"开发出来的页面，和已签认的[交互路径文档](28-INTERACTION-PATH-DESIGN.md)（HTML 开工的前置输入）是同一张图吗"；同样不并入 C（工作台级属性，不卡场景分），但 X1–X4 任一为 0，G2 不签认、Phase3 parity 一致性不写达标；项目没有已签认交互路径文档时 X 整体记 0，且按 IP1 不得开工 HTML。判据见技能内 `references/interaction-path-consistency.md`。
+
 ## 与三道闸口
 
 | 闸口 | 本审核的作用 |
 | --- | --- |
 | G1 业务流程与功能 | 主战场。B 级未清零不签字，不写业务代码 |
-| G2 HTML demo | 用同一份场景清单逐条对照原型，缺哪个场景就是 PARITY 缺口；P1（首屏可见版本号）必须通过 |
+| G2 HTML demo | 用同一份场景清单逐条对照原型，缺哪个场景就是 PARITY 缺口；P1（首屏可见版本号）必须通过；X1–X4（交互路径一致性）必须通过 |
 | G3 数据模型与数据流 | 复用 F 层结论，检查关键字段是否真的建表、可比性是否进约束 |
 | 装机 / 发布 | P2–P5：装机后工作台界面看得见版本号，且与清单/tag/市场一致；未接入时写"未验证" |
 
