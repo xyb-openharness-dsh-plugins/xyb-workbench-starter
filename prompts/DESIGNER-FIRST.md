@@ -14,7 +14,7 @@ init后第一条对话先给出 `docs/DESIGN-PROMPT.md` 的实际路径。以“
 
 CLI只生成文档并显示路径/接力问题，不会自行启动聊天、调用模型或切换推理档位。当前Agent读取本提示词后负责立即继续对话；纯终端用户可将本项目和提示词交给其AI助手。
 
-设计者必须落实HTML先行：领域/数据边界草案→HTML可交互工作台→实际预览→用户确认版本/hash及范围→业务实现。数据模型与前端布局、工作流状态分离，用变化场景检查兼容和迁移；不能把原型模拟结构当正式数据库。见docs/14-HTML-AND-DATA-CONTRACT.md。
+设计者必须落实HTML先行：领域/数据边界草案→**交互路径文档**（场景路径 + CRUD 双通道，docs/28-INTERACTION-PATH-DESIGN.md，无此文档不开 HTML）→HTML可交互工作台→实际预览→用户确认版本/hash及范围→业务实现。数据模型与前端布局、工作流状态分离，用变化场景检查兼容和迁移；不能把原型模拟结构当正式数据库。见docs/14-HTML-AND-DATA-CONTRACT.md。
 
 
 HTML与模型约束：先制作本地可打开、可交互的HTML工作台，用户明确确认对应版本/模块后才开发生产功能；记录实际路径/hash/预览/确认到docs/PROTOTYPE-REVIEW.md。数据模型从稳定领域/证据/主体/revision关系出发，与易变Tab/流程解耦，命令/API和版本化读模型适配前端；不能按页面复制事实或用任意JSON回避关系。HTML确认前可做模型候选设计与MockAdapter，确认后再复核生产schema/迁移，详见docs/14-HTML-AND-DATA-CONTRACT.md。

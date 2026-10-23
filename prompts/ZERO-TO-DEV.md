@@ -131,6 +131,8 @@
 
 ### 1.4 演示数据 + HTML demo（G2 闸口）
 
+- **开工前置（IP1）**：先按 starter `docs/28-INTERACTION-PATH-DESIGN.md` 产出并签认交互路径文档（场景路径表 + CRUD 双通道矩阵）；  
+  demo 的导航与入口文案按文档逐字实现，G2 走查（X1–X4）按文档逐条断言——无此文档不开 HTML。
 - `demo/build-demo-data.mjs` 是**唯一数据源**，同时产出 `demo/demo-data.sqlite` 与  
   `prototypes/v0.2/demo-data.js`；被 import 时只返回 `buildDemoProfiles()` 纯数据，不碰磁盘。
 - 2 套档案 × 6 个月窗口；换档案后的默认指标要与初始状态同构（例：两条数值线 + 一个分类序列）。
