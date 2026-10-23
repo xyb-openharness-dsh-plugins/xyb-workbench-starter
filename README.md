@@ -105,6 +105,7 @@ python3 skills/hvt-requirement-review/scripts/hvt_scan.py --project . --profile 
 | **罕见病/新病种调研手册（设计→执行→输出，证据分级）** | [21-RESEARCH-PLAYBOOK](docs/21-RESEARCH-PLAYBOOK.md) |
 | **指标分析与卡片提醒：分组、CTCAE v5.0 分级对照（含 ×ULN 型）、两侧并置提醒** | [23-METRIC-GRADING-AND-ALERTS](docs/23-METRIC-GRADING-AND-ALERTS.md) |
 | **指南接进工作台：出处 / 适用 / 节奏 / 分级四层刻度尺（含登记三处一致、不取严、版权边界）** | [25-GUIDELINE-BRIDGE](docs/25-GUIDELINE-BRIDGE.md) |
+| **交互路径设计：每个场景一条看板入口→步骤→产物→回首页、CRUD 双通道（AI 协助默认、手工收敛、删除=更正），HTML 开工前置** | [28-INTERACTION-PATH-DESIGN](docs/28-INTERACTION-PATH-DESIGN.md) + [模板](templates/INTERACTION-DESIGN.md) |
 | 包声明、注册、原生会话、宿主边界 | [02-DSH-CONTRACT](docs/02-DSH-CONTRACT.md) |
 | 社区风格、Logo、UI/UX 技能、图表/动效 | [03-DESIGN-SYSTEM](docs/03-DESIGN-SYSTEM.md) |
 | SQLite、可扩展指标、来源与文件目录 | [04-DATA](docs/04-DATA.md) |

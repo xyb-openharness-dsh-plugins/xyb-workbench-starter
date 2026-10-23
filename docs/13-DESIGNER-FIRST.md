@@ -24,7 +24,7 @@ init已有接入骨架可以保留，完成对应设计与原型确认后才实�
 
 旧项目的最小迁移：复制两个新prompts文件；仅当目标文件不存在时，将prompts/DESIGNER-FIRST.md复制为docs/DESIGN-PROMPT.md，将templates中的DESIGNER-BRIEF、DESIGN-SESSION、DESIGN-REVIEW复制到docs。已有记录只合并必要字段/流程，不覆盖。若已为某癌种完成角色与场景讨论，继承当前阶段，合入癌种提示词的适用部分，首问针对剩余关键问题。START遇到缺文件时按此规则补齐后接力，不要求重新init。
 
-补充实施关口：对应范围先出可打开/操作的HTML交互工作台，实际预览并记录用户对版本/hash和范围的确认，再开发业务。数据设计同时用前端与流程变化走查，详见[14-PROTOTYPE-AND-DATA-GATE](14-HTML-AND-DATA-CONTRACT.md)。独立review不替代用户确认。
+补充实施关口：先按 [28-INTERACTION-PATH-DESIGN](28-INTERACTION-PATH-DESIGN.md) 产出并签认交互路径文档（每个一期场景一条首页入口→步骤→产物→回首页路径 + CRUD 双通道矩阵，AI 协助默认、手工可及收敛；**无此文档不开 HTML 原型**），再对应范围出可打开/操作的HTML交互工作台，实际预览并记录用户对版本/hash和范围的确认，再开发业务。数据设计同时用前端与流程变化走查，详见[14-PROTOTYPE-AND-DATA-GATE](14-HTML-AND-DATA-CONTRACT.md)。独立review不替代用户确认。
 
 
 新增实施约束：先交付可打开可点击的HTML工作台并展示路径，用户确认对应版本/模块后才生产开发；领域模型不依赖Tab/页面/流程先后，读写经版本化读模型/命令API。详见 [HTML与数据合同](14-HTML-AND-DATA-CONTRACT.md)。确认与未验证项记录到docs/PROTOTYPE-REVIEW.md。
