@@ -226,7 +226,14 @@ ALT 各实验室上限在 40–55 U/L 之间浮动，差 1.4 倍；拿成人通�
 
 ## 2026-10-25 · 第 9 类：**「有闸门」不等于「这类问题有闸门」**
 
-头颈癌 M6 装机时，`package.json` 的 `files` 漏了 `public/` 和 `schema/migrations/`。前者白屏，一眼看得见；后者是**静默空库**——服务照常启动、`/health` 照常 200、界面照常打开，`readdirSync(MIGRATIONS_DIR)` 读不到任何 `.sql`，于是**一张表都不建**，所有列表空着。看起来像「还没有数据」，实际是「没有表」。静默空库比白屏难查十倍。
+头颈癌 M6 装机时，`package.json` 的 `files` 漏了 `public/` 和 `schema/migrations/`。
+
+**实测两种症状（2026-10-25 在打包产物上验证，不要凭想象写）**：
+- 缺 `public/` → iframe 请求 `/ui/` 404，**业务区空白**。显眼。
+- 缺 `schema/migrations/` → 取决于代码有没有守卫。头颈癌 M5d 写了 `if (!files.length) throw new Error('找不到迁移文件：' + MIGRATIONS_DIR)`，所以实测是**开库直接抛错**：`找不到迁移文件：/private/tmp/hn-no-mig/schema/migrations`。面板报错，不是"列表空着"。
+- **但守卫不是自动的**。如果代码写成 `existsSync(dir) ? readdirSync(dir) : []`（很常见的写法），就会**一张表都不建**、服务照常启动、`/health` 照常 200、界面照常打开，所有列表空着——看起来像「还没有数据」，实际是「没有表」。**静默空库比白屏难查十倍**，而且它不会在 dev-server 上暴露。
+
+结论：**别指望运行期的守卫，要在打包时拦住**。守卫只能把"静默"变成"报错"，装不进去这件事本身得靠包检查。
 
 ### 为什么检查器没拦住
 上一轮 ATTR 的同类故障（`dsh/demo.js` 引 `../demo/build-demo-data.mjs`，files 没有 `demo/`）已经被规则⑥ 抓住，于是很容易以为"files 白名单漏文件"这件事已经有闸门了。但两者机制不同：
