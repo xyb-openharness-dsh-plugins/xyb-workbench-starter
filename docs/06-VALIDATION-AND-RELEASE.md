@@ -89,6 +89,37 @@ peer warning 不是加载结论；查宿主实际提供服务与日志。不能�
 
 **第 5 类失败发生在运行时，四要素查不到**：宿主注入契约（apiBase 等）——页面在 dev（空基址）全绿，宿主把挂载前缀灌进来才炸（GBM 踩 4：server 把含 `/api` 的 basePath 直接注入，页面 F3 守卫 throw → 白屏）。对策（v0.1.3 定稿契约）：**API_BASE = 挂载前缀（可空），页面统一拼 `/api/xxx`，守卫只禁交界重复 `/api/api`**——契约进 14 号数据合同并带双形态回归测试（空串 + 宿主前缀都被接受）；顶层校验失败渲染错误横幅不白屏；probe 增加"宿主注入形态"冒烟（LESSONS 2026-10-24 待实施④）。
 
+## 装机面第 5、6 类失败：包里少了东西 / 静态资源被兜底（2026-10-24 ATTR 双踩回收）
+
+四要素查的是"接线写没写"，这两类查的是"**发出去的东西全不全、路径推导对不对**"。共同点依旧是：dev-server 全绿、单测全绿、`npm pack` 成功。
+
+| # | 失败 | 现象 | 根因 | 修法 |
+| --- | --- | --- | --- | --- |
+| 5 | 装机副本 import 失败 | 宿主日志 `Cannot find module '<pkg>/demo/build-demo-data.mjs'`，工作台整个起不来 | `dsh/demo.js` 引 `../demo/build-demo-data.mjs`，而 `package.json` 的 `files` 白名单没有 `demo/`。开发版能跑是因为仓库里有那个目录 | 把该文件单独加进 `files`（不要整个目录——ATTR 的 `demo/` 里还有个 188 kB 演示库） |
+| 6 | 业务区全白，控制台只有 `Unexpected token '<'` | iframe 指向 `/api/<slug>/ui/index.html`，页面里 `<script src="app.js">` 是**相对路径** → 浏览器请求 `/api/<slug>/ui/app.js` → 剥掉挂载前缀后是 `/ui/app.js` → 静态层找不到文件就**兜底回 index.html** → HTML 被当 JS 解析 | 静态服务只认 `public/` 根下的路径，而页面实际在 UI 子路径下 | 静态段先把 UI 前缀剥掉再解析（`if (path === '/ui' || path.startsWith('/ui/')) path = path.slice(3)`）；**dev-server 挂在根上，本地永远看不到这个故障** |
+
+**为什么必须在装机副本上验，而不是在源码仓跑 dev-server**：
+
+| 差异点 | 开发版 | 装机副本 |
+| --- | --- | --- |
+| 模块路径 | 仓库内相对路径，`demo/` 一定在 | `node_modules` 里只有 `files` 白名单解出来的东西 |
+| 静态资源 | dev-server 挂根，`/app.js` | 宿主挂 `/api/<slug>`，页面在 `/api/<slug>/ui/`，相对路径变 `/api/<slug>/ui/app.js` |
+| 鉴权 | 无 | 先过宿主 `connection.requestRejection` |
+| 数据目录 | 命令行 `--workspace` | `cordis.patch.yml` 的 `dshHomePath` |
+
+**能静态查的四条（`scripts/check-workbench-package.mjs` 已实装，随 `init` 下发）**：
+
+| 规则 | 查什么 | 抓的是哪一类 |
+| --- | --- | --- |
+| ⑤ | `Config` 声明了 `root`，`cordis.patch.yml` 就必须有 `config.root: !!js dshHomePath(...)` | 装机能开、重启回内存库 |
+| ⑥ | 运行期相对 `import`/`require` 的落点必须在 `files` 白名单里 | 第 5 类（包里少模块） |
+| ⑦ | 有 `public/` 就必须被 `files` 覆盖 | 业务区空白 |
+| ⑧ | UI 挂子路径 + 页面用相对资源 → **warn** | 第 6 类（静态只能提示，真验靠探针） |
+
+⑤ 只对"自己声明了 root"的包生效：有的仓故意用 `dbPath` 指向仓内演示库（肝癌），不该被这条点名——**禁止把个案推广为规则**（见 LESSONS 同名小节）。回归见 `test/checker-install-surface.test.mjs`（必须报 / 必须不报各半）。
+
+**静态查不到的部分，靠一次装机副本探针**：加载 `profiles/<profile>/node_modules/<pkg>/dsh/index.js`（宿主注入的 peer 用最小 shim 顶替），喂假宿主（`webServer.register` / `connection.requestRejection` / `effect`），再让真 Chrome 走一遍页面。判据至少四条：`health` 200 且版本与包一致、`bootstrap` 六件齐全、写一条业务数据后**回读磁盘库有数**（内存库也会 200）、12 页逐个点开有内容且 `scrollWidth === innerWidth`、0 未捕获异常 0 失败请求。参考实现：`attr-workbench/scripts/probe-install.mjs`。
+
 ## 用户侧入口与三层验收（2026-10-21 实测，Desktop 0.12.0）
 
 **不要把「`dsh web` 起网页版 → 浏览器 Settings → Plugins 开关插件」写成 Desktop 的用法。** 那是 CLI / Web 载体：它读的是 `~/.dsh` 那份 Harness，与 Desktop app 自己的 Harness 不是同一个安装位置，装上去 Desktop 不加载。给 Desktop 装的包只能在 Desktop 里验。

@@ -184,7 +184,7 @@ ALT 各实验室上限在 40–55 U/L 之间浮动，差 1.4 倍；拿成人通�
 - **踩 2 · 版本簿记**：同版号 0.1.0 重打包换内容——06 号明明写着"本地包也递增版本，不重复同版号试图绕缓存"（乳腺首装实录），但规则不在任何 check/prompt 的必读路径上，修复循环里凭直觉重打包；顺带暴露 public/ 三处降级字面量与 server 测试断言写死版本号（版本不是单源，bump 必漏）。修复 = 升版 0.1.1 + 字面量对齐 + 测试断言改引用 `lib/version.js` 唯一源（不写死）。错误来源：用户原话"tar包版本号也不对"。
 - **踩 3 · 占位客户端上线（最隐蔽）**：init 生成的 `lib/client.js` 是约 40 行占位骨架，只渲染"接入骨架：服务已连接，业务功能待按 spec 实现"；M5 把 `public/`（142KB 真实界面）和 `dsh/` 全部移植完、parity 60/60 逐字符绿——但宿主加载的是 `lib/client.js`，它从不加载 public/。`public/` 路由实测全 200，于是"一切正常、界面没内容"。正确链路在兄弟仓：`src/client.js`（宫颈 482 行）→ `scripts/build-client.mjs`（116 行）→ `lib/client.js`（488 行完整 customFrame 外壳）。修复 = 补齐该链路（src/ + build-client.mjs + lib/routes.js，0.1.2）。错误来源：用户截图"接入骨架：服务已连接，业务功能待按 spec 实现"。
 - **判据教训**：当轮自拟的装机"五要素终验"（version/dsh 块/patch/依赖/bundles）漏了"客户端真身"一项——判据不完备和实现缺陷一样致命。已固化成 **06 号"装机前宿主接线四要素"**（dsh 块 / patch root / 真客户端 / 版本簿记），验收对象是 **tgz 内容**而不是源码仓。
-- **待实施（下轮进检查器，本轮按纪律只记文档）**：① `check-install` 增加：tgz 内 lib/client.js 禁含占位标记（接入骨架/待按 spec 实现）、必含 `__ModuleLoader__`+iframe；② pack 前置检查：tgz sha256 变化而 VERSION 未变 → 报错（把"改包必升版"从文档规则变成机器闸门）；③ `check-workbench-package` 增加：package.json 必须有 `dsh` 块、patch 必须含 `config.root`（骨架生成时就是占位，"文件存在"≠"接线完成"）。
+- **待实施（下轮进检查器，本轮按纪律只记文档）**：① `check-install` 增加：tgz 内 lib/client.js 禁含占位标记（接入骨架/待按 spec 实现）、必含 `__ModuleLoader__`+iframe；② pack 前置检查：tgz sha256 变化而 VERSION 未变 → 报错（把"改包必升版"从文档规则变成机器闸门）；③ `check-workbench-package` 增加：package.json 必须有 `dsh` 块、patch 必须含 `config.root`（骨架生成时就是占位，"文件存在"≠"接线完成"）。**→ 2026-10-24 已实装 `config.root` 一条（见文末 ATTR 回收）；`dsh` 块原本已在检查范围内。**
 
 2026-10-24（续）GBM 踩 4 · 宿主模式白屏：外壳活了、业务区空白。现象链：顶栏/导航/页脚在（新客户端 iframe 已生效）→ 业务区 iframe 白屏 → 真实 Chrome 控制台抓到 app.js 顶层 `throw new Error('API_BASE 不能以 /api 结尾…')`。**根因不在守卫，在注入侧先违约**：`dsh/server.js` 的 `pageApiBase = apiBase || basePath` 把宿主挂载前缀（`/api/<slug>`，按宿主契约必含 `/api`）直接当页面基址注入，违反了同一行注释声明的 F3 契约（"页面拼 `${API_BASE}/api/xxx`，基址里不能再含 /api"）；app.js 守卫严格执行 F3 → 顶层 throw → 整页白屏。**lymphoma 之所以没爆，是它页面根本没有这个守卫**（宽松吞下错误契约），不是注入正确——同一条家族约定在两个仓各实现了半句。
 
@@ -196,3 +196,22 @@ ALT 各实验室上限在 40–55 U/L 之间浮动，差 1.4 倍；拿成人通�
 - **待实施清单追加（检查器轮）**：④ probe 增加"宿主注入形态"冒烟——以 `apiBase = basePath`（含 /api）注入启动 app.js，断言顶层无异常且 bootstrap 可达；⑤ DEV-REQUIREMENTS 类硬约束在模板里强制带"适用语境"栏（F3 的教训：slogan 级约束脱离语境传播，到宿主模式变成炸雷）。
 
 - **修复落地与归因修正（同日 v0.1.3，实装 56/56 + 真机 0 JS 错误）**：最终契约是 **「API_BASE = 挂载前缀（可空），页面统一拼 `/api/xxx`，守卫只禁交界重复 `/api/api`」**（`/(^|/)api$/` 只测结尾）——不是我先前判断的「注入侧归一」。归因修正：**F3 slogan 本身在宿主语境就是错误契约**（「apiBase 不含 /api」只在独立启动成立），注入侧行为符合宿主契约并未违约；错的不是某一方，是这条约束脱离语境传播后两侧各自忠实执行了一个不完整的规定。修复三件：守卫改交界语义 + `data-runtime`（standalone/host）模式标记 + 双形态回归测试（空串与宿主前缀都被接受，`/api`、`/x/api` 被拒，含对 HOST_BASE 显式断言）。**残留如实挂账**：顶层 throw 仍在（现在不白屏是因为不变量对了 + 有回归测试，不是因为有降级横幅——错误横幅降级仍待实施）；宿主注入形态冒烟（待实施④）未做。最大教训升级：**修复终态不是改某行代码行为，而是把 slogan 升级为「带两种运行形态回归测试的明确契约」——约束没长出测试和语境栏之前，都只是传闻。**
+
+2026-10-24（续）ATTR 装机双踩：**包里少了东西**与**静态资源被兜底**。四要素全过、`npm run check` 全绿、`probe:resp` 296 视图 0 问题，装进 Desktop 仍然两次白屏。这两条都不是"写错了一行"，而是"dev 语境与宿主语境的路径推导不同"。
+
+- **踩 5 · 装机副本 import 失败**：`dsh/demo.js` 引 `../demo/build-demo-data.mjs`，`package.json` 的 `files` 白名单里没有 `demo/`。开发版能跑，因为仓库里有那个目录；tgz 解出来只有白名单里的东西，于是 `Cannot find module`，整个服务起不来。**教训**：`files` 白名单是一份"运行期依赖清单"，不是"我觉得该发的东西"——它必须能用**代码里所有相对 import 的落点**去反查，靠人眼看目录列表永远漏。
+- **踩 6 · 业务区全白 `Unexpected token '<'`**：iframe 指向 `/api/<slug>/ui/index.html`，页面里 `<script src="app.js">` 是相对路径，浏览器就去请求 `/api/<slug>/ui/app.js`；剥掉挂载前缀后是 `/ui/app.js`，静态层在 `public/` 下找不到，**兜底回 index.html**，浏览器把 HTML 当 JS 解析 → 整片空白，控制台只有一句 `Unexpected token '<'`。修法是静态段先剥 UI 前缀。**教训**：SPA 的"未知路径回 index.html"是很方便，但它会把"我要 JS/CSS"的 404 也悄悄变成 HTML——**静态兜底必须限定在"看起来像页面请求"的路径上**，或者像这里一样先归一化再解析。dev-server 挂在根上，这条故障本地永远看不见。
+- **判据教训（同 GBM 踩 3 的复现）**：装机"五要素"（version / dsh 块 / patch root / `file:` 依赖 / bundles 登记）仍然漏了"**包里到底有没有那个文件**"。判据不完备和实现缺陷一样致命——这已经是第二次在同一个位置上漏项，说明"清单式判据"必须配**可执行的反查**，否则每轮都要靠新踩一个坑来补一格。
+
+**本轮实装（不是记文档，是长成机器闸门）**：`scripts/check-workbench-package.mjs` 增加四条装机面规则，随 `init` 下发到新项目，`npm run check` 自动跑：
+
+| 规则 | 判据 | 抓的坑 |
+| --- | --- | --- |
+| ⑤ | `Config` 声明 `root` ⇒ patch 必须有 `config.root: !!js dshHomePath(...)` | 装机能开、重启回内存库 |
+| ⑥ | 运行期相对 import/require 的落点必须在 `files` 白名单内 | 踩 5 |
+| ⑦ | 有 `public/` ⇒ 必须被 `files` 覆盖 | 业务区空白 |
+| ⑧ | UI 挂子路径 + 页面用相对资源 ⇒ warn（静态不可判定，真验靠探针） | 踩 6 |
+
+- **规则必须带适用边界**：⑤ 第一版写成"patch 必须含 `config.root`"，横测立刻把肝癌仓判 fail——它**故意**用 `dbPath` 指向仓内演示库，不是漏了接线。改成"**自己声明了 root 才要求注入**"后，肝癌恢复 pass，宫颈（`Config.root` 有、patch 没注入）被正确点名。这就是 LESSONS 里「禁止把个案推广为规则」那条的现场复现：**一条规则的触发条件写宽一格，就会把别人的正确设计判成错误。**
+- **回归要写两半**：只写"必须报"的用例，规则会越收越紧直到误报；只写"必须不报"，规则会松到抓不住。`test/checker-install-surface.test.mjs` 六条，必须报 4 条、必须不报 2 条（含 dbPath 型不点名）。
+- **仍然静态查不到、如实挂账**：⑧ 只能提示不能判定（要判定得真启动静态层发一次 `GET /api/<slug>/ui/app.js` 看 content-type）；"装机副本探针"目前只有 ATTR 一份参考实现（`scripts/probe-install.mjs`），**尚未进模板**——下轮做模板化，届时 ⑧ 可以由探针直接兜住。①②④ 仍未实装。

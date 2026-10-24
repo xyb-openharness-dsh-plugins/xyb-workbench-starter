@@ -1,5 +1,17 @@
 # 变更记录
 
+## 2026-10-24 · M9 回流闭环：把 ATTR 装机双踩做成检查器的四条装机面规则
+
+来源：小甲宝 ATTR v0.2.1/0.2.2 装两次白两次（包里少模块、静态资源被兜底）。四要素全过、`check` 全绿、296 视图 0 问题，仍然装不上——说明**文档型判据不够用**，必须变成机器会红的检查才留得住。用户点名要做 M9 闭环。
+
+- **`scripts/check-workbench-package.mjs` 增加四条装机面规则**（随 `init` 下发、`npm run check` 自动跑）：
+  ⑤ `Config` 声明 `root` ⇒ patch 必须有 `config.root: !!js dshHomePath(...)`；⑥ 运行期相对 import/require 的落点必须在 `files` 白名单内；⑦ 有 `public/` ⇒ 必须被 `files` 覆盖；⑧ UI 挂子路径 + 页面相对资源 ⇒ warn。
+- **一次关键返工**：⑤ 第一版写成"patch 必须含 `config.root`"，横测把肝癌仓判 fail——它**故意**用 `dbPath` 指向仓内演示库。收窄为"自己声明了 root 才要求注入"后，肝癌恢复 pass，宫颈（`Config.root` 有、patch 没注入）被正确点名。这是「禁止把个案推广为规则」的现场复现。
+- **回归写两半**：新增 `test/checker-install-surface.test.mjs` 六条（必须报 4、必须不报 2，含 dbPath 型不点名）。starter 测试 31 → 37 条全绿。
+- **docs 三处同步**：`docs/06-VALIDATION-AND-RELEASE.md` 新增「装机面第 5、6 类失败」（含 dev 语境 vs 宿主语境四点差异表 + 静态四规则表）；`docs/LESSONS.md` 记踩 5/踩 6 与规则边界，并把 GBM 那条「待实施③」标为已实装一半；`prompts/ZERO-TO-DEV.md` 阶段 3 补第 9、10 步（静态检查要绿 + 对装机副本跑探针）。
+- **横测七仓**：attr / glioblastoma / liver / lung / ovarian 通过；cervical 抓到真实缺陷（缺 `config.root`）；breast 两条既存 fail 与本次规则无关。
+- **挂账**：⑧ 只能 warn（要判定得真发一次 `GET /api/<slug>/ui/app.js`）；装机副本探针尚未模板化；LESSONS ①②④ 仍未实装。
+
 ## 2026-10-24 · 新增 31-BACKLOG-STATUS：发布之后回填组织 BACKLOG（M8，病种无关）
 
 来源：小甲宝 ATTR 工作台 v0.2.3 装机通过后，M7 发布完发现**没人把进度写回组织目标池**——外部贡献者看到的还是"🟡 未开工"。用户点名要求把这一步固化成 M8 并同步进脚手架流程。

@@ -333,6 +333,17 @@ README.md / CHANGELOG.md / VERSION / package.json
    **没跑过就写"未验证"，不许写"装机通过"。**
 7. 装完要**重启宿主**（Desktop / 菜单 Harness → 重启）才生效；重启前只能写"已安装，待重启确认"。
 8. 逐项截图归档到 `docs/release/<版本>/`，写清宿主版本、profile 路径、tgz sha256。
+9. **装机面静态检查要绿**：`npm run check` 里的 `check-workbench-package` 已含四条装机面规则
+   （`Config.root` ↔ patch `dshHomePath`、运行期相对 import 必须被 `files` 覆盖、`public/` 必须进包、
+   UI 子路径 + 相对资源给 warn）。**⑥ 报错就是"装上去会 Cannot find module"，别忽略**——
+   把报错指向的那个文件单独补进 `files`，不要整目录塞进去。
+10. **对装机副本跑一次探针，而不是只看 dev-server**：加载 `profiles/<profile>/node_modules/<pkg>/dsh/index.js`，
+    喂假宿主（`webServer.register` / `connection.requestRejection` / `effect`），再让真 Chrome 走页面。
+    判据四条：health 200 且版本与包一致｜bootstrap 六件齐全｜写一条业务数据后**回读磁盘库有数**（内存库也会 200）｜
+    各页点开有内容、`scrollWidth === innerWidth`、0 未捕获异常 0 失败请求。
+    参考实现：`attr-workbench/scripts/probe-install.mjs`（`npm run probe:install`）。
+    **本地 dev-server 与装机副本走的不是同一条路**（模块解析、静态前缀、鉴权、数据目录四处都不同），
+    所以"本地全绿"对装机没有证明力。
 
 ---
 
