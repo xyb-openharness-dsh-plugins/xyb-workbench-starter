@@ -166,6 +166,8 @@ async function main() {
     hvtReview:join(target,'docs/HVT-REVIEW.md'),
     releaseChecklist:join(target,'docs/RELEASE.md'),
     publishingGuide:join(target,'docs/10-MARKET-PUBLISHING.md'),
+    // 用户说「看进度 / 汇报 / 到哪了」时用；口径固定，避免每次临场拟一套说法。
+    progressReport:join(target,'prompts/PROGRESS-REPORT.md'),
     firstQuestion:'已有用户、场景和流程会继承。先按 prompts/DSH-AGENT-PANE-INTEGRATION.md 对照已有原型与当前实现；工作台保持中间主区，Agent 在右侧。请指出最影响用户完成任务的一个实现差距及其证据，再围绕未决设计者问题继续对话，不重复已知答案。',
     next:'当前Agent现在立即展示 docs/DESIGN-PROMPT.md 与 prompts/DSH-AGENT-PANE-INTEGRATION.md 的实际路径并读取；如果集成原生Agent，先核对右侧可调宽、可隐藏重开、按需创建/复用会话及一键带入保护，再与用户互动。接着完善设计者章程与提示词，再开展研究/场景/SPEC，先交付HTML交互工作台由用户确认对应模块，再开发生产业务；新癌种HTML必须包含全局设置页，要求见docs/SETTINGS-DESIGN.md；模型独立于UI和流程。发布记录模板为docs/RELEASE.md，市场步骤为docs/10-MARKET-PUBLISHING.md。CLI只输出交接，不自动推送Git、创建Release、安装或投稿；逐项按用户授权执行。'
   }))

@@ -1,5 +1,18 @@
 # 变更记录
 
+## 2026-10-24 · 新增 prompts/PROGRESS-REPORT.md（进度汇报口径，随 init 下发并激活）
+
+来源：小甲宝 ATTR 仓的 `docs/PROGRESS-REPORT-PROMPT.md` 被用户点名上收到脚手架——「看看现在到哪了 / 更新下进度条」这类请求在家族里出现频率很高，但每次口径都不一样，容易退化成"我觉得差不多了"。
+
+- **新增 `prompts/PROGRESS-REPORT.md`**：先读（VERSION / DEV-PLAN / SIGNOFF / RELEASE / CHANGELOG / git log -15，读不到写"缺失"不猜）→ 四条口径（**判据可验证 / 签认只认原话 / 三态分开写 / push≠发布**）→ A–G 结构输出（一句话现状、进度条 M0–M9 + G1–G3、里程碑表、用户能感知的 2–4 件事、踩过的坑四段式、下一步三步、未验证清单）。附精简版、换仓只改三处、以及**「这条提示词不是什么」**（不代替 DEV-PLAN、不自证、不是发布许可）。
+- **激活四处**（不是只放一个文件）：
+  - `prompts/CONTINUE.md`：用户说「继续 / 看进度 / 汇报」时自动套用，不临场另拟说法；
+  - `prompts/ZERO-TO-DEV.md`：阶段汇报条补一条——要正式汇报时整段用它，四条口径不许在本轮放宽；
+  - `docs/22-PHASES-AND-GATES.md`：「最容易踩的坑」5 → 6 条（第 6 条：进度靠"我觉得差不多了"），并新增「要一份进度汇报时」小节；
+  - `README.md`：顶部快照 + 「要一份进度汇报时」小节（四条口径 + A–G 一览）。
+- **`scripts/init.mjs`**：输出里新增 `progressReport` 路径，`init` 后 Agent 能直接读到该文件；`prompts/` 整目录本就随 init 下发，实测生成的新项目里 6.0 kB 的 `prompts/PROGRESS-REPORT.md` 存在、`npm run check` 绿、`npm run audit` 基线仍是 17/30（不因新增提示词改变）。
+- 分工写清：**判据与状态的唯一来源仍是 `docs/DEV-PLAN.md`**，本提示词只管"怎么讲给非工程读者"；两者数字打架以 DEV-PLAN 为准，并当场修正 DEV-PLAN。
+
 ## 2026-10-24 · 装机面第 7 类失败：装进去的还是旧包（ATTR 踩 7 回收）
 
 来源：小甲宝「先不发布、用 tar 包安装测试」这一轮。同版号重打包后 `pnpm add -w file:<tgz>` 打印 **`Already up to date`**、退出码 0、无警告；`package.json` 版本对、lockfile 的 `integrity` **也已是新包的**，但 `node_modules/<pkg>/` 下仍是旧文件——**探针加载旧副本、45 项报绿，验的根本不是刚打出来的包**。

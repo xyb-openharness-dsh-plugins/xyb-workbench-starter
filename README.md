@@ -1,5 +1,9 @@
 # 小胰宝 / 小x宝社区 Workbench 开发脚手架
 
+## Git开发快照 · 2026-10-24（二）
+
+新增 [提示词 PROGRESS-REPORT](prompts/PROGRESS-REPORT.md)：把「看看现在到哪了 / 更新下进度条」这类请求固化成一套口径——先读 VERSION / DEV-PLAN / SIGNOFF / RELEASE / CHANGELOG / git log，再按 **A–G 结构**（一句话现状 → 进度条 → 里程碑表 → 用户能感知的事 → 踩过的坑 → 下一步三步 → 未验证清单）输出。四条口径不许放宽：**判据可验证 / 签认只认原话 / 三态分开写 / push≠发布**。它管"怎么讲给非工程读者"，判据与状态的唯一来源仍是 `docs/DEV-PLAN.md`（两者数字打架以 DEV-PLAN 为准，并当场修正 DEV-PLAN）。随 `init` 下发到新项目；已激活在 [CONTINUE](prompts/CONTINUE.md)（用户说"继续/汇报"时自动套用）、[ZERO-TO-DEV](prompts/ZERO-TO-DEV.md) 阶段汇报条、[22 号](docs/22-PHASES-AND-GATES.md)「最容易踩的坑」第 6 条。
+
 ## Git开发快照 · 2026-10-24
 
 新增**家族一致性 audit**：`scripts/check-conformance.mjs` 用代码与文件核对家族硬约束（版本/面板/检查链/文档/密钥五组约 37 项），不再靠 README 自述。入口三个：项目内 `npm run audit`（随 `init` 下发）、发布前 `npm run release:check`（`check && audit`）、跨仓横向对照 `dsh-wb-cli audit <目录> [--json]`。`init` 同时补发 `VERSION` 与 `CHANGELOG.md`，让版本唯一来源从第 0 天成立；裸生成项目 audit 基线 17/30，剩下 11 项 fail 就是开发待办清单。包版本升 `1.5.0`。
@@ -77,6 +81,17 @@ npm run audit
 
 
 三条最容易踩的：**闸口不签不往下走**（G1 需求、G2 原型、G3 schema 各签一次，省下的时间远超一次返工）；**临床库要如实写来源终态**，没查到就是"未配置/无覆盖"，不能写成"已查过"；**×ULN 类指标缺参考上限就写"需参考上限"**，不拿成人通用值凑倍数（详见 [23](docs/23-METRIC-GRADING-AND-ALERTS.md) §2.1）。
+
+### 要一份进度汇报时
+
+用户说「看进度 / 到哪了 / 汇报一下 / 更新进度条」→ 整段套用 [prompts/PROGRESS-REPORT.md](prompts/PROGRESS-REPORT.md)，不要临场另拟一套说法。它规定两件事：
+
+- **先读再写**：VERSION / `docs/DEV-PLAN.md` / `docs/SIGNOFF-*.md` / `docs/RELEASE.md` / CHANGELOG 顶部 / git log -15；读不到就写"缺失"，不猜。
+- **四条口径不许放宽**：① 只有"判据可验证"才算完成（DEV-PLAN 判据列写什么就只认那个）② 签认只认用户原话，截图/脚本/自述都不算 ③ 已完成／已执行未验证／未开始三态分开，未验证不许写"已验证" ④ push / tag / 装进 Desktop / 市场上架是四件事。
+
+输出结构 A–G：一句话现状 → 进度条（M0–M9 + G1–G3，闸口没过画成卡点不画成进度）→ 里程碑表（判据照抄 DEV-PLAN）→ 用户能感知的 2–4 件事 → 踩过的坑（症状/根因/怎么修/以后怎么防）→ 下一步三步（卡在谁身上）→ 未验证与外部依赖清单。
+
+本文件**不代替 DEV-PLAN**：两者数字打架时以 DEV-PLAN 为准，并当场修正 DEV-PLAN；也不代表发布许可。
 
 ## 不激活命令也可直接使用
 
