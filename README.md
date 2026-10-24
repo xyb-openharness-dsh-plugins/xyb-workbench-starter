@@ -47,7 +47,34 @@ dsh-wb-cli doctor
 4. **建强约束再动手**：按 `docs/DEV-REQUIREMENTS-<日期>.md` 写一份本癌种的强约束文档（范围、照抄样板的产品要求、硬约束 H1–Hn、本轮明确未做、我替你定的默认值）。**没有这份文档就不写业务代码**，这是最省返工的一步。
 5. **把提示词整段交给 Agent**：[ZERO-TO-DEV](prompts/ZERO-TO-DEV.md) 填四个空（癌种中文名 / 英文名 / 目标目录 / 样板基准），剩下的按闸口推进——3.1 调研 + 患者流程 + schema + 多通道临床库 + **指南与分级（G1 出处 / G2 节奏 / G3 分级）** + HTML 原型，**第一次人工确认**；3.2 开发版，逐页 parity + 面板默认在右可拖 + 顶栏开关；3.3 dsh-desktop 实测；确认后 push + 把踩到的坑回流到脚手架。
 
-**交付前多跑一条**：`dsh-wb-cli audit <项目目录>`（约 37 项，只看代码与文件、不看文档自述）。有 fail 不交付；warn 逐条给「已人工确认 / 确实没有」。它查的是「还是不是家族里的一员」，`npm run check` 查的是「项目自己说自己对」，两者不能互相替代。
+### 什么时候跑 `audit`，怎么跑
+
+`check` 与 `audit` 分工不同，跑的时间点也不同。下面这张表就是全部要求：
+
+| 时点 | 跑什么 | 为什么是这时候 |
+| --- | --- | --- |
+| 生成项目当天 | `npm run check` | 确认基线没坏；此时 audit 必然有 fail，不看 |
+| 每次改完代码 | `npm run check` | 语法 + 装包合同，秒级，随时跑 |
+| **G2 原型确认后、写业务代码前** | `npm run audit` | 这时缺的通常是 `lib/layout.js`、`VERSION`/`lib/version.js` 这类**结构**，越早补越便宜；拖到开发完再拆面板参数，改动面翻倍 |
+| **交付 / 装机前（必跑）** | `npm run release:check` | `check && audit` 一次跑完。**有 fail 不交付**，不是一个"以后再说"的项 |
+| 发布 / 投稿市场前 | `npm run audit --json` 存档 | 把 `xx/xx 通过 · N 失败 · M 待人工` 抄进 `docs/RELEASE.md` 的「家族一致性」一行，作为当版证据 |
+| 想横向看多个仓 | `dsh-wb-cli audit <项目目录> [--json]` | 不用逐个 `cd` 进去，一条命令扫一批；`--json` 给 CI 或汇报用 |
+
+怎么读输出：
+
+```bash
+npm run audit
+#  xyb-demo 0.1.0 — .
+#   ✗ panel/单一来源  缺少 lib/layout.js（面板参数必须有唯一来源）
+#   ! ui/原型基线  没有 prototypes/v0.2：视觉验收缺少唯一基准
+#   17/30 通过 · 11 失败 · 2 待人工
+```
+
+- **`✗` fail = 结构上缺一块**，不是风格分歧。要么补齐，要么在 `docs/DEV-REQUIREMENTS-<日期>.md` 写明偏离理由并让用户确认——但不能把它说成通过。
+- **`!` warn = 脚本判不了、需要人看**（会话归属、是否常挂载、Token 读写层）。汇报时逐条给「已人工确认」或「确实没有」，不要留空。
+- **脚本是下限不是上限**：它查不出交互正确性、医学口径、装机是否真加载。那些仍按 V2 装机与 V3 业务闭环走。
+- 退出码：有 fail 返回 1，可直接接 CI 或 `&&` 串联；纯 warn 返回 0。
+
 
 三条最容易踩的：**闸口不签不往下走**（G1 需求、G2 原型、G3 schema 各签一次，省下的时间远超一次返工）；**临床库要如实写来源终态**，没查到就是"未配置/无覆盖"，不能写成"已查过"；**×ULN 类指标缺参考上限就写"需参考上限"**，不拿成人通用值凑倍数（详见 [23](docs/23-METRIC-GRADING-AND-ALERTS.md) §2.1）。
 
@@ -113,7 +140,7 @@ python3 skills/hvt-requirement-review/scripts/hvt_scan.py --project . --profile 
 | **指南接进工作台：出处 / 适用 / 节奏 / 分级四层刻度尺（含登记三处一致、不取严、版权边界）** | [25-GUIDELINE-BRIDGE](docs/25-GUIDELINE-BRIDGE.md) |
 | **功能线框架与跨癌种对比：十条候选线各回答哪句患者原话、与成熟癌种逐行对比、家属早筛只提示不判定** | [26-CANCER-FEATURE-LINES](docs/26-CANCER-FEATURE-LINES.md) |
 | **多轨并列与指标卡：A/B/C 轨怎么分、卡片正反面结构、3D 翻面合同、窄屏先变列数再变密度** | [27-TRACKS-AND-METRIC-CARDS](docs/27-TRACKS-AND-METRIC-CARDS.md) |
-| **交互路径设计：每个场景一条看板入口→步骤→产物→回首页、CRUD 双通道（AI 协助默认、手工收敛、删除=更正），HTML 开工前置** | [28-INTERACTION-PATH-DESIGN](docs/28-INTERACTION-PATH-DESIGN.md · [30-RESPONSIVE-RULES](docs/30-RESPONSIVE-RULES.md)窄宽自适应) + [模板](templates/INTERACTION-DESIGN.md) |
+| **交互路径设计：每个场景一条看板入口→步骤→产物→回首页、CRUD 双通道（AI 协助默认、手工收敛、删除=更正），HTML 开工前置** | [28-INTERACTION-PATH-DESIGN](docs/28-INTERACTION-PATH-DESIGN.md) · [30-RESPONSIVE-RULES](docs/30-RESPONSIVE-RULES.md)（窄宽自适应） + [模板](templates/INTERACTION-DESIGN.md) |
 | **材料导入链路：嗅探→取行→闸门→抽候选→落库五段、闸门三级证据（原发灶>部位词>指标组合）、候选≠指标的五条确认规则** | [29-DOCUMENT-IMPORT-PIPELINE](docs/29-DOCUMENT-IMPORT-PIPELINE.md) |
 | 包声明、注册、原生会话、宿主边界 | [02-DSH-CONTRACT](docs/02-DSH-CONTRACT.md) |
 | 社区风格、Logo、UI/UX 技能、图表/动效 | [03-DESIGN-SYSTEM](docs/03-DESIGN-SYSTEM.md) |
