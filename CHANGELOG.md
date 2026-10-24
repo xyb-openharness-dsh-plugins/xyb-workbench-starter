@@ -9,6 +9,7 @@
 - **新增 `project-template/test/pack-contents.test.mjs`**：以 `npm pack --dry-run --json` 真实清单为对象断言 `public/`、`schema/migrations/*.sql`、`assets/`、`lib/client.js`、`cordis.patch.yml` 在包里；并断言「`Config` 声明了 `root` 时 patch 必须给 `config.root`」。**自适应**：项目还没长出对应目录就跳过，长出后自动开始保护。
 - **`scripts/init.mjs`**：manifest 新增 `probe:artifact` / `probe:tabs` 两个脚本；实测新项目 154 文件（原 151+3），`npm run test` 4/4 绿。
 - **`scripts/check-starter.mjs`**：三件加入必备清单，防止以后被误删。
+- **`verify-tabs-on-artifact.py` 加垃圾值断言**：只断言「页签不空」不够——映射漏字段的典型症状是**渲染成功但内容是 `undefined`**，比整页崩溃更危险（崩溃会被发现，垃圾值会被当成真数据读走）。判据加 `undefined` / `NaN` / `null` / `[object Object]`。**并做了反向对照**：向产物注入 `'undefined'`，闸门必须 FAIL 并点名具体页签——只报绿不报红的闸门等于没有闸门。
 - **`docs/LESSONS.md` 追加三条**：11 约束失败不能漏成 500（500 与 4xx 是「谁的错」的线）；12 `Already up to date` 不等于内容最新（版本号 ≠ 内容，换包先 remove 再 add，装完 `diff -r` 验）；13 原型能开 ≠ 接上数据库还能开（漏读子表 + 默认对象必存在；演示档案要故意缺几样东西，否则空态全被遮住）。
 
 ## 2026-10-24 · 06 号补「第 6 类：首用会话授权」+ MPM v0.1.3 发布
