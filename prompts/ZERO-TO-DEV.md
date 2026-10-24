@@ -227,6 +227,12 @@
    `check-demo-columns.mjs`（执行 `schema/00*.sql` **全部**迁移再比对列）。
 6. `test/`：`store.test.mjs`（迁移幂等 / 播种幂等 / parity）、`server.test.mjs`、`ui-parity.test.mjs`  
    （视图 × 档案 × 页签**逐字符**一致 + id 齐全 + css 只差字号 + 顶栏五态 + 前缀同源）。
+7. **宿主接线件（GBM 三连踩后新增；缺一装机必挂，详见 starter `docs/06-VALIDATION-AND-RELEASE.md`「装机前宿主接线四要素」）**：  
+   ① `package.json` 补 `dsh` 块（`dsh.bundle.patch` + `dsh.client.inject`）与 `repository`——init 生成的没有，"文件存在"≠"接线完成"；  
+   ② `cordis.patch.yml` insert 条目补 `config.root: !!js dshHomePath('<slug>')`（注释放条目后，不放文件首行）；  
+   ③ **真客户端链路**：`src/client.js`（customFrame/标准分栏完整外壳）→ `scripts/build-client.mjs` → `lib/client.js`——  
+   init 的占位骨架（"接入骨架…待按 spec 实现"）必须被构建产物替换，`npm run check` 须含 `build:client --check`；  
+   ④ 版本簿记：改包必升版；`public/` 降级字面量与测试断言一律引用 `lib/version.js` 唯一源，不写死。
 
 ### 2.2 面板：默认在右、可拖、顶栏开关（customFrame 必做，v1.2 展开）
 
