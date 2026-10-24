@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Community static checker. Does not replace official validation, pack contents or Desktop UI tests.
 import { readFile, readdir, lstat, realpath } from 'node:fs/promises'
-import { resolve, relative, sep } from 'node:path'
+import { resolve, relative, sep, join } from 'node:path'
 const root = resolve(process.argv[2] || '.')
 const errors=[], warnings=[]
 const check=(ok,message)=>{ if(!ok) errors.push(message) }
@@ -125,6 +125,45 @@ try {
       check(false, 'public/ exists but is not covered by files allowlist')
     }
   } catch { /* 没有 public/ 的包不适用 */ }
+
+  // ⑨ 运行期按**拼出来的路径**读目录（迁移 SQL、模板、标准原文 PDF）也必须随包发出。
+  //    ⑥ 只管 import 落点，⑦ 只管 public/，于是这一类在 2026-10-25 头颈癌 M6 漏了两个：
+  //    files 没写 schema/migrations/ → 装进去 readdirSync 读不到 .sql → **一张表都不建**，
+  //    但服务照常启动、/health 照常 200、界面照常打开，只是所有列表空着，看起来像"还没有数据"。
+  //    静默空库比白屏难查十倍，所以这条必须自动拦。
+  //    做法：只看**会随包发出去的文件**（dev 脚本读 docs/ 不该被点名），
+  //    从 join()/resolve() 的字面量参数推出目录，两种基准都试（文件所在目录 / 包根），
+  //    任一基准下目录存在且未被 files 覆盖 → 报错。
+  {
+    const dirOf = (rel) => rel.includes('/') ? rel.slice(0, rel.lastIndexOf('/')) : ''
+    const norm = (p) => p.split(sep).join('/').replace(/^\.\//, '')
+    const isDir = async (rel) => {
+      try { return (await lstat(resolve(root, rel))).isDirectory() } catch { return false }
+    }
+    const missing = new Set()
+    for (const rel of scanned) {
+      if (!covered(rel)) continue           // 不随包发出的文件（dev 脚本）不点名
+      let src = ''
+      try { src = await readFile(resolve(root, rel), 'utf8') } catch { continue }
+      for (const call of src.matchAll(/\b(?:join|resolve)\s*\(([^()]*(?:\([^()]*\)[^()]*)*)\)/g)) {
+        const lits = [...call[1].matchAll(/['"]([^'"]+)['"]/g)].map((m) => m[1])
+        // 至少要有两段字面量才像"在拼目录"；单段多半是拼文件名，交给 ⑥
+        if (lits.length < 2) continue
+        const relToFile = norm(join(dirOf(rel), ...lits))
+        const relToRoot = norm(join(...lits))
+        for (const cand of [relToFile, relToRoot]) {
+          if (!cand || cand.startsWith('..') || cand === '.') continue
+          if (await isDir(cand)) {
+            if (!covered(cand + '/__probe__')) missing.add(cand + '  ← read at runtime by ' + rel)
+            break
+          }
+        }
+      }
+    }
+    for (const item of missing) {
+      check(false, 'Directory read at runtime is not covered by files allowlist (installs fine, then silently empty): ' + item)
+    }
+  }
 
   // ⑧ UI 挂在子路径 + 页面用相对资源 = 服务端必须剥前缀。静态判定只能提示，真验靠装机探针
   //    （ATTR 0.2.2：/api/attr/ui/app.js 被 SPA 兜底成 index.html，浏览器把 HTML 当 JS 解析）

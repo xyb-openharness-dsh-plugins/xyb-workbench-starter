@@ -72,8 +72,9 @@ async function main() {
       check: 'node --check dsh/index.js && node --check lib/client.js && node scripts/check-workbench-package.mjs .',
       // check 保持"从第一天就该是绿的"（语法 + 装包合同）；audit 是交付前的家族一致性闸口，
       // 新项目在做出 VERSION/lib/layout.js/测试之前必然有 fail，那是待办清单不是故障。
+      test: 'node --test test/*.test.mjs',
       audit: 'node scripts/check-conformance.mjs .',
-      'release:check': 'npm run check && npm run audit',
+      'release:check': 'npm run check && npm run test && npm run audit',
       'pack:check': 'npm pack --dry-run'
     },
     dsh: { bundle: { patch: './cordis.patch.yml' }, client: { platform: 'web', inject: ['dsh-desktop-workbenches'] } },
@@ -110,6 +111,8 @@ async function main() {
   for (const name of ['DESIGNER-BRIEF','DESIGN-SESSION','DESIGN-REVIEW','SCHEMA','API-CONTRACT','UI-DESIGN','SETTINGS-DESIGN','PROTOTYPE-REVIEW','HVT-REVIEW','ONE-CHART-SPEC','METRIC-TREND-SPEC']) plan.set('docs/'+name+'.md', await readFile(join(starter,'templates',name+'.md')))
   plan.set('docs/17-CLOSED-LOOP-PROJECT-FLOW.md', await readFile(join(starter,'docs/17-CLOSED-LOOP-PROJECT-FLOW.md')))
   plan.set('docs/PARITY.csv', await readFile(join(starter,'templates/PARITY.csv')))
+  // 以真实 npm pack 清单为对象的装机测试：静态检查只看源码树，看不出发出去少了什么。
+  plan.set('test/pack-contents.test.mjs', await readFile(join(starter,'templates/test-pack-contents.test.mjs')))
   plan.set('docs/DESIGN-PROMPT.md', await readFile(join(starter,'prompts/DESIGNER-FIRST.md')))
   // Preflight every planned path before creating anything. No silent overwrite or symlink traversal.
   let starterMetadata = {name:'dsh-wb-cli',version:'unknown'}, revision = null, dirty = null

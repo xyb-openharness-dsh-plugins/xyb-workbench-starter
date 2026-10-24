@@ -78,7 +78,10 @@ test('generated project carries the family audit: VERSION, CHANGELOG and a runna
  const pkg=JSON.parse(await readFile(join(f.target,'package.json'),'utf8'))
  assert.equal(pkg.version,'0.1.0')
  assert.equal(pkg.scripts.audit,'node scripts/check-conformance.mjs .')
- assert.match(pkg.scripts['release:check'],/npm run check && npm run audit/)
+ assert.match(pkg.scripts['release:check'],/npm run check && npm run test && npm run audit/)
+ // 装机测试从第一天就存在：静态检查只看源码树，看不出发出去的包少了什么
+ await access(join(f.target,'test/pack-contents.test.mjs'))
+ assert.equal(pkg.scripts.test,'node --test test/*.test.mjs')
  await access(join(f.target,'scripts/check-conformance.mjs'))
  // 在生成项目自己的目录里跑得起来，不依赖 starter
  const audit=run(join(f.target,'scripts/check-conformance.mjs'),['.'],f.target)
