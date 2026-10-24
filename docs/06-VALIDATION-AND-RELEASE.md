@@ -87,6 +87,8 @@ peer warning 不是加载结论；查宿主实际提供服务与日志。不能�
 
 四要素验收时点在 pack 之后、装 profile 之前；装后第五步才是"重启 Desktop → 工作台能加载"。这四项目前靠人工对照（检查器增强列入待实施，见 LESSONS 2026-10-24）；补齐前，本节与 `prompts/ZERO-TO-DEV.md` §2.1 是装机的强制 checklist。
 
+**第 5 类失败发生在运行时，四要素查不到**：宿主注入契约（apiBase 等）——页面在 dev（空基址）全绿，宿主把挂载前缀灌进来才炸（GBM 踩 4：server 把含 `/api` 的 basePath 直接注入，页面 F3 守卫 throw → 白屏）。对策：注入侧与页面侧引用同一条契约条款（14 号数据合同），注入值必须归一；顶层校验失败渲染错误横幅不白屏；probe 增加"宿主注入形态"冒烟（LESSONS 2026-10-24 待实施④）。
+
 ## 用户侧入口与三层验收（2026-10-21 实测，Desktop 0.12.0）
 
 **不要把「`dsh web` 起网页版 → 浏览器 Settings → Plugins 开关插件」写成 Desktop 的用法。** 那是 CLI / Web 载体：它读的是 `~/.dsh` 那份 Harness，与 Desktop app 自己的 Harness 不是同一个安装位置，装上去 Desktop 不加载。给 Desktop 装的包只能在 Desktop 里验。

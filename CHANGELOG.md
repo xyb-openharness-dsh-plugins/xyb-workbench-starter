@@ -7,7 +7,8 @@
 - **`docs/06-VALIDATION-AND-RELEASE.md`** 新增「装机前宿主接线四要素」：`dsh` 块 / patch `config.root` / **真客户端**（build-client 链路产物，非 init 占位骨架）/ 版本簿记（改包必升版）；每项带缺失现象与"对照 tgz 内容查"的验收方法。meta-lesson：**dev-server 能跑 ≠ 装进宿主的包**——dev 语境检查链接不到宿主接线面。
 - **`docs/LESSONS.md`** 记 2026-10-24 条目：三连踩全过程与错误来源（404 截图 / 用户"tar包版本号也不对"原话 / "接入骨架"截图）、判据教训（自拟五要素漏"客户端真身"）、检查器三项待实施（client 占位标记禁入 / tgz 变更而 VERSION 未变报错 / package.json 必须有 dsh 块）。
 - **`prompts/ZERO-TO-DEV.md`** §2.1 六步移植扩为七项：新增第 7 步"宿主接线件"（接线①② + build:client 链路③ + 版本单源④）。
-- 本轮按用户纪律**只记文档不改代码**；检查器三项待实施列入 LESSONS，下轮实现。
+- 本轮按用户纪律**只记文档不改代码**；检查器四项待实施列入 LESSONS，下轮实现。
+- **同日追加 · 踩 4（宿主模式白屏）**：外壳生效后业务区 iframe 白屏，真机控制台抓到 app.js 顶层 throw。根因不在守卫，在注入侧先违约——`server.js` 把含 `/api` 的宿主 basePath 直接当页面基址注入，违反 F3（lymphoma 没爆是因为页面无守卫，不是注入正确）。已补：06 号"第 5 类运行时失败"、LESSONS 踩 4 条目（meta：约定拆两半/无权威范本/dev 零覆盖/顶层 throw 白屏）、ZERO-TO-DEV §2.1 第 4 步注入契约双侧同验。
 
 ## 2026-10-24 · 新增 29-DOCUMENT-IMPORT-PIPELINE：材料导入链路五段
 

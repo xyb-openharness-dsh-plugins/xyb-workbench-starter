@@ -223,6 +223,7 @@
 4. `public/`：`index.html`（三段式顶栏 + `#agent-splitter`/`#agent-hide`/`#agent-label` + `noindex` + 内联 favicon）、  
    `style.css`（原型 + 只改字号三处 + `[hidden]`）、`shell.css`、`app.js`。  
    `app.js` 用**复制原型 → 定点替换**迁移（数据加载、AI 五态、宽度、版本、启动异步化），不要手抄。
+   **数据加载替换必须两侧同验注入契约（GBM 踩 4）**：页面拼 `${API_BASE}/api/xxx` 时，服务端注入的 apiBase 必须归一为不含 `/api` 的基址（宿主 basePath 含 `/api`，直接 fallback 进去就是白屏）；页面侧校验只限独立启动语境或改为归一化，**顶层禁止裸 throw**——启动断言失败要渲染错误横幅，不白屏。
 5. `scripts/`：`dev-server.mjs`、`build-version.mjs`、`check-{syntax,schema,wording,version,install}.mjs`、  
    `check-demo-columns.mjs`（执行 `schema/00*.sql` **全部**迁移再比对列）。
 6. `test/`：`store.test.mjs`（迁移幂等 / 播种幂等 / parity）、`server.test.mjs`、`ui-parity.test.mjs`  
