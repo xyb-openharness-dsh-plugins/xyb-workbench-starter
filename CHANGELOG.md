@@ -4,7 +4,7 @@
 
 - 小胸宝（MPM）真机首用发现：新装工作台未建会话时宿主鉴权闸拒 API（离线演示兜底）+ 会话区空白，误似"AI 按钮失效"。装机探针（probe:install）证明服务层全通后定位为宿主状态，非缺陷。06 号装机节补第 6 类与 V3 首动作。
 - MPM v0.1.3 发布（release + BACKLOG PR #15 🔵）；probe-install 探针 fork 模式（attr → MPM）验证为家族可复制资产。
-- **同日追加 · 第 7 类：SVG 根 class 缺失（THY 一图秀黑块）**——M2 手写 chart 模板漏 `class="chart"`，`.chart .line{fill:none}` 全部不匹配，path 回退默认黑填充（用户真机发现）。探针 chart 断言只数路径数量不断言视觉——**"数量对 ≠ 颜色对"**；检查器待实施⑥：probe 加 computed fill 断言；CSS 清理禁逐行 token 删（必须引用验证+括号平衡+渲染验证三重）。
+- **同日追加 · 第 8 类：曲线平滑算法**——smoothPath 原为普通 Catmull-Rom（切线不随 x 间隔缩放），在**不均匀采样间隔**下（THY 长程复查 2 周–4 月混杂）密集点过冲出尖角（用户真机指认）。重写为 **Fritsch-Carlson 单调三次 Hermite**（过点/防过冲/间隔安全，符合 16 号"单调三次插值"本义）；GBM/MPM 均匀采样未暴露同款弱点，下轮迭代升级。同时第 7 类教训继续有效：探针待实施⑥补"曲线平滑性"断言（相邻控制点二阶差分阈值）。——M2 手写 chart 模板漏 `class="chart"`，`.chart .line{fill:none}` 全部不匹配，path 回退默认黑填充（用户真机发现）。探针 chart 断言只数路径数量不断言视觉——**"数量对 ≠ 颜色对"**；检查器待实施⑥：probe 加 computed fill 断言；CSS 清理禁逐行 token 删（必须引用验证+括号平衡+渲染验证三重）。
 
 ## 2026-10-24 · 新增 prompts/PROGRESS-REPORT.md（进度汇报口径，随 init 下发并激活）
 
