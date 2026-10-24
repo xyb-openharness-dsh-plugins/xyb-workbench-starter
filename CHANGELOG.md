@@ -4,6 +4,7 @@
 
 - 小胸宝（MPM）真机首用发现：新装工作台未建会话时宿主鉴权闸拒 API（离线演示兜底）+ 会话区空白，误似"AI 按钮失效"。装机探针（probe:install）证明服务层全通后定位为宿主状态，非缺陷。06 号装机节补第 6 类与 V3 首动作。
 - MPM v0.1.3 发布（release + BACKLOG PR #15 🔵）；probe-install 探针 fork 模式（attr → MPM）验证为家族可复制资产。
+- **同日追加 · 第 7 类：SVG 根 class 缺失（THY 一图秀黑块）**——M2 手写 chart 模板漏 `class="chart"`，`.chart .line{fill:none}` 全部不匹配，path 回退默认黑填充（用户真机发现）。探针 chart 断言只数路径数量不断言视觉——**"数量对 ≠ 颜色对"**；检查器待实施⑥：probe 加 computed fill 断言；CSS 清理禁逐行 token 删（必须引用验证+括号平衡+渲染验证三重）。
 
 ## 2026-10-24 · 新增 prompts/PROGRESS-REPORT.md（进度汇报口径，随 init 下发并激活）
 
