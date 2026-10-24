@@ -120,6 +120,26 @@ peer warning 不是加载结论；查宿主实际提供服务与日志。不能�
 
 **静态查不到的部分，靠一次装机副本探针**：加载 `profiles/<profile>/node_modules/<pkg>/dsh/index.js`（宿主注入的 peer 用最小 shim 顶替），喂假宿主（`webServer.register` / `connection.requestRejection` / `effect`），再让真 Chrome 走一遍页面。判据至少四条：`health` 200 且版本与包一致、`bootstrap` 六件齐全、写一条业务数据后**回读磁盘库有数**（内存库也会 200）、12 页逐个点开有内容且 `scrollWidth === innerWidth`、0 未捕获异常 0 失败请求。参考实现：`attr-workbench/scripts/probe-install.mjs`。
 
+## 装机面第 7 类失败：装进去的还是旧包（2026-10-24 实测）
+
+前面六类都能靠"看包内容"发现，这一类**看包也看不出来**——包是新的，装进 profile 的是旧的。
+
+| 项 | 内容 |
+| --- | --- |
+| 现象 | `pnpm add -w file:<tgz>` 打印 **`Already up to date`**，退出码 0，没有任何警告；`profiles/<p>/package.json` 版本号对、`pnpm-lock.yaml` 里的 `integrity` **也已经是新包的**，但 `node_modules/<pkg>/` 下那坨文件还是上一轮的 |
+| 根因 | `file:` 依赖按路径解析，同版本号重打包时 pnpm 认为"这个 spec 已经装过"，不重链。lockfile 的 integrity 会跟着新包更新，于是**簿记是新的、内容是旧的** |
+| 为什么危险 | ① 探针跑的是旧代码，**报绿是假的**；② 两次版本号可能一模一样（ATTR 的 0.2.1→0.2.3 中间重打过多次同号包），从 `package.json` 分辨不出来；③ 症状是"我明明修了，怎么还是白屏"，会把人引回去重查已经修好的代码 |
+
+**对策（三步，缺一不可）**：
+
+1. 装之前删掉 `node_modules/<pkg>/`（`rm -rf`），再跑 `pnpm install` 强制重链——只 `add` 不删，等于没装；
+2. **逐文件比对** tgz 里的条目与副本里的条目（数量 + 相对路径逐个对），对不上就当失败退出，**不要往下跑探针**；
+3. 冒烟一句：副本的入口文件（`dsh/index.js`、`dsh/server.js`）存在且与仓库逐字节一致。
+
+参考实现：`attr-workbench/scripts/install-local.mjs`（`npm run install:local`：pack → add → 删副本重链 → 逐文件比对 → 探针；`--dry-run` 只打包）。**这条静态查不出来**（要查得真去装一次），所以只能写进流程，不能写进检查器。
+
+顺带一条：`npm pack` 同版本重打会得到不同 shasum（文件时间戳参与归档），**别拿 shasum 当版本号用**，版本看 `package.json`，内容看第 2 步的逐文件比对。
+
 ## 用户侧入口与三层验收（2026-10-21 实测，Desktop 0.12.0）
 
 **不要把「`dsh web` 起网页版 → 浏览器 Settings → Plugins 开关插件」写成 Desktop 的用法。** 那是 CLI / Web 载体：它读的是 `~/.dsh` 那份 Harness，与 Desktop app 自己的 Harness 不是同一个安装位置，装上去 Desktop 不加载。给 Desktop 装的包只能在 Desktop 里验。
