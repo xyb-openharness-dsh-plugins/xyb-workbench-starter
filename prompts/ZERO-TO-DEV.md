@@ -350,6 +350,37 @@ README.md / CHANGELOG.md / VERSION / package.json
 
 ---
 
+## 交付前最后一道：家族一致性 audit（可执行，不靠自述）
+
+`npm run check` 绿只说明"这个项目自己认为自己对"；它不回答"这个项目还是不是家族里的一员"。下面这条命令用**代码与文件**核对家族硬约束，不读 README 的自述：
+
+```bash
+npm run audit                        # 项目内（脚本随 init 下发到 scripts/check-conformance.mjs）
+npm run release:check                # check + audit，发布前一并跑
+dsh-wb-cli audit <项目目录>          # 从 starter 侧横向对照任意项目，人读
+dsh-wb-cli audit <项目目录> --json   # 机器读（CI / 汇报）
+```
+
+两条入口跑的是同一份脚本：项目内那份随 `init` 复制生成，保证**交付前在本项目目录里就能跑**，不必再回 starter 仓库；starter 侧那份用来一次扫多个仓。项目更新脚手架时不会自动覆盖它，比对 `.dsh-wb-starter.json` 里的 revision 后再决定。
+
+它查五组、约 37 项：
+
+| 组 | 查什么（都看实现，不看文档） |
+| --- | --- |
+| 版本 | `VERSION` 存在；`package.json`、`lib/version.js`、`public/index.html` 与它一致；CHANGELOG 提到当前版本 |
+| 面板 | `lib/layout.js` 是唯一来源；`customFrame: true`；`businessWidth` 在 0.55–0.75；会话区 25%–45%；避让 `--dsh-frame-leading-clearance`；会话区常挂载 |
+| 检查链 | `npm run check` 覆盖语法 / 单测 / 版本 / schema / 文案红线；有装机自检；`test/` 有 `*.test.mjs` |
+| 文档 | `AGENTS.md`、`docs/SPEC.md`、`DIFF-MATRIX.md`、`DEV-PLAN.md`、`SCHEMA.md`、`DEV-REQUIREMENTS-<日期>.md`；`schema/freeze-contract.md`；`prototypes/v0.2` |
+| 密钥 | MinerU 错误里有申请地址；`.gitignore` 含 `.secrets`；Token 解析函数里文件写在 env 之前；有保存实现；未提交疑似 `sk-` 明文（同行写 `secret-allow` 的夹具豁免） |
+
+规则：
+
+- **有 fail 不交付**。fail 是"结构上缺一块"，不是风格分歧；确实要偏离（如某仓刻意用标准分栏），在 `docs/DEV-REQUIREMENTS-<日期>.md` 写明理由并接受顶栏无 AI 按钮，然后由用户确认，而不是把 fail 说成通过。
+- **warn 逐条给结论**。warn 是"脚本看不出来、需要人看"（会话归属、常挂载、Token 读写层），汇报里要写"已人工确认"或"确实没有"。
+- **脚本是下限，不是上限**。它查不出交互正确性、医学口径、装机真加载；那些仍按 V3 走。
+
+---
+
 ## 假绿清单（这一轮真踩过的，逐条自问）
 
 | 看着像通过 | 实际是什么 | 怎么验 |

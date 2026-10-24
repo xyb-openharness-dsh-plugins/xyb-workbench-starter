@@ -70,6 +70,31 @@ test('initializer rejects unexpected secret fields rather than copying them',asy
  const f=await fixture(t,{...config,apiToken:'example-not-a-real-token'});const result=init(f);assert.notEqual(result.status,0);assert.match(result.stderr,/Unknown config key/);await assert.rejects(access(f.target))
 })
 
+test('generated project carries the family audit: VERSION, CHANGELOG and a runnable audit entry',async t=>{
+ const f=await fixture(t);const result=init(f);assert.equal(result.status,0,result.stderr)
+ // 版本唯一来源与变更记录从第一天就存在，audit 的 version/file 与 version/pkg 才有东西可比
+ assert.equal((await readFile(join(f.target,'VERSION'),'utf8')).trim(),'0.1.0')
+ const changelog=await readFile(join(f.target,'CHANGELOG.md'),'utf8');assert.match(changelog,/## 0\.1\.0/);assert.match(changelog,/community\/demo-workbench|dsh-wb-cli/)
+ const pkg=JSON.parse(await readFile(join(f.target,'package.json'),'utf8'))
+ assert.equal(pkg.version,'0.1.0')
+ assert.equal(pkg.scripts.audit,'node scripts/check-conformance.mjs .')
+ assert.match(pkg.scripts['release:check'],/npm run check && npm run audit/)
+ await access(join(f.target,'scripts/check-conformance.mjs'))
+ // 在生成项目自己的目录里跑得起来，不依赖 starter
+ const audit=run(join(f.target,'scripts/check-conformance.mjs'),['.'],f.target)
+ assert.equal(audit.status,1,'新项目必然有 fail，但必须是"查出的 fail"而不是崩溃')
+ assert.doesNotMatch(audit.stderr,/Cannot find|SyntaxError|Error:/)
+ assert.match(audit.stdout,/version\/lib/)
+ const json=run(join(f.target,'scripts/check-conformance.mjs'),['.','--json'],f.target)
+ const payload=JSON.parse(json.stdout)
+ assert.equal(payload.package,'@community/demo-workbench')
+ assert.equal(payload.pass,false)
+ assert.ok(payload.summary.checks>=25,payload.summary.checks)
+ assert.ok(payload.fails.some((item)=>item.id==='panel/单一来源'))
+ // check 与 audit 分工:check 第一天就该是绿的
+ assert.equal(run(join(root,'scripts/check-workbench-package.mjs'),[f.target]).status,0)
+})
+
 test('init hands off existing designer documents before product specification, including relocated paths',async t=>{
  const f=await fixture(t);f.target=join(f.dir,'患者 project')
  const dry=init(f,root,['--dry-run']);assert.equal(dry.status,0,dry.stderr)

@@ -31,3 +31,32 @@ Phase3  首版开发 → npm run check 全绿(V1) → 打包装机 Desktop(V2) �
 3. **schema 一步到位** → 草案（Phase1）→ 签认（G3）→ 正式+冻结（Phase2），三步走；冻结后只加不改。
 4. **"npm 通过"=完成** → 只是 V1；V2 装机与 V3 业务验证未做不得写"已验证"（版本号三处同源，改版本先改 `VERSION`；"PR 合并"≠"上架"）。
 5. **没有交互路径文档就写 HTML** → 导航与入口文案由实现者想象、CRUD 平铺成表单；先按 [28 号](28-INTERACTION-PATH-DESIGN.md)签场景路径 + CRUD 双通道再开工，G2 走查按它逐条断言。
+
+## 家族一致性 audit（V1 之后的第二道静态闸）
+
+`npm run check` 管"项目自己说自己对"，`dsh-wb-cli check` 管"这个包能不能装"，两者都不回答"这个项目还是不是家族里的一员"。2026-10-24 补了一条可执行检查：
+
+```bash
+dsh-wb-cli audit <项目目录> [--json]
+```
+
+五组约 37 项，**只看代码与文件，不看文档自述**：版本四处一致（`VERSION` / `package.json` / `lib/version.js` / 页面字面量）｜面板（`lib/layout.js` 唯一来源、`customFrame: true`、`businessWidth` 0.55–0.75、会话区 25%–45%、避让红绿灯、会话区常挂载）｜检查链（语法/单测/版本/schema/文案红线/装机自检）｜文档（SPEC、DIFF-MATRIX、DEV-PLAN、SCHEMA、强约束、冻结合同、原型基线）｜密钥（MinerU 申请地址、`.gitignore` 的 `.secrets`、Token 文件优先、有保存实现、无 `sk-` 明文）。
+
+判定：**fail 不交付**；要偏离就在 `DEV-REQUIREMENTS-<日期>.md` 写明理由并让用户确认。warn 必须逐条给"已人工确认 / 确实没有"。它仍是下限——查不出交互正确性、医学口径与装机真加载，那三层照旧走 V2 / V3。
+
+来源：2026-10-24 对四个新开发项目（胶质瘤、食管、膀胱、肝癌）做横向对照，四台的缺口集中在同几处（缺 `lib/layout.js`、缺版本生成物、`check` 只做语法），说明"文档写了"和"项目做了"之间需要一条命令来卡。
+
+**它随项目一起生成，不是只在 starter 里手跑。** `init` 会把 `scripts/check-conformance.mjs` 复制进新项目，`package.json` 得到两个条目：
+
+```bash
+npm run check          # 第一天必绿：语法 + 装包合同
+npm run audit          # 交付闸口：家族一致性，有 fail 退出码 1
+npm run release:check  # check && audit，发布前一次跑完
+```
+
+刻意**不把 audit 并进 `check`**：实测裸生成项目 audit 是 17/30（11 fail：`version/lib`、`panel/单一来源`、`customFrame`、检查链四项、`test/` 无用例、DIFF-MATRIX、DEV-PLAN、强约束）。若并进 `check`，新项目第一天就红，红久了就没人看了。分工是"check 保证装得上、audit 保证还算家族成员、release:check 是最小发布门槛"，交付前必须逐条清到 0 fail、warn 逐条给结论。
+
+第二批实测（2026-10-24 同日，含老仓）：小胰宝 `xyb-workbench` 0.1.34 是 18/34，12 fail 集中在**文档套装与版本生成物**（`VERSION`/`lib/version.js`/`lib/layout.js` 都没有，`docs/SPEC`、`DIFF-MATRIX`、`DEV-PLAN`、`SCHEMA`、强约束全缺，`check` 缺版本一致与文案红线），另 4 条 warn（CHANGELOG 未写当前版本、无装机自检、无 `prototypes/v0.2`、随包公益 Token 待人工确认）。它反过来说明一件事：**功能做得最全的仓，家族结构反而最松**——因为它是从零长出来的，不是从模板长出来的。
+
+
+

@@ -1,5 +1,17 @@
 # 变更记录
 
+## 2026-10-24 · 家族一致性 audit：把横向对照变成可执行检查
+
+背景：对四个新开发项目做横向对照（都按代码实测，不看文档自述），缺口高度重复——`lib/layout.js` 缺失或 `customFrame` 未开、版本生成物缺失、`npm run check` 只做语法与包合同、强约束文档没建。这些是"文档写了、项目没做"的典型，靠人逐台看会漏。
+
+- 新增 `scripts/check-conformance.mjs`：五组约 37 项，只读文件与源码。版本（`VERSION` / `package.json` / `lib/version.js` / 页面字面量 / CHANGELOG）｜面板（`layout.js` 唯一来源、`customFrame: true`、`businessWidth` 0.55–0.75、`AGENT_PANE` 25%–45%、避让 `--dsh-frame-leading-clearance`、会话区常挂载、`currentSession`/`ownsSession`）｜检查链（语法/单测/版本/schema/文案红线/装机自检/用例文件）｜文档（AGENTS、SPEC、DIFF-MATRIX、DEV-PLAN、SCHEMA、`DEV-REQUIREMENTS-<日期>`、freeze-contract、prototypes/v0.2）｜密钥（MinerU 申请地址、`.gitignore` 的 `.secrets`、Token 解析函数里文件先于 env、有保存实现、无 `sk-` 明文）。
+- CLI 新增 `dsh-wb-cli audit [项目目录] [--json]`；`npm run audit` 同义；`npm run check` 增加对该脚本的语法检查；`check-starter.mjs` 把它列入必需文件。
+- 文档接入：`prompts/ZERO-TO-DEV.md` 新增「交付前最后一道：家族一致性 audit」（含"fail 不交付 / warn 逐条给结论 / 脚本是下限"三条规则）；`docs/22-PHASES-AND-GATES.md` 增加「家族一致性 audit（V1 之后的第二道静态闸）」；`templates/ACCEPTANCE.md` 增 ACC-00；README 五步流程与文档索引各加一条；AGENTS.md 增一条硬规则。
+- 判定细节（都来自真实误报修正）：`AGENT_PANE` 同时接受百分比 25–45 与比例 0.25–0.45；避让量允许出现在 `public/shell.css`（标准分栏由页面自己避让）；"会话区常挂载"只要求"渲染了 conversation + 用 display 且出现 'none'"，不把 `conversation ? ... : null` 误判成条件渲染；Token 优先级只在"同时读文件与读 env"的那个函数里比位置；`sk-` 明文扫描豁免同行标 `secret-allow` 的夹具。
+- 首次实测（2026-10-24）：胶质瘤 0.1.5 全通过（37/37）；食管 0.1.0 3 fail（`customFrame:false`、缺 DIFF-MATRIX、缺 DEV-PLAN）；宫颈 0.1.1 2 fail（缺 DIFF-MATRIX、DEV-PLAN）；膀胱 0.1.0 13 fail（无 VERSION/CHANGELOG、无 layout、check 只做语法）；肝癌 0.3.2 7 fail（无 version.js/layout、check 只做语法）。这批数字写进 `docs/22` 作为"为什么需要这条命令"的依据。
+- **随生成项目下发（2026-10-24 补）**：`init` 现在把 `scripts/check-conformance.mjs` 复制进新项目，`package.json` 增加 `audit`（`node scripts/check-conformance.mjs .`）与 `release:check`（`check && audit`）；同时补发 `VERSION`（0.1.0）与 `CHANGELOG.md` 首条（记录脚手架名/版本/revision），让"版本唯一来源"从第 0 天成立。**没有把 audit 挂进 `check`**——实测裸生成项目 audit 有 11 项 fail（`version/lib`、`panel/单一来源`、check 链四项、`test/` 无用例、DIFF-MATRIX、DEV-PLAN、强约束），挂进 `check` 会让新项目第一天就是红的，开发者会练成忽略它。分工是：`check` 第一天必绿（语法 + 装包合同）、`audit` 是交付闸口、`release:check` 一次跑完两者；`templates/RELEASE.md` 加了一行"家族一致性结果"，`project-template/README.md.tpl` 写明两者区别。新增单测 `test/starter.test.mjs` 末条：生成物必须含 VERSION/CHANGELOG/audit 入口，且在生成目录里跑 `scripts/check-conformance.mjs .` 必须是"查出 fail"（exit 1）而不是崩溃（无 `Cannot find`/`SyntaxError`），`--json` 输出可解析且 `panel/单一来源` 在 fail 里。
+- **扫描口径两处修正（2026-10-24，小胰宝 0.1.34 实证）**：①`mineru/Token 优先级` 之前把**参数默认值**里的 `tokenFromEnv = process.env.MINERU_TOKEN` 当成"先读环境变量"，把小胰宝这个正确实现（文件优先）误判为 fail；改为只看函数体（`bodyAfterSignature`），签名里的默认值单独按"参数名在体内的使用位置"计入顺序。②`hygiene/无密钥` 之前把随包公益 Token（`dsh/community-token.js`，头注释写明 intentionally shipped/public）判成泄漏；改为两级——文件头 10 行内声明"随包公益 / 公开凭据 / `secret-allow-file`"的降为 warn（仍需人工确认可公开），无声明的一律 fail。两条都做了反向对照：把 `settings.js` 的两段读取顺序真反转 → 报 fail（`file@147 env@28`）；往 `dsh/leak.js` 写一条裸 `sk-` 明文 → fail，加声明注释后 → warn。
+
 ## 2026-10-24 · GBM 装机三连踩回收：宿主接线四要素（文档轮，不改代码）
 
 从小星宝（GBM）0.1.0→0.1.2 装机实踩回收（用户确认缺陷定位并要求沉淀）：

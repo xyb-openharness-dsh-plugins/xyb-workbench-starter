@@ -60,11 +60,22 @@ async function main() {
   }
   plan.set('AGENTS.md', await readFile(join(starter, 'AGENTS.md')))
   plan.set('scripts/check-workbench-package.mjs', await readFile(join(starter,'scripts/check-workbench-package.mjs')))
+  // 家族一致性检查随项目下发：交付前必须在本项目目录里跑得起来，而不是回 starter 里跑。
+  plan.set('scripts/check-conformance.mjs', await readFile(join(starter,'scripts/check-conformance.mjs')))
+  // VERSION 是版本唯一来源（audit 的 version/file 与 version/pkg 都指着它）。
+  plan.set('VERSION', '0.1.0\n')
   const manifest = {
     name: cfg.packageName, version: '0.1.0', description: cfg.description, private: true, type: 'module',
     main: './dsh/index.js', exports: { '.': './dsh/index.js', './client': './lib/client.js', './package.json': './package.json', './cordis.patch.yml': './cordis.patch.yml' },
     files: ['dsh','lib','assets','cordis.patch.yml','README.md','NOTICE.md'],
-    scripts: { check: 'node --check dsh/index.js && node --check lib/client.js && node scripts/check-workbench-package.mjs .', 'pack:check': 'npm pack --dry-run' },
+    scripts: {
+      check: 'node --check dsh/index.js && node --check lib/client.js && node scripts/check-workbench-package.mjs .',
+      // check 保持"从第一天就该是绿的"（语法 + 装包合同）；audit 是交付前的家族一致性闸口，
+      // 新项目在做出 VERSION/lib/layout.js/测试之前必然有 fail，那是待办清单不是故障。
+      audit: 'node scripts/check-conformance.mjs .',
+      'release:check': 'npm run check && npm run audit',
+      'pack:check': 'npm pack --dry-run'
+    },
     dsh: { bundle: { patch: './cordis.patch.yml' }, client: { platform: 'web', inject: ['dsh-desktop-workbenches'] } },
     repository: { type: 'git', url: cfg.repository },
     peerDependencies: { '@deepseek-ai/cordis': '>=4.0.1 <5', '@deepseek-ai/dsh-client-connection': '>=0.1.0-rc.0 <0.3.0-0', '@deepseek-ai/dsh-host-webserver': '>=0.1.0-rc.0 <0.3.0-0', '@deepseek-ai/schemastery': '>=3.18.1 <4' },
@@ -114,6 +125,7 @@ async function main() {
     }
   } catch {}
   plan.set('.dsh-wb-starter.json', Buffer.from(JSON.stringify({starter:starterMetadata.name,version:starterMetadata.version,revision,dirty,generatedAt:new Date().toISOString(),updatePolicy:'Business project is a snapshot; compare changes before merging starter updates.'},null,2)+'\n'))
+  plan.set('CHANGELOG.md', Buffer.from(`# 变更记录\n\n只增不删；每条写清"改了什么 + 为什么 + 用户可见结果"。版本号与 VERSION、package.json 三处必须一致。\n\n## 0.1.0 — ${new Date().toISOString().slice(0,10)}\n\n- 由社区脚手架 ${starterMetadata.name}@${starterMetadata.version}${revision ? ` (${revision.slice(0,7)}${dirty ? '+dirty' : ''})` : ''} 初始化，仅有注册骨架与健康接口，无业务功能。\n`))
   const conflicts = []
   for (const path of plan.keys()) {
     const out = resolve(target, path)

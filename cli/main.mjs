@@ -40,6 +40,7 @@ export async function runCli({ root, args, cwd }) {
   doctor [--json]                             只读检查本机与脚手架 Git 状态
   sync [--dry-run]                            从跟踪分支 git pull --ff-only
   check [项目目录]                           社区静态包合同检查
+  audit [项目目录] [--json]                  家族一致性检查（版本/面板/检查链/文档/密钥）
   pack [项目目录] [--dry-run]                 先静态检查，再打包（不运行生命周期脚本）
 
 激活：在 Git 克隆目录执行 npm link --ignore-scripts --no-audit --no-fund。
@@ -105,6 +106,14 @@ init 不安装到 Desktop；sync 不覆盖已生成业务项目。Desktop 安装
     const code=printResult(result)
     if (!code) console.log('脚手架已同步；已生成业务项目保持自己的版本，升级需审阅差异。CLI 通过链接激活时，下次执行即使用更新内容。')
     return code
+  }
+  if (command === 'audit') {
+    const { flags, positions } = parseFlags(rest, {'--json':'boolean'})
+    if (positions.length>1) throw new Error('只指定一个项目目录')
+    const target=resolve(cwd,positions[0]||'.')
+    const args=[join(root,'scripts/check-conformance.mjs'),target]
+    if(flags['--json'])args.push('--json')
+    return printResult(capture(process.execPath,args,cwd,20000))
   }
   if (command === 'check' || command === 'pack') {
     const { flags, positions } = parseFlags(rest,command==='pack'?{'--dry-run':'boolean'}:{})

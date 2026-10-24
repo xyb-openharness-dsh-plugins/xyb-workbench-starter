@@ -1,5 +1,9 @@
 # 小胰宝 / 小x宝社区 Workbench 开发脚手架
 
+## Git开发快照 · 2026-10-24
+
+新增**家族一致性 audit**：`scripts/check-conformance.mjs` 用代码与文件核对家族硬约束（版本/面板/检查链/文档/密钥五组约 37 项），不再靠 README 自述。入口三个：项目内 `npm run audit`（随 `init` 下发）、发布前 `npm run release:check`（`check && audit`）、跨仓横向对照 `dsh-wb-cli audit <目录> [--json]`。`init` 同时补发 `VERSION` 与 `CHANGELOG.md`，让版本唯一来源从第 0 天成立；裸生成项目 audit 基线 17/30，剩下 11 项 fail 就是开发待办清单。包版本升 `1.5.0`。
+
 ## Git开发快照 · 2026-10-21
 
 新增 [提示词 ZERO-TO-DEV v1.1](prompts/ZERO-TO-DEV.md)：从一个癌种名到可运行开发版的一次性交付提示词，把「init → 强约束文档 → 调研/患者流程/schema/多通道临床库/HTML 原型 → 第一次确认 → 开发版 parity → dsh-desktop 实测 → push 与经验回流」整条链路固化成可复制的阶段说明。同时把临床库的**已知覆盖限制**写进去：unified-trial-mcp 的三个离线语料（ChiCTR 468 条、小胰宝归档 139 条、ctv 索引）**目前只有胰腺癌**，做其他癌种只能走在线通道（`ictrp` / `ctv` / `chictr_online` / `chinadrugtrials`），离线通道对该癌种须如实声明为"未配置/无覆盖"。README 补「新手：五步从一个癌种名走到可运行开发版」。
@@ -9,7 +13,7 @@
 新增24号指标趋势Tab设计、参考截图、可复用提示词和项目填写模板；init生成指标趋势规格副本，更新AGENTS/一图秀合同/设计系统及检查测试。 包版本保持`1.4.3`；这是开发快照，正式发布状态另行记录。核验结果、已知问题及同步范围见 [本次Git记录](docs/GIT-SYNC-2026-10-20.md)。
 
 
-当前本地版本：**1.4.3（待发布）**。在 SPEC、UI 设计、任务与验收模板中明确 DSH 原生 Agent 的顶栏拉起入口、独立隐藏/重开和可调宽要求；区分 CustomFrame splitter 与 split 宿主布局合同，增加 ACC-28–31 验收项。DSH 原生 Agent 复用提示词补 **§6.1 上下文草稿落地细则**（服务端按范围出文本、三个范围各带什么、四条不可让步、postMessage 双校验、空态与独立运行降级）。新增 23 号「指标分析与卡片提醒原则」（指标卡分组 / 用 CTCAE v5.0 做分级对照 / 表达面与指标面两侧并置提醒，含 M1–M11 验收与三条反例）、22 号「三阶段×三闸口」开发流程速查与 21 号调研手册；docs/06 补 Desktop 装机实证（**安装前核验Desktop实际使用的Harness profile**、pnpm 同版本不替换须 remove+add、cordis apply 契约）；另有原型工艺复刻指南（令牌骨架/动效系统/交互细节，颜色按癌种换）、DSH 原生 Agent 右侧面板复用提示词与对应的落地设计模板（CustomFrame/split 双形态判定，不绑定癌种）；保留init的用户、场景、流程前置输入。变更见 [CHANGELOG](CHANGELOG.md)。本次Git开发快照范围与检查见下方记录；尚未创建正式发布tag。
+当前本地版本：**1.5.0（待发布）**。在 SPEC、UI 设计、任务与验收模板中明确 DSH 原生 Agent 的顶栏拉起入口、独立隐藏/重开和可调宽要求；区分 CustomFrame splitter 与 split 宿主布局合同，增加 ACC-28–31 验收项。DSH 原生 Agent 复用提示词补 **§6.1 上下文草稿落地细则**（服务端按范围出文本、三个范围各带什么、四条不可让步、postMessage 双校验、空态与独立运行降级）。新增 23 号「指标分析与卡片提醒原则」（指标卡分组 / 用 CTCAE v5.0 做分级对照 / 表达面与指标面两侧并置提醒，含 M1–M11 验收与三条反例）、22 号「三阶段×三闸口」开发流程速查与 21 号调研手册；docs/06 补 Desktop 装机实证（**安装前核验Desktop实际使用的Harness profile**、pnpm 同版本不替换须 remove+add、cordis apply 契约）；另有原型工艺复刻指南（令牌骨架/动效系统/交互细节，颜色按癌种换）、DSH 原生 Agent 右侧面板复用提示词与对应的落地设计模板（CustomFrame/split 双形态判定，不绑定癌种）；保留init的用户、场景、流程前置输入。变更见 [CHANGELOG](CHANGELOG.md)。本次Git开发快照范围与检查见下方记录；尚未创建正式发布tag。
 
 把业务需求、交互原型变成可在 DSH Desktop 安装使用的工作台。面向社区新手与协作开发 Agent，提供互动设计、数据建模、界面实现、测试修复和部署验收流程，并整理项目实践中的典型错误和修复方法。
 
@@ -42,6 +46,8 @@ dsh-wb-cli doctor
 3. **生成项目**：`dsh-wb-cli init <english>-workbench`，得到标准目录与文档体系（AGENTS / spec / docs / templates / prompts / 版本与检查脚本）。进目录先 `npm run check`，能在干净状态下全绿才算基线没坏。
 4. **建强约束再动手**：按 `docs/DEV-REQUIREMENTS-<日期>.md` 写一份本癌种的强约束文档（范围、照抄样板的产品要求、硬约束 H1–Hn、本轮明确未做、我替你定的默认值）。**没有这份文档就不写业务代码**，这是最省返工的一步。
 5. **把提示词整段交给 Agent**：[ZERO-TO-DEV](prompts/ZERO-TO-DEV.md) 填四个空（癌种中文名 / 英文名 / 目标目录 / 样板基准），剩下的按闸口推进——3.1 调研 + 患者流程 + schema + 多通道临床库 + **指南与分级（G1 出处 / G2 节奏 / G3 分级）** + HTML 原型，**第一次人工确认**；3.2 开发版，逐页 parity + 面板默认在右可拖 + 顶栏开关；3.3 dsh-desktop 实测；确认后 push + 把踩到的坑回流到脚手架。
+
+**交付前多跑一条**：`dsh-wb-cli audit <项目目录>`（约 37 项，只看代码与文件、不看文档自述）。有 fail 不交付；warn 逐条给「已人工确认 / 确实没有」。它查的是「还是不是家族里的一员」，`npm run check` 查的是「项目自己说自己对」，两者不能互相替代。
 
 三条最容易踩的：**闸口不签不往下走**（G1 需求、G2 原型、G3 schema 各签一次，省下的时间远超一次返工）；**临床库要如实写来源终态**，没查到就是"未配置/无覆盖"，不能写成"已查过"；**×ULN 类指标缺参考上限就写"需参考上限"**，不拿成人通用值凑倍数（详见 [23](docs/23-METRIC-GRADING-AND-ALERTS.md) §2.1）。
 
@@ -118,6 +124,7 @@ python3 skills/hvt-requirement-review/scripts/hvt_scan.py --project . --profile 
 | 任务分层、原型一致性、产物检查与可选视觉方案 | [11-REUSABLE-PATTERNS](docs/11-REUSABLE-PATTERNS.md) |
 | 可选高德POI、Key配置、地图/坐标与结果校验 | [12-AMAP-POI](docs/12-AMAP-POI.md) |
 | **PDF 报告云端解析（MinerU）：开发原则、设置页维护 Token、抽取纪律与表格对齐** | [18-MINERU-PARSING](docs/18-MINERU-PARSING.md) + [对齐示例](examples/mineru-labparse-align.mjs) |
+| **交付前的家族一致性检查（版本/面板/检查链/文档/密钥）** | `dsh-wb-cli audit <项目>` · [22-PHASES-AND-GATES](docs/22-PHASES-AND-GATES.md) |
 | 测试、安装、旧版本、发布和回滚 | [06-VALIDATION-AND-RELEASE](docs/06-VALIDATION-AND-RELEASE.md) |
 | 开发典型错误和修复经验 | [LESSONS](docs/LESSONS.md) |
 | 来源规则、官网版本差异、复盘方法 | [SOURCES](docs/SOURCES.md) / [HISTORY](docs/HISTORY.md) |
