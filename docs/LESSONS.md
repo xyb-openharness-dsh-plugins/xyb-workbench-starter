@@ -177,3 +177,11 @@ ALT 各实验室上限在 40–55 U/L 之间浮动，差 1.4 倍；拿成人通�
 要可拖可收起，只能 `customFrame: true`：宿主把原生会话节点作为 `conversation` prop 交给插件排版，拖动、键盘调整、收起/重开、宽度记忆才由工作台自己实现。默认位置家族统一为**业务在左、会话在最右**（`businessSide: 'left'`，0.65 / 0.35 互补，一条 `assertPanelConfig()` 钉住）。
 四条最容易漏的细节：拖动量按**容器 rect** 夹取而非 `window.innerWidth`；`role="separator"` + `aria-valuemin/max/now` + `tabindex`；键盘步进与拖动同精度；localStorage 读回时过一遍 clamp。收起只切 `display`，**会话节点恒定挂载**——卸载会丢输入框与草稿。
 
+
+2026-10-24 GBM 工作台装机三连踩（404 → 版本不对 → 只见骨架），meta-lesson 一句话：**dev-server 能跑 ≠ 装进宿主的包**。三类缺陷全部位于"只有宿主语境才走到"的接线面，`npm run check` 全绿、probe 全 200 的 dev 语境检查链一条都罩不住；每个缺陷在兄弟仓里都有正确答案，但家族知识只存在于兄弟仓的代码里，starter 的清单/提示词没把它变成必查项——这才是流程根因。
+
+- **踩 1 · 服务 404**：init 生成的 package.json 没有 `dsh` 块（`bundle.patch` + `client.inject`），cordis.patch.yml 没有 `config.root: dshHomePath(...)`。服务插件根本没进宿主插件树，前端"服务连接失败 404"。修复 = 对照已装机兄弟仓逐键补齐（commit 0684aa7）；另踩到检查器小坑：patch 文件**注释不能放首行**（静态检查器以文件首字符判定 insert 数组），条目后写注释。错误来源：GBM 装机第一轮截图"服务连接失败 (404)"。
+- **踩 2 · 版本簿记**：同版号 0.1.0 重打包换内容——06 号明明写着"本地包也递增版本，不重复同版号试图绕缓存"（乳腺首装实录），但规则不在任何 check/prompt 的必读路径上，修复循环里凭直觉重打包；顺带暴露 public/ 三处降级字面量与 server 测试断言写死版本号（版本不是单源，bump 必漏）。修复 = 升版 0.1.1 + 字面量对齐 + 测试断言改引用 `lib/version.js` 唯一源（不写死）。错误来源：用户原话"tar包版本号也不对"。
+- **踩 3 · 占位客户端上线（最隐蔽）**：init 生成的 `lib/client.js` 是约 40 行占位骨架，只渲染"接入骨架：服务已连接，业务功能待按 spec 实现"；M5 把 `public/`（142KB 真实界面）和 `dsh/` 全部移植完、parity 60/60 逐字符绿——但宿主加载的是 `lib/client.js`，它从不加载 public/。`public/` 路由实测全 200，于是"一切正常、界面没内容"。正确链路在兄弟仓：`src/client.js`（宫颈 482 行）→ `scripts/build-client.mjs`（116 行）→ `lib/client.js`（488 行完整 customFrame 外壳）。修复 = 补齐该链路（src/ + build-client.mjs + lib/routes.js，0.1.2）。错误来源：用户截图"接入骨架：服务已连接，业务功能待按 spec 实现"。
+- **判据教训**：当轮自拟的装机"五要素终验"（version/dsh 块/patch/依赖/bundles）漏了"客户端真身"一项——判据不完备和实现缺陷一样致命。已固化成 **06 号"装机前宿主接线四要素"**（dsh 块 / patch root / 真客户端 / 版本簿记），验收对象是 **tgz 内容**而不是源码仓。
+- **待实施（下轮进检查器，本轮按纪律只记文档）**：① `check-install` 增加：tgz 内 lib/client.js 禁含占位标记（接入骨架/待按 spec 实现）、必含 `__ModuleLoader__`+iframe；② pack 前置检查：tgz sha256 变化而 VERSION 未变 → 报错（把"改包必升版"从文档规则变成机器闸门）；③ `check-workbench-package` 增加：package.json 必须有 `dsh` 块、patch 必须含 `config.root`（骨架生成时就是占位，"文件存在"≠"接线完成"）。

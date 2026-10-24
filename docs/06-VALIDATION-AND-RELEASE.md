@@ -74,6 +74,19 @@ node '<Desktop 内置 pnpm.cjs>' add -w --save-exact 'file:/absolute/path/packag
 
 peer warning 不是加载结论；查宿主实际提供服务与日志。不能为消 warning 随手塞入第二份 Cordis/React/runtime。
 
+## 装机前宿主接线四要素（2026-10-24，GBM 工作台三连踩回收）
+
+**一句话：`npm run check` 全绿 + dev-server 实测全 200，不等于装进 Desktop 能用。** 三类缺陷全部藏在"只有宿主语境才走到"的接线面上，dev 语境的检查链一个都罩不住。装机前逐项过（**对照 tgz 内容查，不查源码仓**），缺一就是"服务 404 / 版本对不上 / 只见骨架不见界面"三种报错之一：
+
+| # | 要素 | 缺失现象 | 怎么查（装机副本上） |
+| --- | --- | --- | --- |
+| 1 | `package.json` 的 `dsh` 块：`dsh.bundle.patch` + `dsh.client.inject: ["dsh-desktop-workbenches"]` | 服务插件不进插件树 → 前端"服务连接失败 404" | 读 tgz 内 package.json，与任一已正常显示的兄弟仓逐键对照 |
+| 2 | `cordis.patch.yml` insert 条目带 `config.root: !!js dshHomePath('<slug>')`（name 必须是 npm 包名；**注释不能放文件首行**——社区静态检查器以文件首字符判定 insert 数组，注释写在条目之后） | 插件起不来 / 拿不到用户数据目录 | 读 tgz 内 cordis.patch.yml；装后数据目录应出现在 `harness/<slug>/` |
+| 3 | **真客户端**：`lib/client.js` 必须是 `scripts/build-client.mjs` 从 `src/client.js` 生成的完整外壳，不是 init 生成的占位骨架 | 界面只见"接入骨架：服务已连接，业务功能待按 spec 实现"，而 `public/` 路由实测全 200 | tgz 内 `grep -c "接入骨架" lib/client.js` 必须 **0**；必须含 `__ModuleLoader__` 与 iframe/`UI_ENTRY`；行数量级对照兄弟仓（宫颈 488 行 vs 占位约 40 行） |
+| 4 | 版本簿记：**改包必升版**（`VERSION` → `package.json` → `public/` 降级字面量 → `lib/version.js` 十处同源）；同版号重打包 pnpm 不替换内容 | "tar 包版本号不对"、装进去的还是旧文件 | tgz 文件名版本与内容 `lib/version.js` 一致；`grep -c <新代码特征>` 验证真是新版 |
+
+四要素验收时点在 pack 之后、装 profile 之前；装后第五步才是"重启 Desktop → 工作台能加载"。这四项目前靠人工对照（检查器增强列入待实施，见 LESSONS 2026-10-24）；补齐前，本节与 `prompts/ZERO-TO-DEV.md` §2.1 是装机的强制 checklist。
+
 ## 用户侧入口与三层验收（2026-10-21 实测，Desktop 0.12.0）
 
 **不要把「`dsh web` 起网页版 → 浏览器 Settings → Plugins 开关插件」写成 Desktop 的用法。** 那是 CLI / Web 载体：它读的是 `~/.dsh` 那份 Harness，与 Desktop app 自己的 Harness 不是同一个安装位置，装上去 Desktop 不加载。给 Desktop 装的包只能在 Desktop 里验。
