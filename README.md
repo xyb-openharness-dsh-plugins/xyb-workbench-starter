@@ -152,6 +152,7 @@ python3 skills/hvt-requirement-review/scripts/hvt_scan.py --project . --profile 
 | 可选高德POI、Key配置、地图/坐标与结果校验 | [12-AMAP-POI](docs/12-AMAP-POI.md) |
 | **PDF 报告云端解析（MinerU）：开发原则、设置页维护 Token、抽取纪律与表格对齐** | [18-MINERU-PARSING](docs/18-MINERU-PARSING.md) + [对齐示例](examples/mineru-labparse-align.mjs) |
 | **交付前的家族一致性检查（版本/面板/检查链/文档/密钥）** | `dsh-wb-cli audit <项目>` · [22-PHASES-AND-GATES](docs/22-PHASES-AND-GATES.md) |
+| **发布之后回填组织 BACKLOG 状态（M8）：状态词表、只改哪两列、🟢 只认三层全过** | [31-BACKLOG-STATUS](docs/31-BACKLOG-STATUS.md) |
 | 测试、安装、旧版本、发布和回滚 | [06-VALIDATION-AND-RELEASE](docs/06-VALIDATION-AND-RELEASE.md) |
 | 开发典型错误和修复经验 | [LESSONS](docs/LESSONS.md) |
 | 来源规则、官网版本差异、复盘方法 | [SOURCES](docs/SOURCES.md) / [HISTORY](docs/HISTORY.md) |
