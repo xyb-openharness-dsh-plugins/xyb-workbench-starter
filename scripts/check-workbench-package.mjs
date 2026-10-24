@@ -140,15 +140,65 @@ try {
     const isDir = async (rel) => {
       try { return (await lstat(resolve(root, rel))).isDirectory() } catch { return false }
     }
-    const missing = new Set()
-    for (const rel of scanned) {
-      if (!covered(rel)) continue           // 不随包发出的文件（dev 脚本）不点名
+    // 只看**运行期 import 闭包**：从 main / exports 出发跟着相对 import 走。
+    // 判据不能用「文件在 files 白名单里」——构建脚本（demo/build-demo-data.mjs）常随包发出去做工具，
+    // 它读 prototypes/ 是构建期行为，装进去不会在运行时执行。attr 因此误报过 5 条。
+    const runtimeFiles = new Set()
+    const importRe = /(?:from\s*|import\s*\(\s*|require\s*\(\s*)['"](\.[^'"]+)['"]/g
+    const queue = [p.main, p.exports?.['./client'], p.exports?.['./server']]
+      .filter((x) => typeof x === 'string').map((x) => norm(x))
+    while (queue.length) {
+      const rel = queue.shift()
+      if (!rel || runtimeFiles.has(rel) || rel.startsWith('..')) continue
       let src = ''
       try { src = await readFile(resolve(root, rel), 'utf8') } catch { continue }
-      for (const call of src.matchAll(/\b(?:join|resolve)\s*\(([^()]*(?:\([^()]*\)[^()]*)*)\)/g)) {
-        const lits = [...call[1].matchAll(/['"]([^'"]+)['"]/g)].map((m) => m[1])
-        // 至少要有两段字面量才像"在拼目录"；单段多半是拼文件名，交给 ⑥
-        if (lits.length < 2) continue
+      runtimeFiles.add(rel)
+      for (const m of src.matchAll(importRe)) {
+        const target = norm(relative(root, resolve(root, rel, '..', m[1])))
+        if (!target.startsWith('..')) queue.push(target)
+      }
+    }
+    const missing = new Set()
+    // 只认**读**调用：readFile/readFileSync/readdir/readdirSync/opendir/createReadStream。
+    // 写调用（mkdir/writeFile）指向的目录不需要随包发出——attr 的 prototypes/v0.2 就是写盘目标，
+    // 按 join() 一刀切会误报 5 条。
+    const READ_CALL = /\b(?:readFile|readFileSync|readdir|readdirSync|opendir|opendirSync|createReadStream|openSync|statSync|stat)\s*\(/g
+    const argsOf = (src, openIdx) => {
+      let depth = 0
+      for (let i = openIdx; i < src.length; i++) {
+        const ch = src[i]
+        if (ch === '(') depth++
+        else if (ch === ')') { depth--; if (depth === 0) return src.slice(openIdx + 1, i) }
+      }
+      return ''
+    }
+    for (const rel of runtimeFiles) {
+      let src = ''
+      try { src = await readFile(resolve(root, rel), 'utf8') } catch { continue }
+      // 变量间接：真实写法几乎都是先 const DIR = join(HERE,'..','schema','migrations')，
+      // 再 readdirSync(DIR)。只看 read 调用的实参，字面量根本不在这里——头颈癌的
+      // dsh/store.js 就是这样，所以必须回到声明处取字面量段。
+      // 必须**就近**找（取该 read 调用之前最后一个同名声明），不能建文件级 Map：
+      // attr 的 demo/build-demo-data.mjs 里 writeJs 与 applyMigrations 各自声明了一个 `dir`
+      // （一个指 prototypes/v0.2，一个指 schema），文件级映射会张冠李戴。
+      const pathDecl = /(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*=\s*(?:join|resolve)\s*\(([^()]*(?:\([^()]*\)[^()]*)*)\)/g
+      for (const call of src.matchAll(READ_CALL)) {
+        const argText = argsOf(src, call.index + call[0].length - 1)
+        let lits = [...argText.matchAll(/['"]([^'"]+)['"]/g)].map((m) => m[1])
+        if (lits.length < 2) {
+          // 实参里只有变量名（或 join(DIR,'x')）：取该调用之前**最后一个**同名声明
+          const prefix = src.slice(0, call.index)
+          for (const id of argText.match(/[A-Za-z_$][\w$]*/g) || []) {
+            let found = null
+            pathDecl.lastIndex = 0
+            for (const m of prefix.matchAll(pathDecl)) if (m[1] === id) found = m[2]
+            if (found) {
+              const cand = [...found.matchAll(/['"]([^'"]+)['"]/g)].map((x) => x[1])
+              if (cand.length >= 2) { lits = cand; break }
+            }
+          }
+        }
+        if (lits.length < 2) continue        // 单段多半是文件名，交给 ⑥
         const relToFile = norm(join(dirOf(rel), ...lits))
         const relToRoot = norm(join(...lits))
         for (const cand of [relToFile, relToRoot]) {
