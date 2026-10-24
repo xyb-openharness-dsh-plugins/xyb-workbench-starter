@@ -1,5 +1,16 @@
 # 变更记录
 
+## 2026-10-25 · 1.5.2 产物级页签验收随包下发 + 教训 11/12/13
+
+来源：头颈癌工作台（`head-neck-workbench`）M5/M6 实测——三个缺陷都不是「代码写错」，而是**验收位置错了**：一直在源码树上验，没有在装进去的那一份上验。
+
+- **新增 `project-template/scripts/serve-artifact.mjs`**：把**装机副本**（或解包目录）的 UI + API 挂到本地端口。与 dev-server 分工写清：dev-server 服务源码树（改代码看效果），serve-artifact 服务产物（交付前证明装进去能干活）。骨架阶段没有 `dsh/server.js` 时给出人话提示并 exit 1，不静默跳过。
+- **新增 `project-template/scripts/verify-tabs-on-artifact.py`**：真 Chrome 把所有一级/二级页签**逐个点开**，判据 = 0 未捕获异常 / 0 console error / 0 失败请求 / 无「尚未实现」空态 / 390 宽不溢出。`--navs` `--tabs` 校验页签数。连不上服务时提示「先跑 serve-artifact」，不出 traceback；缺 playwright 时 exit 2 并明说「跳过等于没有这条闸门」。
+- **新增 `project-template/test/pack-contents.test.mjs`**：以 `npm pack --dry-run --json` 真实清单为对象断言 `public/`、`schema/migrations/*.sql`、`assets/`、`lib/client.js`、`cordis.patch.yml` 在包里；并断言「`Config` 声明了 `root` 时 patch 必须给 `config.root`」。**自适应**：项目还没长出对应目录就跳过，长出后自动开始保护。
+- **`scripts/init.mjs`**：manifest 新增 `probe:artifact` / `probe:tabs` 两个脚本；实测新项目 154 文件（原 151+3），`npm run test` 4/4 绿。
+- **`scripts/check-starter.mjs`**：三件加入必备清单，防止以后被误删。
+- **`docs/LESSONS.md` 追加三条**：11 约束失败不能漏成 500（500 与 4xx 是「谁的错」的线）；12 `Already up to date` 不等于内容最新（版本号 ≠ 内容，换包先 remove 再 add，装完 `diff -r` 验）；13 原型能开 ≠ 接上数据库还能开（漏读子表 + 默认对象必存在；演示档案要故意缺几样东西，否则空态全被遮住）。
+
 ## 2026-10-24 · 06 号补「第 6 类：首用会话授权」+ MPM v0.1.3 发布
 
 - 小胸宝（MPM）真机首用发现：新装工作台未建会话时宿主鉴权闸拒 API（离线演示兜底）+ 会话区空白，误似"AI 按钮失效"。装机探针（probe:install）证明服务层全通后定位为宿主状态，非缺陷。06 号装机节补第 6 类与 V3 首动作。

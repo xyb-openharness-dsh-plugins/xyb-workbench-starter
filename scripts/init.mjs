@@ -75,7 +75,11 @@ async function main() {
       test: 'node --test test/*.test.mjs',
       audit: 'node scripts/check-conformance.mjs .',
       'release:check': 'npm run check && npm run test && npm run audit',
-      'pack:check': 'npm pack --dry-run'
+      'pack:check': 'npm pack --dry-run',
+      // 产物级验收：对**装进去的那一份**起服务并点页签，而不是对源码树。
+      // 源码树跑得通完全不能说明装进去跑得通（files 白名单漏一个目录就够）。
+      'probe:artifact': 'node scripts/serve-artifact.mjs',
+      'probe:tabs': 'python3 scripts/verify-tabs-on-artifact.py'
     },
     dsh: { bundle: { patch: './cordis.patch.yml' }, client: { platform: 'web', inject: ['dsh-desktop-workbenches'] } },
     repository: { type: 'git', url: cfg.repository },
