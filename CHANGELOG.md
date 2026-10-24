@@ -1,5 +1,14 @@
 # 变更记录
 
+## 2026-10-24 · 装机面第 7 类失败：装进去的还是旧包（ATTR 踩 7 回收）
+
+来源：小甲宝「先不发布、用 tar 包安装测试」这一轮。同版号重打包后 `pnpm add -w file:<tgz>` 打印 **`Already up to date`**、退出码 0、无警告；`package.json` 版本对、lockfile 的 `integrity` **也已是新包的**，但 `node_modules/<pkg>/` 下仍是旧文件——**探针加载旧副本、45 项报绿，验的根本不是刚打出来的包**。
+
+- **`docs/06-VALIDATION-AND-RELEASE.md` 新增「装机面第 7 类失败」**：现象 / 根因（`file:` 按路径解析 + 同版本不重链）/ 为什么比前六类更危险（症状是"绿"，不是"坏"）/ 对策三步（删副本重链 → 逐文件比对 tgz 与副本 → 入口文件逐字节一致）。明写**这条静态查不出来**，只能进流程 + 脚本，不进检查器——不是所有教训都能长成闸门。
+- **`docs/LESSONS.md` 记踩 7**：附元教训「"改了没生效"的排查顺序是 副本内容 → 包内容 → 源码，不是从源码往回猜」；并记 shasum 同版重打每次都变，**shasum 不能当版本号用**。
+- **`prompts/ZERO-TO-DEV.md` 阶段 3 补第 11 步**：同版号重打包后必须验副本内容，参考实现指向 `attr-workbench/scripts/install-local.mjs`。
+- 这一步同时给出**不发布也能验**的路径：`npm run install:local` 一条命令走完 pack → 装 profile → 逐文件比对 → 探针。M8（回填组织 BACKLOG）在 ATTR 侧按用户要求暂缓，流程文档不动。
+
 ## 2026-10-24 · 新增 prompts/CANCER-KICKOFF.md v2.0（发起层提示词）+ ZERO-TO-DEV 补独立评审节
 
 应发起人要求，基于 GBM（四连踩全过）与 MPM（评审 P0=0 一轮通过）两轮实践优化"发起开发提示词"并保存：
