@@ -113,7 +113,7 @@ python3 skills/hvt-requirement-review/scripts/hvt_scan.py --project . --profile 
 | **指南接进工作台：出处 / 适用 / 节奏 / 分级四层刻度尺（含登记三处一致、不取严、版权边界）** | [25-GUIDELINE-BRIDGE](docs/25-GUIDELINE-BRIDGE.md) |
 | **功能线框架与跨癌种对比：十条候选线各回答哪句患者原话、与成熟癌种逐行对比、家属早筛只提示不判定** | [26-CANCER-FEATURE-LINES](docs/26-CANCER-FEATURE-LINES.md) |
 | **多轨并列与指标卡：A/B/C 轨怎么分、卡片正反面结构、3D 翻面合同、窄屏先变列数再变密度** | [27-TRACKS-AND-METRIC-CARDS](docs/27-TRACKS-AND-METRIC-CARDS.md) |
-| **交互路径设计：每个场景一条看板入口→步骤→产物→回首页、CRUD 双通道（AI 协助默认、手工收敛、删除=更正），HTML 开工前置** | [28-INTERACTION-PATH-DESIGN](docs/28-INTERACTION-PATH-DESIGN.md) + [模板](templates/INTERACTION-DESIGN.md) |
+| **交互路径设计：每个场景一条看板入口→步骤→产物→回首页、CRUD 双通道（AI 协助默认、手工收敛、删除=更正），HTML 开工前置** | [28-INTERACTION-PATH-DESIGN](docs/28-INTERACTION-PATH-DESIGN.md · [30-RESPONSIVE-RULES](docs/30-RESPONSIVE-RULES.md)窄宽自适应) + [模板](templates/INTERACTION-DESIGN.md) |
 | **材料导入链路：嗅探→取行→闸门→抽候选→落库五段、闸门三级证据（原发灶>部位词>指标组合）、候选≠指标的五条确认规则** | [29-DOCUMENT-IMPORT-PIPELINE](docs/29-DOCUMENT-IMPORT-PIPELINE.md) |
 | 包声明、注册、原生会话、宿主边界 | [02-DSH-CONTRACT](docs/02-DSH-CONTRACT.md) |
 | 社区风格、Logo、UI/UX 技能、图表/动效 | [03-DESIGN-SYSTEM](docs/03-DESIGN-SYSTEM.md) |

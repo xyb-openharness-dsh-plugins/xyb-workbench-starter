@@ -1,5 +1,14 @@
 # 变更记录
 
+## 2026-10-24 · 新增 30-RESPONSIVE-RULES：窄宽自适应规则（病种无关）
+
+从小星宝（GBM）v0.1.5 实机修复回收（用户点名沉淀；用户判语："别让卡内元素横向互挤"）：
+
+- **新增 `docs/30-RESPONSIVE-RULES.md`**：六条硬规则（卡内纵向堆/grid+minmax(0,1fr)/行内标签不作 flex item/min-width:0/scroll-hint/短 token nowrap）+ 三档断点 + 探针扫描规则（竖排单字/横向溢出/内容被裁）——全部病种无关，罕见病工作台直接适用。
+- 核心认知：customFrame 下 `@media` 量到的是**业务区宽度**不是窗口宽度；断点按"业务区能放下什么"定。
+- 接入时机：M2 无头走查即纳入（与 HVT X 层同场），M6 真机复扫。
+- 参考实现：glioblastoma-workbench `docs/RESPONSIVE-RULES.md` + `scripts/probe-responsive.mjs`。
+
 ## 2026-10-24 · 家族一致性 audit：把横向对照变成可执行检查
 
 背景：对四个新开发项目做横向对照（都按代码实测，不看文档自述），缺口高度重复——`lib/layout.js` 缺失或 `customFrame` 未开、版本生成物缺失、`npm run check` 只做语法与包合同、强约束文档没建。这些是"文档写了、项目没做"的典型，靠人逐台看会漏。
