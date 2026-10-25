@@ -610,3 +610,8 @@ LESSONS 追加 2 条：协议链接端到端对穿断言（public 未 postMessag
 ## 未发布 · 2026-10-25 · AI 协助一键发送契约正式入架（34 号）
 
 新增 docs/34-AGENT-DRAFT-SEND.md（端到端四段链路/双守卫/降级链/不变红线/留痕要求），prompts/DSH-AGENT-PANE-INTEGRATION.md「送达」段与 docs/20-AGENT-PANE-DESIGN.md 同步改口径（一键发送开启互动，替代旧"只填不发"）；新增 templates/check-agent-draft-bridge.mjs 对穿断言器（已在肢端肥大症 0.2.1 仓实测通过并接入其 check 链）。LESSONS 0.2.1 待实施项（对穿断言）就此销账。
+
+
+## 未发布 · 2026-10-25 · 35 号试验匹配契约
+
+新增 docs/35-TRIAL-MATCHING.md（建档→检索→分层线索四段链路；"结构化/文本/宽口径"命中分层+证据链替代数值匹配指数；结果三态含"无法自动匹配≠不适用"；禁止 match_score/eligible 判读列）与 templates/check-trial-matching.mjs 断言器（带实现触发条件，正负例实测）；ZERO-TO-DEV §1.3 挂钩。

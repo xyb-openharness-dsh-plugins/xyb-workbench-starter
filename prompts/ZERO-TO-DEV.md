@@ -130,6 +130,8 @@
    `docs/CLINICAL-DATA-<年>.md`（口径、通道覆盖、数据截止日、已知缺口）。  
    一致性断言：manifest 记录数 = jsonl 行数 = sqlite 行数；sha256 与实算一致。
 
+   > **试验匹配（35 号）**：涉及"个人建档 → 检索/AI 匹配 → 呈现"功能时，按 docs/35-TRIAL-MATCHING.md 执行——分层命中+证据链，禁止数值适配度与 eligible/match_score 判读列；断言器 templates/check-trial-matching.mjs 进 check 链。
+
 ### 1.4 演示数据 + HTML demo（G2 闸口）
 
 - **开工前置（IP1）**：先按 starter `docs/28-INTERACTION-PATH-DESIGN.md` 产出并签认交互路径文档（场景路径表 + CRUD 双通道矩阵）；  
