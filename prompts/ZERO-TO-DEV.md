@@ -337,7 +337,7 @@ research/<癌种>-cancer/{manifest.json,trials-<年>.jsonl,<癌种>_cancer_trial
 assets/reference/ctcae/*.pdf + README.md
 assets/reference/guideline/{refs.json,cadence.json}（接指南时）
 guidebooks/ + manifest.json（原件，不入包）
-prototypes/v0.2/{index.html,style.css,app.js,demo-data.js}（治疗线用折叠卡模版：starter docs/32）
+prototypes/v0.2/{index.html,style.css,app.js,demo-data.js}（治疗线用折叠卡模版：starter docs/32）；指标系列卡用 3D 翻转卡模版：starter templates/FLIP-METRIC-CARD.md
 dsh/{index,server,store,workbench,demo,readmodels}.js (+ ctcae.js / guideline.js / cadence.js)
 lib/{client,layout,version}.js
 public/{index.html,style.css,shell.css,app.js}
