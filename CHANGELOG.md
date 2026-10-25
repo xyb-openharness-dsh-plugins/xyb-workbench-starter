@@ -17,6 +17,21 @@
 - **`docs/33-README-SCREENSHOTS.md`**（用户 2026-10-25 指示，**默认生效**）：测试截图入 README 说明关键功能——何时截（G2 后原型、M6 后真机、发版前刷新）、截哪 5 类（看板/癌种差异首屏/一图秀/红线页/折叠展开态）、放 `docs/screenshots/` 命名 `readme-<功能>-<版本>.png`、质量与红线（1440/真实渲染/无 PII/私密不入图）、README 固定五段结构、`check-readme-assets.mjs` 验收。
 - 挂钩：ZERO-TO-DEV §2.4 交付清单、CANCER-KICKOFF M6 流程。
 
+## 2026-10-25 · 1.5.5 参考图不再随包：assets/ 只放运行时要用的东西
+
+`assets/reference/metric-trends/{breast-records,lymphoma-metrics}.png`（1.1MB）是**设计参考**，
+只被 `docs/24-METRIC-TREND-TAB-DESIGN.md` 引用，零运行时代码引用。但它在 `assets/` 下，
+而项目的 `files` 含 `assets` → 每个新生成的癌种工作台都白带 1.1MB，
+患者机器上还会躺着一张**乳腺癌记录截图**（与本品癌种无关，也不在 `assets/manifest.json` 里登记）。
+
+移到 `docs/assets/metric-trends/`：`docs/` 本来就不随包，`docs/24` 的相对引用照旧成立。
+`init` 会把它们放进新项目的 `docs/assets/`，不进发布包。
+实测：新生成项目 `npm pack` 的清单里 `metric-trends` 命中 0。
+
+**判据（写给后续加素材的人）**：`assets/` 只放运行时要用的东西；
+只在文档里出现的图放 `docs/`。顺带一条——`assets/` 下没在 `manifest.json` 登记的文件，
+过一遍再决定留不留，未登记的素材既说不清来源，也没人负责它的授权。
+
 ## 2026-10-25 · 1.5.4 「本地全绿、装进去能活」是两套校验——宿主注册契约随包下发
 
 头颈癌工作台（head-neck-workbench）装进 Desktop 后**整机起不来**：渲染进程报

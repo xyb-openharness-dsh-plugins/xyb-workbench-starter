@@ -29,8 +29,8 @@
 
 ## 2. 版式与分类规则
 
-![乳腺癌信息层级参考](../assets/reference/metric-trends/breast-records.png)
-![淋巴瘤分类与卡片参考](../assets/reference/metric-trends/lymphoma-metrics.png)
+![乳腺癌信息层级参考](assets/metric-trends/breast-records.png)
+![淋巴瘤分类与卡片参考](assets/metric-trends/lymphoma-metrics.png)
 
 - 顶部一条弱化的读图说明，然后是“手工补录一个值 / 导入检验单 / 去一图秀看趋势”。不在每组重复整套按钮。
 - 已有记录的卡片优先展开；同组未记录项目收在“展开其余N项未记录指标”，目录项数仍完整。整组无数据时可先展示两张空卡，其余折叠，避免一屏空卡；展开后的目录顺序仍来自同一配置。
