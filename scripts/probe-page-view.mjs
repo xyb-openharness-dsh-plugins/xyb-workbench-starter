@@ -237,14 +237,31 @@ async function main() {
   const failed = results.filter(r => !r.ok)
   console.log(`\n${failed.length ? 'FAIL' : 'PASS'}  ${results.length - failed.length}/${results.length}`)
   if (SELF_TEST) {
-    // 自测模式：必须至少 2 条 FAIL，否则说明闸门对注入缺陷不敏感
-    if (failed.length >= 2) { console.log('自测通过：注入的缺陷被闸门抓到'); process.exit(0) }
-    console.log('自测失败：注入缺陷后闸门仍然全绿，等于没有闸门'); process.exit(1)
+    /* 自测模式：注入了三个缺陷，就必须三条都响。
+       原来写的是 failed.length >= 2 —— 注三个只抓到两个也算「自测通过」，
+       等于给闸门留了一格容错，而容错的那一格正好可能是最关键的那条。
+       现在按 ID 逐条点名，抓不到就指明是哪一条。（2026-10-26） */
+    const hit = EXPECTED_FAIL.filter((id) => results.some((r) => r.id === id && !r.ok))
+    const miss = EXPECTED_FAIL.filter((id) => !hit.includes(id))
+    if (miss.length === 0) {
+      console.log(`自测通过：注入的 ${EXPECTED_FAIL.length} 个缺陷全部被点到（${hit.join('、')}）`)
+      process.exit(0)
+    }
+    console.log(`自测失败：注入的缺陷漏检 ${miss.join('、')}（命中 ${hit.length}/${EXPECTED_FAIL.length}），闸门对这类缺陷不敏感`)
+    process.exit(1)
   }
   process.exit(failed.length ? 1 : 0)
 }
 
-/** 注入两个已知缺陷：① 顶栏改成空标题（A9 必须响）② 关闭后不还原滚动（A5 必须响） */
+/* 自测期望失败的断言 ID。注入缺陷与断言的对应关系必须写死在这里，
+   否则「注入了什么」和「该响哪几条」只能靠读代码猜。 */
+const EXPECTED_FAIL = ['A1', 'A9', 'A10']
+
+/** 注入三个已知缺陷（对应 EXPECTED_FAIL）：
+ *  ① 顶栏标题抹空 → A9 必须响
+ *  ② 藏掉关闭入口 → A10 必须响
+ *  ③ 解除背景滚动锁 → A1 必须响
+ *  注：缺陷必须选「同一份文档里就能看见」的，注入的 CSS 会被后续 page.goto 冲掉。 */
 async function injectDefects(page) {
   await page.evaluate(() => {
     // 缺陷①：顶栏标题被抹空（A9 必须响）
@@ -268,7 +285,7 @@ async function injectDefects(page) {
     unlock.textContent = 'html.pv-lock{overflow:auto!important}'
     document.head.append(unlock)
   })
-  console.log('（自测：已注入「空标题 + 藏掉关闭入口 + 解除背景滚动锁」三个缺陷）\n')
+  console.log('（自测：已注入 3 个缺陷 —— 空标题→A9 / 藏掉关闭入口→A10 / 解除滚动锁→A1）\n')
 }
 
 main().catch(e => { console.error('探针自身出错：', e); process.exit(2) })

@@ -2,7 +2,7 @@
 
 ## Git开发快照 · 2026-10-25（五）A1 断言原来在骗人
 
-肉瘤项目跑 M4 时复核整页视图的 A1，发现探针算了 `docOverflow` 却从没断言它，而实测面板开着时背景文档**真的能滚**（`scrollBy` 0 → 300）。三处一起修：`page-view.js` 首次 `open()` 记住 `scrollY` 并挂 `.pv-lock`、`teardown()` 先摘类再还原；`page-view.css` 加 `html.pv-lock{overflow:hidden}`（只锁 `html`，锁 `body` 在 Safari 会漏）；A1 改成**真滚轮打遮罩**再读 `scrollY`——`window.scrollBy` 不能当判据，`overflow:hidden` 只挡用户滚动、挡不住程序化滚动（实测 260 → 426 的假红）。`--self-test` 加到三个缺陷、4 条 FAIL。存量 20 个项目的整页视图是内联实现，没有锁、探针也是旧快照，按已知偏离处理，下一轮动到哪个补哪个。同版把「自采登记数据算一手、与指南原件未取得分开计」写进 [36 号](docs/36-DISEASE-PRIMER.md) §2.4。包版本 `1.6.2`。
+肉瘤项目跑 M4 时复核整页视图的 A1，发现探针算了 `docOverflow` 却从没断言它，而实测面板开着时背景文档**真的能滚**（`scrollBy` 0 → 300）。三处一起修：`page-view.js` 首次 `open()` 记住 `scrollY` 并挂 `.pv-lock`、`teardown()` 先摘类再还原；`page-view.css` 加 `html.pv-lock{overflow:hidden}`（只锁 `html`，锁 `body` 在 Safari 会漏）；A1 改成**真滚轮打遮罩**再读 `scrollY`——`window.scrollBy` 不能当判据，`overflow:hidden` 只挡用户滚动、挡不住程序化滚动（实测 260 → 426 的假红）。`--self-test` 加到三个缺陷、4 条 FAIL。存量 20 个项目的整页视图是内联实现，没有锁、探针也是旧快照，按已知偏离处理，下一轮动到哪个补哪个。同版把「自采登记数据算一手、与指南原件未取得分开计」写进 [36 号](docs/36-DISEASE-PRIMER.md) §2.4。包版本 `1.6.2`（1.6.3 修其自测判据与过期注释，见 CHANGELOG）。
 
 ## Git开发快照 · 2026-10-25（四）每台一个「?」：疾病概要进骨架
 
@@ -29,7 +29,7 @@
 新增24号指标趋势Tab设计、参考截图、可复用提示词和项目填写模板；init生成指标趋势规格副本，更新AGENTS/一图秀合同/设计系统及检查测试。 包版本保持`1.4.3`；这是开发快照，正式发布状态另行记录。核验结果、已知问题及同步范围见 [本次Git记录](docs/GIT-SYNC-2026-10-20.md)。
 
 
-当前本地版本：**1.6.2（待发布）**。**1.5.1 新增装机面规则⑨**：运行期按**拼出来的路径**读目录（迁移 SQL、模板、标准原文）也必须随包发出——⑥ 只管 import 落点、⑦ 只管 `public/`，这一类在 2026-10-25 头颈癌 M6 漏掉 `schema/migrations/`，装进去**静默空库**（服务能起、`/health` 200、界面能开，只是所有列表空着）。同版下发 `templates/test-pack-contents.test.mjs`（以 `npm pack` 真实清单为对象，自适应跳过项目还没有的目录），并给生成项目加 `test` 脚本、`release:check` 串上 `test`。在 SPEC、UI 设计、任务与验收模板中明确 DSH 原生 Agent 的顶栏拉起入口、独立隐藏/重开和可调宽要求；区分 CustomFrame splitter 与 split 宿主布局合同，增加 ACC-28–31 验收项。DSH 原生 Agent 复用提示词补 **§6.1 上下文草稿落地细则**（服务端按范围出文本、三个范围各带什么、四条不可让步、postMessage 双校验、空态与独立运行降级）。新增 23 号「指标分析与卡片提醒原则」（指标卡分组 / 用 CTCAE v5.0 做分级对照 / 表达面与指标面两侧并置提醒，含 M1–M11 验收与三条反例）、22 号「三阶段×三闸口」开发流程速查与 21 号调研手册；docs/06 补 Desktop 装机实证（**安装前核验Desktop实际使用的Harness profile**、pnpm 同版本不替换须 remove+add、cordis apply 契约）；另有原型工艺复刻指南（令牌骨架/动效系统/交互细节，颜色按癌种换）、DSH 原生 Agent 右侧面板复用提示词与对应的落地设计模板（CustomFrame/split 双形态判定，不绑定癌种）；保留init的用户、场景、流程前置输入。变更见 [CHANGELOG](CHANGELOG.md)。本次Git开发快照范围与检查见下方记录；尚未创建正式发布tag。
+当前本地版本：**1.6.3（待发布）**。**1.6.3 修的是自测本身**：`probe-page-view.mjs --self-test` 注入三个缺陷却用 `failed.length >= 2` 判定，注三个抓到两个也算通过——闸门退化会静默过关。改成 `EXPECTED_FAIL = ['A1','A9','A10']` 按 ID 逐条点名，漏哪条报哪条；同版改正「注入两个缺陷（含 A5）」的过期注释（A5 从未注入）。**1.5.1 新增装机面规则⑨**：运行期按**拼出来的路径**读目录（迁移 SQL、模板、标准原文）也必须随包发出——⑥ 只管 import 落点、⑦ 只管 `public/`，这一类在 2026-10-25 头颈癌 M6 漏掉 `schema/migrations/`，装进去**静默空库**（服务能起、`/health` 200、界面能开，只是所有列表空着）。同版下发 `templates/test-pack-contents.test.mjs`（以 `npm pack` 真实清单为对象，自适应跳过项目还没有的目录），并给生成项目加 `test` 脚本、`release:check` 串上 `test`。在 SPEC、UI 设计、任务与验收模板中明确 DSH 原生 Agent 的顶栏拉起入口、独立隐藏/重开和可调宽要求；区分 CustomFrame splitter 与 split 宿主布局合同，增加 ACC-28–31 验收项。DSH 原生 Agent 复用提示词补 **§6.1 上下文草稿落地细则**（服务端按范围出文本、三个范围各带什么、四条不可让步、postMessage 双校验、空态与独立运行降级）。新增 23 号「指标分析与卡片提醒原则」（指标卡分组 / 用 CTCAE v5.0 做分级对照 / 表达面与指标面两侧并置提醒，含 M1–M11 验收与三条反例）、22 号「三阶段×三闸口」开发流程速查与 21 号调研手册；docs/06 补 Desktop 装机实证（**安装前核验Desktop实际使用的Harness profile**、pnpm 同版本不替换须 remove+add、cordis apply 契约）；另有原型工艺复刻指南（令牌骨架/动效系统/交互细节，颜色按癌种换）、DSH 原生 Agent 右侧面板复用提示词与对应的落地设计模板（CustomFrame/split 双形态判定，不绑定癌种）；保留init的用户、场景、流程前置输入。变更见 [CHANGELOG](CHANGELOG.md)。本次Git开发快照范围与检查见下方记录；尚未创建正式发布tag。
 
 把业务需求、交互原型变成可在 DSH Desktop 安装使用的工作台。面向社区新手与协作开发 Agent，提供互动设计、数据建模、界面实现、测试修复和部署验收流程，并整理项目实践中的典型错误和修复方法。
 
