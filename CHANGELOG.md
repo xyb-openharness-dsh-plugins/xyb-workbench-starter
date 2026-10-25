@@ -19,6 +19,16 @@
 
 # 变更记录
 
+## 2026-10-25 · 从 GTN（gtn-workbench 小葡宝 v0.4.0）回收
+
+- LESSONS 新增 6 条（治愈/达标/缓解类结论词入黑名单——可断言；schema 枚举与实现命名漂移——可断言待实施；
+  视觉模型禁词幻觉只认 DOM 断言；扩页反馈先冻结快照再恢复移植；无 TTY 装 profile 的 CI=true 退路；
+  IAB 截图超时改 playwright-core+系统 Chrome）。
+- ZERO-TO-DEV §2.1 增"开工前置"：移植开工前页面树冻结，反馈改树先停移植重冻结快照。
+- 检查器待实施清单：check-wording 黑名单扩充（治愈/达标/缓解/复发风险，豁免「达正常锚点」与登记原文行）；
+  schema 注释枚举 ↔ demo/脚本字面量一致性断言。
+
+
 ## 2026-10-25 · 32 号修正：折叠卡打印展开必须 beforeprint JS（CSS 不够）
 
 ENDO 独立评审 P0-2 实测：Chrome `printToPDF` 下 `@media print{.phase-detail{display:grid!important}}` 对收起态 `<details>` 无效——PDF 只输出 summary，五块正文缺失（content-visibility 仍 hidden）。修正：**beforeprint 时设 `open=true`、afterprint 恢复**；验收改为 printToPDF 实测正文（不能只断言 CSS 规则存在）。MEL 0.3.1 同步修复为 0.3.2。

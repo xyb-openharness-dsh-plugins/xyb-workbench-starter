@@ -238,6 +238,11 @@
 
 ### 2.1 六步移植（别重写）
 
+> **开工前置（GTN 2026-10-25 回收）**：移植开工前页面树必须已冻结（prototypes/vX 快照 + 用户反馈收敛）。
+> 移植进行中收到扩页/改树反馈时：先停移植 → 扩原型 → 重冻结快照并升版 → 再恢复移植；
+> 页面树冻结与 parity 快照升级之间不允许并行改 public/。
+
+
 1. `dsh/store.js`（开库/迁移/关库，测试用 `:memory:`）、`dsh/server.js`（`/api/bootstrap` + 静态 + 路径穿越拦截）、  
    `dsh/workbench.js`、`dsh/index.js`（`API_PREFIX='<癌种>'`、`DB_FILE='xyb-<癌种>.sqlite'`）。
 2. `dsh/demo.js`：把 `buildDemoProfiles()` 写进用户资料目录的库；幂等（有 subjects 整批跳过）、单事务、失败整体回滚。

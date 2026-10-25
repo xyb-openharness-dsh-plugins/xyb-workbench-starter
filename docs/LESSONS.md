@@ -442,3 +442,31 @@ history 是导航栈的**唯一真源**：
    仍要外层双守卫：仅 plain 相 + 草稿非空才调；失败降级为"草稿
    保留待手动回车"。家族默认仍是只填不发，改成自动发送必须留
    用户授权留痕（CHANGELOG + INTERACTION-DESIGN 修订段）。
+
+## 2026-10-25 · 从妊娠滋养细胞肿瘤（gtn-workbench v0.4.0 小葡宝）回收
+
+1. **"治愈后"是结论词，随访锚点要换说法**。GTN 独立评审 P1：hero 摘要写
+   "治愈后随访第 3 个月"，"治愈"是医生结论且以系统口吻陈述。切法：锚点
+   口径一律写"hCG 达正常锚点（你勾选）后"。**可断言**：原型黑名单在
+   正常/异常/高危/低危之外加 治愈/达标/缓解/复发风险（豁免只给
+   「达正常锚点」固定词组与登记原文行）——GTN 已落进
+   check-prototype.mjs，starter check-wording 待实施同类扩充（见下）。
+2. **schema 枚举与实现命名漂移**：0001 注释写 plateau/rise，原型先写了
+   platform/rebound，靠评审对穿才统一。**可断言（待实施）**：check 脚本
+   从 schema 注释提取枚举字面量，与 demo/check 脚本里的字面量集合比对，
+   漂移即红。
+3. **视觉模型验收禁词会幻觉**：截图问"有没有被禁止的表述"，视觉模型
+   报出不存在的"匹配度 87%/推荐"；DOM innerText 实测无。**截图验收里
+   禁词类判断只认 DOM/源码断言，视觉模型只用于布局与可读性。**
+4. **用户中途扩页反馈要在移植开工前收敛**：GTN 在 M5 移植进行中收到
+   "菜单缺页/加营养心理/3D 卡"反馈，只能停掉移植代理、先重冻结
+   prototypes 快照再恢复——页面树冻结与 parity 快照升级之间不允许
+   并行改 public/。**流程规则（已补进 ZERO-TO-DEV §2.1 注意事项）**。
+5. **无 TTY 环境装 profile**：pnpm 在脚本里先撞
+   ERR_PNPM_ABORTED_REMOVE_MODULES_DIR_NO_TTY 再撞
+   ERR_PNPM_OUTDATED_LOCKFILE。切法：`CI=true corepack pnpm install
+   --no-frozen-lockfile`；file: tgz 依赖 + bundles 数组两处都改，缺一不加载。
+6. **IAB 截图 surface 超时的退路**：ZCode IAB 反复 `screenshot surface
+   preparation timed out` 时，用 `playwright-core` + `channel:'chrome'`
+   （系统 Chrome headless）直接截本地 server，交互（点导航/开折叠卡）
+   用 locator 完成——33 号 README 截图链路不受影响。
