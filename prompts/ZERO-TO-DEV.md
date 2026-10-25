@@ -325,13 +325,13 @@ research/<癌种>-cancer/{manifest.json,trials-<年>.jsonl,<癌种>_cancer_trial
 assets/reference/ctcae/*.pdf + README.md
 assets/reference/guideline/{refs.json,cadence.json}（接指南时）
 guidebooks/ + manifest.json（原件，不入包）
-prototypes/v0.2/{index.html,style.css,app.js,demo-data.js}
+prototypes/v0.2/{index.html,style.css,app.js,demo-data.js}（治疗线用折叠卡模版：starter docs/32）
 dsh/{index,server,store,workbench,demo,readmodels}.js (+ ctcae.js / guideline.js / cadence.js)
 lib/{client,layout,version}.js
 public/{index.html,style.css,shell.css,app.js}
 scripts/{dev-server,build-version,fetch-<癌种>-trials-<年>,check-*}.mjs
 test/{store,server,ui-parity,ctcae,guideline,cadence}.test.mjs
-docs/{SPEC,DEV-REQUIREMENTS-<日期>,DIFF-MATRIX,PATIENT-FLOW,SCHEMA,CLINICAL-DATA-<年>,DEV-PLAN,METRIC-GRADING,GUIDELINE-BRIDGE?}.md
+docs/{SPEC,DEV-REQUIREMENTS-<日期>,DIFF-MATRIX,PATIENT-FLOW,SCHEMA,CLINICAL-DATA-<年>,DEV-PLAN,METRIC-GRADING,GUIDELINE-BRIDGE?}.md + docs/screenshots/（README 截图 ≥4 张 + 折叠展开态，规则见 starter docs/33）
 README.md / CHANGELOG.md / VERSION / package.json
 ```
 

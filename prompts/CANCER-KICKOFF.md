@@ -39,7 +39,7 @@
 | M3 数据模型 | schema/0001 冻结（sha256 + 判读列断言） | **G3 签认** |
 | M4 临床库 | unified-trial-mcp 在线通道采集（**FAILED 如实记录不计覆盖**；离线语料仅胰腺癌，其他病种"未配置"） | — |
 | M5 开发版 | **七步移植**（§2.1，含第 7 步宿主接线件①–④）+ apiBase 定稿契约 + check 全绿 + HVT 一致性 | V1 |
-| M6 装机 | **改包必升版** → pack → 06 号四要素对照 **tgz 内容** → corepack pnpm 装 profile → 宿主信号 + 真机走查 | V2/V3 |
+| M6 装机 | **改包必升版** → pack → 06 号四要素对照 **tgz 内容** → corepack pnpm 装 profile → 宿主信号 + 真机走查；**M6 后用真机截图刷新 README（33 号规则默认生效）** | V2/V3 |
 | M7 发布 | tag/release + 经验回流（LESSONS / prompts / 检查器待实施清单） | — |
 
 ## 六、汇报节奏（发起人点名的 M1–M7 进度汇报）
