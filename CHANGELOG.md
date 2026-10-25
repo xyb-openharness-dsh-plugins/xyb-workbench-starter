@@ -24,6 +24,58 @@
 > `starter.test.mjs:59` 的 `/界面加载核验/` 不匹配）——**与本变更无关**，是 1.5.7 的既有问题，
 > 如实记录未修。
 
+
+## 2026-10-25 · 1.5.10 两个检查器：静态引用完整性 + 选择上限一致性
+
+PF-ILD v0.2.0 交付前 `check` 全绿、`audit` 0 fail、`test` 60/60，真浏览器打开才发现两处坏掉。
+共同点：**缺陷不在"写错一行"，而在"看起来对"**，静态 grep 与既有检查链一条都罩不住。
+
+### 新增 `check-static-refs.mjs`：**家族第二次**，升 L3 硬拦截
+
+开发版把数据层从 `window.DEMO_DATA` 换成异步 `/api/bootstrap`，`public/demo-data.js` 随之删除，
+**但 `index.html` 里的 `<script src="demo-data.js">` 没删**。请求 → 静态层找不到 →
+**SPA 兜底返回 index.html** → 浏览器把 HTML 当 JS 解析 → `SyntaxError: Unexpected token '<'`
+→ **整页脚本全废**。最要命的是「看起来能开」：header/导航/卡片标题/页脚都在（HTML 本来就有），
+只有 JS 渲染区域是空的。
+
+> `docs/LESSONS.md:203`（ATTR「业务区全白」）已记过一次，**这是第二次**。
+> 按 SCAFFOLD-ITERATION §1，第二次 = 升 L3 并自动拦截，不能只写在文档里等下次再踩。
+
+检查：`<script src>` / `<link href>` / `<img src>` 的本地相对路径必须真实存在；
+被引用的 `.js` 内容不得以 `<` 开头（HTML 兜底当 JS 的典型特征）。
+
+### 新增 `check-choice-limit.mjs`：设计层早有、检查层缺失
+
+一图秀指标选择上限 4 项。点第 5 项：toast 正确弹「最多选 4 项」，
+**但 checkbox 的浏览器原生勾选已经发生**，代码 `return` 在 `render()` 之前，
+界面停在「已勾 5 项」而数据只有 4 项。
+
+诱因是**阅读顺序的错觉**：拒绝分支后面（调用方末尾）确实有 `render()`，读代码时容易认为"反正会重绘"，
+但拒绝路径 `return` 之后那行**执行不到**。
+
+> `docs/19-PROTOTYPE-CRAFT.md` §5-6 早写了「回弹 checkbox 并 toast 解释」，**设计层覆盖了**，
+> PF-ILD 首次违反 → L2。教训：**设计覆盖 ≠ 实现覆盖 ≠ 检查覆盖**，三者少一层规则形同纸面。
+>
+> 19 号已补「实现层铁律」：回弹必须是**拒绝分支体内的显式动作**，不能指望调用方兜底。
+
+检查：找到「上限判断 + 拒绝」分支，要求**分支体内**有状态回滚或重渲染。
+只扫拒绝分支体，**不把 return 之后的行算进来**——这正是本检查器第一版写错的地方：
+它把调用方末尾的 `render()` 算进了分支，**反例判成通过**。写完四形态测试才暴露。
+
+### 测试与接线
+
+- `test/check-static-refs.test.mjs` 7 条、`test/check-choice-limit.test.mjs` 7 条（正例/反例/单行/多行/注释/不误报）
+- 两者随 `init` 下发，进 `npm run check` 链，另有 `check:static-refs` / `check:choice-limit`
+- `docs/06-VALIDATION-AND-RELEASE.md` 新增「随 init 下发的六个检查器」总表（含各闸门抓哪一类、来源病种）
+- 反例留痕：PF-ILD 实际项目上把 `demo-data.js` 引用放回去 → 闸门报红并指名该文件；恢复后转绿
+
+### 验收
+
+- 脚手架：`check-starter` pass=true（files 176）；`npm test` **61 pass / 1 fail**
+  （仍是 1.5.7 既有的 `desktop-load verifier`，干净克隆同样失败，与本变更无关）
+- 临时目录同配置 init：181 文件，三个闸门全部下发，`npm run check` 输出三条「跳过（原型阶段）」并整体 PASS
+- 真实项目回归：PF-ILD 上两个闸门当前均绿（60/60 test、audit 0 fail 未受影响）
+
 ## 2026-10-25 · 1.5.8 从慢性粒细胞白血病（小粒宝 GranPal）回收：检查器覆盖面
 
 CML 工作台 M2 增补轮（三块家族既有能力：指标卡 3D 翻面 / 一图秀指标选择 / 临床试验三档匹配）回收到脚手架：

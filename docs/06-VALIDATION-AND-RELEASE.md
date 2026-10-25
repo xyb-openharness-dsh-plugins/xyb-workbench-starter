@@ -120,6 +120,24 @@ peer warning 不是加载结论；查宿主实际提供服务与日志。不能�
 
 ⑤ 只对"自己声明了 root"的包生效：有的仓故意用 `dbPath` 指向仓内演示库（肝癌），不该被这条点名——**禁止把个案推广为规则**（见 LESSONS 同名小节）。回归见 `test/checker-install-surface.test.mjs`（必须报 / 必须不报各半）。
 
+### 随 init 下发的六个检查器（`npm run check` 链）
+
+静态闸门分两层：**装机面**（能否装进去、装进去跑不跑得起来）与**开发版内部一致性**（页面引用的东西在不在、状态与数据一不一致）。
+前四个装机面检查器早已有；后两个是 2026-10-25 PF-ILD 实测回收——都是"check 全绿、真浏览器打开才发现坏了"的形态。
+
+| 检查器 | 查什么 | 抓的是哪一类 | 来源病种 |
+| --- | --- | --- | --- |
+| `check-workbench-package.mjs` | `dsh` 块、`files` 白名单、patch/config 对穿（规则⑤–⑧） | 装机 404 / 只见骨架 | 早期多仓 |
+| `check-host-contract.mjs` | 复刻宿主 `register()` 的 7 条校验（含 `businessWidth` 硬上限） | 本地全绿、装进去激活失败 | GBM |
+| `smoke-activate.mjs` | 桩件真跑一遍 `apply()` | 静态查"写了什么"，它查"跑起来会不会炸" | GBM |
+| `check-version-literal.mjs` | 页面版本/日期字面量与 `VERSION` 一致（或零字面量走占位符） | 版本号三处打架 | cervical + PF-ILD |
+| **`check-static-refs.mjs`** | `<script src>` / `<link href>` / `<img src>` 的**本地相对路径必须真实存在**；被引用的 `.js` 内容不得以 `<` 开头 | **SPA 兜底把 404 的 JS 变成 HTML → 整页脚本全废**（"看起来能开"） | ATTR 第 6 类 + **PF-ILD 第二次** |
+| **`check-choice-limit.mjs`** | 「数量上限」分支体内必须有状态回滚或重渲染 | **toast 说超了、checkbox 已勾上**（界面 N+1 / 数据 N） | PF-ILD 首次（设计层早有，检查层缺） |
+
+两个新检查器的判据都写了反例测试（`test/check-static-refs.test.mjs`、`test/check-choice-limit.test.mjs`），
+因为**检查器自己先写错过一次**：`check-choice-limit.mjs` 第一版把调用方末尾的 `render()` 算进了拒绝分支窗口，
+反例判成通过。没有反例测试，检查器就是新的错觉来源。
+
 **静态查不到的部分，靠一次装机副本探针**：加载 `profiles/<profile>/node_modules/<pkg>/dsh/index.js`（宿主注入的 peer 用最小 shim 顶替），喂假宿主（`webServer.register` / `connection.requestRejection` / `effect`），再让真 Chrome 走一遍页面。判据至少四条：`health` 200 且版本与包一致、`bootstrap` 六件齐全、写一条业务数据后**回读磁盘库有数**（内存库也会 200）、12 页逐个点开有内容且 `scrollWidth === innerWidth`、0 未捕获异常 0 失败请求。参考实现：`attr-workbench/scripts/probe-install.mjs`。
 
 ## 装机面第 7 类失败：装进去的还是旧包（2026-10-24 实测）

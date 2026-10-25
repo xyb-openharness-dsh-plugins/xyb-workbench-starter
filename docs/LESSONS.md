@@ -1,3 +1,51 @@
+
+## 2026-10-25 PF-ILD：两条「静态检查全绿、实际是坏的」缺陷
+
+PF-ILD v0.2.0 交付前，`npm run check` 全绿、`audit` 0 fail、`test` 60/60，
+但真浏览器打开页面才发现两处坏掉。共同点：**缺陷都不在"写错一行"，而在"看起来对"。**
+
+### 踩 1 · dev 版删了数据脚本，`index.html` 还引着它（家族第二次）
+
+开发版把数据层从 `window.DEMO_DATA` 换成异步 `/api/bootstrap`，`public/demo-data.js` 也随之删除，
+**但 `public/index.html` 里的 `<script src="demo-data.js">` 没删**。
+
+后果链：浏览器请求 `/api/pf-ild/ui/demo-data.js` → 静态层找不到 → **SPA 兜底返回 `index.html`**
+→ 浏览器把 HTML 当 JS 解析 → `SyntaxError: Unexpected token '<'` → **整页脚本全废**。
+
+最要命的是「看起来能开」：header、导航、卡片标题、页脚全在（那是 HTML 本来就有的），
+只有 JS 渲染的区域是空的。静态 grep 也查不出——文件确实"被引用"了，只是引用指向不存在的东西。
+
+> 这条在 `docs/LESSONS.md:203`（ATTR「业务区全白 `Unexpected token '<'`」）已经记过一次，
+> **这是第二次**。按 SCAFFOLD-ITERATION §1，第二次 = 升 L3 硬约束并**自动拦截**，
+> 不能只写在文档里等下次再踩。
+
+**修法**：`public/index.html` 里不引用已废弃的脚本；`check-static-refs.mjs` 静态校验
+所有 `<script src>` / `<link href>` / `<img src>` 的本地相对路径必须真实存在，
+并拒绝"被引用的 .js 文件内容以 `<` 开头"（典型的 HTML 兜底当 JS）。
+
+### 踩 2 · 超限拒绝只"说了"没"改回去"
+
+一图秀指标选择窗上限 4 项。点第 5 项：toast 正确弹出「最多选 4 项」，
+**但 checkbox 的浏览器原生勾选已经发生**，代码 `return` 在 `render()` 之前，
+界面停在「已勾 5 项」、数据只有 4 项。用户再点一次，取消的是"根本没生效"的那个。
+
+诱因是阅读顺序的错觉：拒绝分支后面（调用方末尾）**确实有一个 `render()`**，
+读代码时很容易认为"反正会重绘"。但拒绝路径 `return` 之后那行**执行不到**。
+
+> `docs/19-PROTOTYPE-CRAFT.md` §5-6 早就写了「回弹 checkbox 并 toast 解释」，
+> **设计层是覆盖的**，PF-ILD 首次违反 → L2。教训：**设计覆盖 ≠ 实现覆盖 ≠ 检查覆盖**。
+> 三者少一层，这条规则就形同纸面。
+
+**修法**：回弹写成拒绝分支体内的显式动作（`el.checked = false`）或分支内 `render()`；
+`check-choice-limit.mjs` 静态拦截"上限分支体内既无 DOM 回滚也无重渲染"的形态
+（只扫拒绝分支体，**不把 return 之后的行算进来**——这正是本轮检查器自己先写错的地方）。
+
+### meta
+
+两条都是「检查器自己也要被反例验证」的例证：
+`check-choice-limit.mjs` 第一版把调用方末尾的 `render()` 算进了分支窗口，**反例判成通过**。
+写成测试（正例/反例/单行/多行四形态）才发现。**检查器不做反例验证，就是个新的错觉来源。**
+
 # 开发典型错误和修复经验
 
 本页按症状、原因、修复和验收组织项目实践经验。设计记录不是最终代码状态，局部用户确认只覆盖明确测试范围。来源类别见 SOURCES；新增经验使用 templates/INCIDENT.md，并记录适用环境。
