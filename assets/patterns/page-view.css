@@ -94,6 +94,12 @@
   padding: 12px; margin: 0; font-size: calc(13px * var(--pv-tz));
 }
 
+/* ---------- 背景滚动锁：浮层开着的期间，宿主文档不许滚 ----------
+ * 只锁 html 不锁 body：overflow 写在 body 上在 Safari 里会漏（html 仍可滚）。
+ * 打开前 page-view.js 记住 scrollY，关掉后先摘类再 scrollTo 还原。
+ */
+html.pv-lock{ overflow: hidden; }
+
 /* ---------- 窄屏：就是整屏 ---------- */
 @media (max-width: 760px){
   .pv-panel{ inset: 0; border-radius: 0; border: 0; }

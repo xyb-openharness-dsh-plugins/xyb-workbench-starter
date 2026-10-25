@@ -99,15 +99,31 @@ async function main() {
     await page.waitForSelector('.pv-overlay:not([hidden])', { timeout: 3000 })
     await page.waitForFunction(() => document.querySelector('.pv-title')?.textContent?.includes('病理报告'), { timeout: 3000 }).catch(() => {})
 
-    // A1 宿主 body 不滚，滚的是 .pv-body
-    const a1 = await page.evaluate(() => {
-      const docOverflow = document.documentElement.scrollHeight > document.documentElement.clientHeight + 1
-      const bodyOverflow = document.body.scrollHeight > document.body.clientHeight + 1
+    // A1 宿主不滚，滚的是 .pv-body
+    // 2026-10-25 改严两次，记下来免得以后再踩：
+    //   ① 早先只断言 body 不溢出，docOverflow 算出 TRUE 也没人管——背景其实能滚；
+    //   ② 改成 window.scrollBy 试滚也不行：overflow:hidden 只挡用户滚动，
+    //      程序化 scrollBy 照样滚（实测 y0 260 → y1 426），假红。
+    //   现在用真滚轮事件（page.mouse.wheel）打在面板外的遮罩上——这才是用户能做的事。
+    const a1style = await page.evaluate(() => {
       const pv = document.querySelector('.pv-body')
-      const style = getComputedStyle(pv)
-      return { docOverflow, bodyOverflow, scrollable: /auto|scroll/.test(style.overflowY) }
+      return {
+        docOverflow: document.documentElement.scrollHeight > document.documentElement.clientHeight + 1,
+        bodyOverflow: document.body.scrollHeight > document.body.clientHeight + 1,
+        scrollable: /auto|scroll/.test(getComputedStyle(pv).overflowY),
+        htmlOverflowY: getComputedStyle(document.documentElement).overflowY,
+        lockClass: document.documentElement.classList.contains('pv-lock'),
+        y0: window.scrollY
+      }
     })
-    check('A1', '只有 .pv-body 内滚，宿主不出现滚动条', a1.scrollable && !a1.bodyOverflow, JSON.stringify(a1))
+    await page.mouse.move(3, 420)
+    await page.mouse.wheel({ deltaY: 300 })
+    await new Promise(r => setTimeout(r, 150))
+    const a1y1 = await page.evaluate(() => window.scrollY)
+    if (a1y1 !== a1style.y0) await page.evaluate(y => window.scrollTo(0, y), a1style.y0)  // 别污染 A5
+    const a1 = { ...a1style, y1: a1y1, bgScrollable: a1y1 !== a1style.y0 }
+    check('A1', '只有 .pv-body 内滚，背景文档滚不动（真滚轮打遮罩）',
+      a1.scrollable && !a1.bgScrollable, JSON.stringify(a1))
 
     // A9 标题非空且与内容匹配
     const a9 = await page.evaluate(() => {
@@ -246,8 +262,13 @@ async function injectDefects(page) {
     const style = document.createElement('style')
     style.textContent = '.pv-head-actions .pv-btn:last-child{display:none!important}'
     document.head.append(style)
+    // 缺陷③：把背景滚动锁废掉（A1 必须响）。锁是 html.pv-lock{overflow:hidden}，
+    // 这里用 !important 顶掉它，面板开着时背景就又能滚了。
+    const unlock = document.createElement('style')
+    unlock.textContent = 'html.pv-lock{overflow:auto!important}'
+    document.head.append(unlock)
   })
-  console.log('（自测：已注入「空标题 + 藏掉关闭入口」两个缺陷）\n')
+  console.log('（自测：已注入「空标题 + 藏掉关闭入口 + 解除背景滚动锁」三个缺陷）\n')
 }
 
 main().catch(e => { console.error('探针自身出错：', e); process.exit(2) })

@@ -31,6 +31,25 @@ export function createPageView(options = {}) {
   let lastFocus = null
   let lastPointerTarget = null
   let syncingHistory = false
+  let savedScrollY = 0
+
+  /* ---------- 背景滚动锁（A1 的真含义） ----------
+   * 早先 A1 只断言「body 不溢出」，可实测：面板开着时 window.scrollBy(0,300)
+   * 仍能把背景文档从 0 推到 300（2026-10-25 肉瘤项目实测）。浮层不透明，
+   * 所以这事儿在屏幕上看不见，但触屏拖到面板底部会链式带动背景、键盘 PageDown
+   * 也会滚它，属于「断言说的和代码做的不是一件事」。锁 + 关掉时还原。
+   */
+  function lockScroll() {
+    if (typeof window === 'undefined') return
+    savedScrollY = window.scrollY || document.documentElement.scrollTop || 0
+    document.documentElement.classList.add('pv-lock')
+  }
+  function unlockScroll() {
+    if (typeof window === 'undefined') return
+    document.documentElement.classList.remove('pv-lock')
+    // 先摘类再还原：overflow:hidden 期间 scrollY 已被夹到 0，顺序反了会还原不回去
+    if (savedScrollY) { try { window.scrollTo(0, savedScrollY) } catch {} }
+  }
 
   // 鼠标点击在部分浏览器里不会把焦点给按钮，只记 activeElement 会让 A4 形同虚设。
   // 所以在捕获阶段记一次 pointerdown 的落点，作为"触发者"的兜底。
@@ -101,7 +120,7 @@ export function createPageView(options = {}) {
     if (top && top.key === def.key) return top      // 连点不叠层
 
     ensureShell()
-    if (!stack.length) lastFocus = pickTrigger()
+    if (!stack.length) { lastFocus = pickTrigger(); lockScroll() }
 
     const entry = {
       key: def.key,
@@ -200,6 +219,7 @@ export function createPageView(options = {}) {
     if (!overlay) return
     overlay.hidden = true
     bodyEl.replaceChildren()
+    unlockScroll()
     try { lastFocus && lastFocus.focus && lastFocus.focus() } catch {}
   }
 

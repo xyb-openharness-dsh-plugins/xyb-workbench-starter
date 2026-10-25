@@ -1,3 +1,33 @@
+## 2026-10-25 · 1.6.2 A1 断言原来在骗人：整页打开时背景真的能滚
+
+肉瘤项目（T0 样板）跑 M4 时顺手复核 A1，发现两件事叠在一起：
+
+1. **断言名不副实。** 探针算了 `docOverflow`，但 `check()` 里从没用它——
+   只断言了 `bodyOverflow`。于是「宿主不出现滚动条」这句写在标题上，代码从来没验过。
+2. **实测确实能滚。** 面板开着时 `window.scrollBy(0, 300)` 把背景从 0 推到 300；
+   浮层不透明所以屏幕上看不见，但触屏拖到面板底部会链式带动背景，键盘 PageDown 也会滚它。
+
+修法分三层，缺一层都白改：
+
+- `assets/patterns/page-view.js` 加背景滚动锁：首次 `open()` 记住 `scrollY` 并给 `<html>` 加 `.pv-lock`，
+  `teardown()` 时**先摘类再 `scrollTo` 还原**（顺序反了还原不回去，`overflow:hidden` 期间滚动位置已被夹住）。
+- `assets/patterns/page-view.css` 加 `html.pv-lock{ overflow:hidden }`。只锁 `html` 不锁 `body`：写在 body 上 Safari 会漏。
+- `scripts/probe-page-view.mjs` 的 A1 改成**真滚轮打遮罩**再读 `scrollY`。
+
+**为什么不是 `window.scrollBy` 试滚**：`overflow:hidden` 只挡用户滚动，程序化 `scrollBy` 照样滚
+（实测 260 → 426），拿它当判据会得到假红。只有真滚轮事件才是用户能做的事。这条弯路记在这里，
+免得下一个人再试一遍。
+
+自测同步加第三个缺陷（`html.pv-lock{overflow:auto!important}` 顶掉锁），
+`--self-test` 现在 4 条 FAIL / 13 条（A1、A9、A10、A2），正常 13/13。
+
+**存量项目按已知偏离处理**：20 个已落地项目的 `prototypes/<vX>` 里整页视图是内联实现，没有锁；
+它们各自的 `probe-page-view.mjs` 是建仓快照，仍是旧断言，所以「绿」不代表锁住了。
+下一轮动到哪个项目就补哪个，不单独做一轮 20 仓回填——与「老项目不回溯改造」口径一致。
+
+顺带一条口径决定（写进 36 号 §2.4）：**自采登记数据算一手数据**，
+`original` 记 `true`，note 写「自采快照；第三方原件未存档」，与「指南原件未取得」分开计。
+
 ## 2026-10-25 · 1.6.1 36 号落地一天后修的两个真 bug
 
 全家族铺开第一天（22 个有原型的病种 + 7 个仅有 README 的），暴露两处实现缺陷：
