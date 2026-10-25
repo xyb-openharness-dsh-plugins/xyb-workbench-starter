@@ -35,7 +35,7 @@
 | --- | --- | --- |
 | M0 骨架 | 认领 issue + 建私有仓 + `dsh-wb-cli init` + **接线前置修复**（cordis.patch.yml 补 `config.root`；真客户端链路列入 M5 强制清单）+ 文档体系 9 件（含 INTERACTION-DESIGN 骨架）+ 基线 check | — |
 | M1 调研SPEC | **三路调研并行**（医学约束 10 主题 / 用户与照护者研究 / 家族结构对比 vs 样板+基准）→ 文档套全量 + DIFF-MATRIX（一级重名率 ≤70% 实测）+ INTERACTION-DESIGN 全量（28 号 IP1） | **G1 签认** |
-| M2 原型 | demo 构建器（双档案）+ prototypes/v0.2 四件套（**窄宽规则 30 号从第一版执行** + **HVT X1–X4 走查**）+ **独立评审**（DESIGN-REVIEW，P0 修复留痕后交） | **G2 签认** |
+| M2 原型 | demo 构建器（双档案）+ prototypes/v0.2 四件套（**窄宽规则 30 号从第一版执行** + **HVT X1–X4 走查** + **治疗线 32 折叠卡** + **试验匹配 35 号四段链路**）+ **独立评审**（DESIGN-REVIEW，P0 修复留痕后交） | **G2 签认** |
 | M3 数据模型 | schema/0001 冻结（sha256 + 判读列断言） | **G3 签认** |
 | M4 临床库 | unified-trial-mcp 在线通道采集（**FAILED 如实记录不计覆盖**；离线语料仅胰腺癌，其他病种"未配置"） | — |
 | M5 开发版 | **七步移植**（§2.1，含第 7 步宿主接线件①–④）+ apiBase 定稿契约 + check 全绿 + HVT 一致性 | V1 |

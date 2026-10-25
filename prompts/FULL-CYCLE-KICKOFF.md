@@ -33,7 +33,7 @@
 | --- | --- | --- | --- |
 | **M0 骨架** | 领取（上面四步）+ 文档体系 9 件（SPEC/DEV-REQUIREMENTS/DIFF-MATRIX/PATIENT-FLOW/SCENARIOS/USER-RESEARCH/INTERACTION-DESIGN/CLINICAL-DATA/DEV-PLAN）+ 基线 `npm run check` | staticPass=true；**文档原创本癌种版，禁止跨仓 fork 复制**（三次残留教训） | — |
 | **M1 调研SPEC** | **三路调研并行**：医学约束（10 主题，指南 PDF 核数、NMPA 官方级核实）/ 用户与照护者研究（证据分层，0 访谈如实）/ 家族结构对比（vs 移植样板+基准）→ DIFF-MATRIX 全量（一级重名率 ≤70% 实测）+ SPEC + USER-RESEARCH + INTERACTION-DESIGN 全量（28 号 IP1） | 重名率实测数；K1–K6 红线落文档；G1 决策点显式列出 | **G1 签认** |
-| **M2 原型** | demo 构建器（双档案×6 月，唯一源）+ prototypes/v0.2 四件套；**治疗线用 32 号折叠卡模版**；窄宽 30 号第一版执行；HVT X1–X4；**SVG 根带 class="chart"、smoothPath 用 Fritsch–Carlson、AI 按钮走 `xxx:agent-draft` 一键携带提示词+病情上下文** → **独立评审**（P0=0 修复留痕）→ **README 按 33 号放实渲截图 ≥4 张 + 折叠收/展态** | 64 页签走查数字、computed fill=none、窄宽 0 问题、禁词 0 | **G2 签认** |
+| **M2 原型** | demo 构建器（双档案×6 月，唯一源）+ prototypes/v0.2 四件套；**治疗线用 32 号折叠卡模版**；**试验线按 35 号四段链路（建档→双通道检索→分层+证据链→候选线索，禁匹配指数/判读列，检查器进 check 链）**；窄宽 30 号第一版执行；HVT X1–X4；**SVG 根带 class="chart"、smoothPath 用 Fritsch–Carlson、AI 按钮走 `xxx:agent-draft` 一键携带提示词+病情上下文** → **独立评审**（P0=0 修复留痕）→ **README 按 33 号放实渲截图 ≥4 张 + 折叠收/展态** | 64 页签走查数字、computed fill=none、窄宽 0 问题、禁词 0 | **G2 签认** |
 | **M3 数据模型** | schema/0001_initial.sql（档案2+指标3+通用7+专属N+导入3）+ freeze-contract（sha256）；判读列断言 | 内存全建 + 无 diagnosis/risk_level 类判定列 | **G3 签认** |
 | **M4 临床库** | `scripts/fetch-<x>-trials-<年>.mjs`（MCP stdio，四在线通道）→ research/<x>-cancer/ 四件套 | manifest=jsonl=sqlite 断言；FAILED 如实记"未查过" | — |
 | **M5 开发版** | **七步移植**（六件套+宿主接线件：dsh 块/patch root/真客户端链路 src→build→lib/版本簿记）+ MinerU 六部件（18 号 v2）+ apiBase 定稿契约（交界守卫+双形态回归+禁裸 throw）+ test 五套 + check 全绿 + HVT 一致性 | 版本十处同源；单测全过；audit 全过；tgz 占位=0 | **V1** |
