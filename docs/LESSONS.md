@@ -85,11 +85,13 @@ assert(before === after);   // 恒成立——因为 before 和 after 都是空�
 
 ## 2026-10-25 · 从神经纤维瘤病 v0.1.3 回收：profile 目录会被应用迁移
 
-**装包前先看运行中宿主的 argv**：`pgrep -fl "dsh-desktop-host/lib/index.js"` 第三个参数就是
-实际生效的 profile 目录。本轮应用已把 profile 从 `~/.dsh/profiles/desktop` 迁到
-`~/.dsh-classic/profiles/desktop`，旧目录被宿主重置为只剩 cordis.patch.yml 的空壳——
-往旧目录里登记依赖+bundles 一万次也不会加载。判据与 1.5.7「装到哪个 app」同源，这次是
-「装到哪个 profile 目录」。激活的硬证据：宿主按 `dshHomePath` 创建的数据目录里出现
+**【2026-10-26 修正：上一版这条把方向写反了】** 工作台 bundle 永远装 **DSH Desktop.app** 的
+profile：`~/Library/Application Support/dsh-desktop/harness/profiles/web`（本地惯例：tgz 拷进该目录、
+依赖写 `file:<tgz 文件名>`、bundles 数组登记、`CI=true corepack pnpm install --no-frozen-lockfile`）。
+**不能**因为 `pgrep -fl dsh-desktop-host` 看见 DeepSeek Harness（Agent 宿主）的 argv 指向
+`~/.dsh-classic/profiles/desktop` 就往那里装——Agent 宿主加载工作台 bundle 会把宿主搞崩
+（NF 0.1.2–0.1.4 三轮装错位置，用户反馈"安装位置错误，导致 dsh 崩溃"后纠正）。
+两个 app 的分辨判据见 1.5.7 节；激活的硬证据：DSH Desktop 的 web profile 数据目录里出现
 `schema_migrations` 有记录的 sqlite（真目录模式不灌演示数据，表计数 0 是正确行为）。
 
 ## 2026-10-25 · 从神经纤维瘤病小纤宝 FibroPal（neurofibromatosis-workbench v0.1.2）回收
