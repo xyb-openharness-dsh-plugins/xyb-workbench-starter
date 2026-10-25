@@ -502,3 +502,8 @@ LESSONS 新增 4 条：dialog 截图 md5 去重断言（settings.png 复制件 P
 ## 未发布 · 2026-10-25 补 · 从肢端肥大症 0.2.1 回收
 
 LESSONS 追加 2 条：协议链接端到端对穿断言（public 未 postMessage 的两端各自实现假象）、原生输入 submit() 自动发送 API 与守卫。待实施检查器清单：build-public 断言"协议链接↔postMessage 对穿"。
+
+
+## 未发布 · 2026-10-25 · AI 协助一键发送契约正式入架（34 号）
+
+新增 docs/34-AGENT-DRAFT-SEND.md（端到端四段链路/双守卫/降级链/不变红线/留痕要求），prompts/DSH-AGENT-PANE-INTEGRATION.md「送达」段与 docs/20-AGENT-PANE-DESIGN.md 同步改口径（一键发送开启互动，替代旧"只填不发"）；新增 templates/check-agent-draft-bridge.mjs 对穿断言器（已在肢端肥大症 0.2.1 仓实测通过并接入其 check 链）。LESSONS 0.2.1 待实施项（对穿断言）就此销账。

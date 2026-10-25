@@ -43,7 +43,7 @@ CustomFrame 桌面工作台的可复用宽度基线：Agent 展开时默认占�
 
 **四条不可让步**（写进单测，不靠评审记）：① 只抄记录，缺项写"没有"，不补不推测；② "已确认"只表示转录核对，文里必须写明"不等于医学审核"；③ 私密 fail-closed，`includePrivate` 不给就不出现，勾选后要标"本次已勾选带入"且**开关保留**（否则用户不能反悔）；④ 草稿会被贴进会话，**不得带本机资料目录路径**（含用户名）。
 
-**送达**：`postMessage({type:'<app>:agent-draft', prompt})` → 面板侧**同时**校验 `event.source === 自己 iframe 的 contentWindow` 与 `event.origin === location.origin`，再加长度上限（本项目 8000）。只校验 origin 挡不住同源的其他窗口。送达只调原生 `setDraft`，**不调用任何提交/发送**——发送是用户的回车。
+**送达**（2026-10-25 起按 34 号契约：**一键发送开启互动**，替代旧"只填不发"）：`postMessage({type:'<app>:agent-draft', prompt, send: true})` → 面板侧**同时**校验 `event.source === 自己 iframe 的 contentWindow` 与 `event.origin === location.origin`，再加长度上限（本项目 8000）。只校验 origin 挡不住同源的其他窗口。送达调原生 `setDraft` 后，若 `send===true`：重取 snapshot，**仅 plain 相且草稿非空**才 `input.submit()`（composer 未就绪→草稿入持久队列，就绪后自动发送；submit 失败→保留待回车）。守卫、降级链、对穿断言与留痕要求全按 **docs/34-AGENT-DRAFT-SEND.md**——回退"只填不发"须用户授权留痕，不许悄悄改。
 
 **空态**：这一页没有可带入的记录时，不给入口或明确说"还没有可带入的记录"，不产出空壳草稿；没有真实数据的模块（如未接入的试验线索）干脆不加入口，免得空态按钮让人以为那里有内容。
 
