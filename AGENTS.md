@@ -33,6 +33,10 @@ init后先读取并向用户展示 `docs/DESIGN-PROMPT.md` 的实际路径，以
 
 从主页点开的内容，**预计超过 1.5 屏或需要内部分区就开一整页**，不要做 480px 弹窗。按 [docs/32-FULL-PAGE-VIEW.md](docs/32-FULL-PAGE-VIEW.md) 做，用 `assets/patterns/page-view.js` + `page-view.css`，项目清单填 `docs/FULL-PAGE-VIEW.md`（模板 `templates/FULL-PAGE-VIEW.md`）。三条不可让步：①**返回与关闭是两个入口**，只给 ✕ 不合格；②**关掉后主页停在原来的滚动位置、焦点回到触发元素**；③**Esc 与浏览器返回键都只退一层**，深 3 层不许一按全关。history 是导航栈的唯一真源——禁止用 `replaceState` 假装退栈（会多出一条假位置，返回键直接错位）。原型要双击 `index.html` 就能开 → **`file://` 下不能 `import` ES module**，把实现内联成单文件（去掉 `export `、包 IIFE 挂 `window.createPageView`），做法见 `examples/page-view-standalone.html`。A1–A10 用 `node scripts/probe-page-view.mjs` 验（家族骨架自带演示与探针）；改导航行为必须同时跑 `--self-test` 反向对照，只跑正测的闸门等于没有闸门。既有项目不回溯改造，下一轮动到该页时升级。
 
+## 疾病概要（每台必备的「?」入口）
+
+每台都必须在 **README 的 `## 疾病概要`** 与 **看板顶栏的「?」按钮** 提供同一份疾病精炼概要，四段固定、顺序不变：**定义 → 医学资料规范和指南情况 → 目前治疗全景概要 → 发展趋势**。按 [docs/36-DISEASE-PRIMER.md](docs/36-DISEASE-PRIMER.md) 做，用 `assets/patterns/disease-primer.js` + `disease-primer.css`，数据放 `prototypes/<vX>/primer-data.js`（`window.DISEASE_PRIMER`），项目清单填 `docs/DISEASE-PRIMER.md`（模板 `templates/DISEASE-PRIMER.md`）。三条不可让步：①概要整体属**第 ② 层（解释）**，第 ③ 层判断一句都不生成，"选哪个方案"固定出口是"这一句需要问你的医生"；②**「发展趋势」只写已发生的事实**（指南版本更替、监管批件、在研登记数量与阶段分布、分类体系更新、指南结构变化），带日期或版本号，展望/推荐/优劣类词一律不写；③**没拿到原件就写"未取得原件，据二次来源"**，页码不明写"页码待核"，不许假装看过。形态是**整页视图**不是弹窗（四段必然超 1.5 屏）；`open` 压一条 history、`close` 走 `history.back()`，与其他浮层同一套导航规则。P1–P8 用 `node scripts/probe-disease-primer.mjs` 验，改模块必须同时跑 `--self-test`。老项目先补 README 段落（不影响原型稳定性），原型按"下一轮动到就补"处理。
+
 ## 指标趋势 Tab 与 3D 卡片
 
 有检验趋势/指标卡时，先读 [docs/24-METRIC-TREND-TAB-DESIGN.md](docs/24-METRIC-TREND-TAB-DESIGN.md)，填 `docs/METRIC-TREND-SPEC.md`（模板在 `templates/METRIC-TREND-SPEC.md`），复用提示词 `prompts/METRIC-TREND-TAB.md`。按病情整理五Tab建立来源→核对→档案→分类指标→汇总；疾病特有入口映射保留。卡片按类别分组，两列/窄容器单列；正面最近值/单位/可比差值/次数/日期/来源，背面固定高度3D rotateY趋势，不上下展开。方法/单位/机构变化拆可比组，数据点打开来源不冒泡，隐藏面inert；同一目录供指标页与一图秀共用。MT01–MT15在HTML中实际验证与确认，再接生产业务。大病例必须验证曲线不被事件撑出首屏。

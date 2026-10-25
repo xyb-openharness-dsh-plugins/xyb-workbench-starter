@@ -48,6 +48,20 @@
       "path": "patterns/page-view.css",
       "source": "authored in this starter",
       "purpose": "32 号整页视图的结构样式（颜色走 --pv-* 项目令牌）"
+    },
+    {
+      "path": "patterns/disease-primer.js",
+      "source": "authored in this starter",
+      "purpose": "36 号疾病概要（「?」入口）的整页视图实现：无依赖经典脚本，open=pushState / close=history.back()",
+      "sha256": "8e87d001ba6f6a2b0cce255234597a09ce3656adead9607d2c06c2e83e462893",
+      "bytes": 10076
+    },
+    {
+      "path": "patterns/disease-primer.css",
+      "source": "authored in this starter",
+      "purpose": "36 号疾病概要的结构样式（颜色走项目令牌 + 兜底，不改结构）",
+      "sha256": "31796f1e0ca749394b22e8c1a1fc617c97b488b77698eba3acf97a756fb2ad90",
+      "bytes": 6593
     }
   ]
 }

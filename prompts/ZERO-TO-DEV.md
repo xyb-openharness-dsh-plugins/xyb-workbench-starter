@@ -149,6 +149,14 @@
   用 `assets/patterns/page-view.js` + `page-view.css`，清单填 `docs/FULL-PAGE-VIEW.md`。  
   原型阶段就要满足：返回与关闭两个入口都在、关掉回主页原滚动位置、Esc 与浏览器返回键都只退一层、  
   `#page=` 可直达。A1–A10 断言见 32 号，`scripts/probe-page-view.mjs` 可作起点改造。
+- **疾病概要（36 号，2026-10-25 起，每台必备）**：README 的 `## 疾病概要` 与看板顶栏「?」必须给同一份  
+  疾病精炼概要，四段固定：定义 → 医学资料规范和指南情况 → 目前治疗全景概要 → 发展趋势。  
+  数据放 `prototypes/v0.2/primer-data.js`（`window.DISEASE_PRIMER`），模块用 `assets/patterns/disease-primer.js`  
+  + `disease-primer.css`，项目清单填 `docs/DISEASE-PRIMER.md`（模板 `templates/DISEASE-PRIMER.md`）。  
+  **M1 起就要写这份清单**（四段与来源栏），**M4 原型上线前必须能点开**。三条红线：整体属第 ② 层、  
+  趋势段只写已发生的事实（带日期/版本）、原件没拿到就写"未取得原件，据二次来源"。P1–P8 见 36 号，  
+  `scripts/probe-disease-primer.mjs` 可直接用；`docs/36-DISEASE-PRIMER.md` 另有一套趋势段禁止词，  
+  `check-conformance.mjs` 的 `primer/*` 会扫。
 - 无头实测：页签穷举（**不能先抓完按钮再点**，`render()` 会重建 DOM）、`aria-selected` 与内容指纹、  
   `body.scrollWidth === innerWidth`、控制台 0 error、0 个 4xx。截图逐张目视过。
 - **HVT X 层（28 号，GBM/MPM 两轮标准件）**：X1 每页签被场景路径覆盖（孤儿=0）；X2 场景路径从看板逐 key 走通；  

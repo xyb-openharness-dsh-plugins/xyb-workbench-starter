@@ -1,5 +1,9 @@
 # 小胰宝 / 小x宝社区 Workbench 开发脚手架
 
+## Git开发快照 · 2026-10-25（四）每台一个「?」：疾病概要进骨架
+
+每个工作台要能回答「我得的这个病大概是什么、依据什么文件、世上有哪些手段、这几年在变什么」。落地成 [36 号疾病概要](docs/36-DISEASE-PRIMER.md) + 实现 `assets/patterns/disease-primer.{js,css}` + 演示 `examples/disease-primer.html` + 9 条断言探针 `scripts/probe-disease-primer.mjs`（含 `--self-test`）。四段固定：**定义 → 医学资料规范和指南情况 → 目前治疗全景概要 → 发展趋势**，落点是 README 的 `## 疾病概要` 与看板顶栏「?」（整页视图，不是弹窗）。三条红线：整体属第 ② 层（解释）、**趋势段只写已发生的事实**并带日期/版本、原件没拿到就写「未取得原件，据二次来源」。两个节点都已接：**要求**进 `AGENTS.md` 与 `prompts/ZERO-TO-DEV.md`，**开发后审计**进 `check-conformance.mjs` 的 `primer/*`。项目清单填 `docs/DISEASE-PRIMER.md`（`init` 生成）。包版本 `1.6.0`。
+
 ## Git开发快照 · 2026-10-25（三）整页视图进骨架
 
 用户点名把 `dsh-shopping-workbench` 的「点开就是一整页、关掉回主页/前一页」设计**保留到脚手架**，理由是"现有弹窗空间太小，功能无法扩大"。落地成 [32 号整页视图](docs/32-FULL-PAGE-VIEW.md) + 可运行实现 `assets/patterns/page-view.{js,css}` + 演示 `examples/page-view.html` + 13 条断言探针 `scripts/probe-page-view.mjs`（含 `--self-test` 反向对照）。三条硬约束：**返回与关闭是两个入口**、**关掉回原滚动位置且焦点回触发者**、**Esc 与浏览器返回键各只退一层**。history 是导航栈唯一真源，禁用 `replaceState` 假装退栈。项目清单填 `docs/FULL-PAGE-VIEW.md`（`init` 生成）。包版本 `1.5.3`。

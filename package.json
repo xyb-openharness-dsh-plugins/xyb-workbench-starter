@@ -1,6 +1,6 @@
 {
   "name": "dsh-wb-cli",
-  "version": "1.5.10",
+  "version": "1.6.0",
   "private": true,
   "description": "小胰宝/小x宝社区 DSH Workbench Git 分发与项目初始化工具",
   "type": "module",
@@ -31,10 +31,11 @@
     "test"
   ],
   "scripts": {
-    "check": "node --check bin/dsh-wb-cli.mjs && node --check cli/main.mjs && node --check scripts/init.mjs && node --check project-template/scripts/check-install.mjs && node --check scripts/check-conformance.mjs && node scripts/check-starter.mjs",
+    "check": "node --check bin/dsh-wb-cli.mjs && node --check cli/main.mjs && node --check scripts/init.mjs && node --check project-template/scripts/check-install.mjs && node --check scripts/check-conformance.mjs && node --check scripts/probe-disease-primer.mjs && node scripts/check-starter.mjs",
     "test": "node --test test/*.test.mjs",
     "audit": "node scripts/check-conformance.mjs",
-    "probe:page-view": "node scripts/probe-page-view.mjs"
+    "probe:page-view": "node scripts/probe-page-view.mjs",
+    "probe:primer": "node scripts/probe-disease-primer.mjs"
   },
   "license": "UNLICENSED",
   "repository": {

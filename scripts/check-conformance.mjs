@@ -195,6 +195,53 @@ async function main() {
   if (existsSync(join(target, 'prototypes/v0.2/index.html'))) ok('ui/原型基线', '有 prototypes/v0.2 基线')
   else warn('ui/原型基线', '没有 prototypes/v0.2：视觉验收缺少唯一基准')
 
+  /* ---------- 4b. 疾病概要（36 号） ---------- */
+  // 只看文件与代码，不看文档自述：README 写"已加 ? 图标"不算数。
+  {
+    const readme = await read('README.md')
+    const wantSecs = ['定义', '医学资料规范和指南情况', '目前治疗全景概要', '发展趋势']
+    const hasHeader = /^##\s*疾病概要/m.test(readme)
+    // 只在本节范围内看三级标题：取 `## 疾病概要` 到下一个 `## ` 之间的内容
+    const secBody = (readme.match(/^##\s*疾病概要\s*$([\s\S]*?)(?=^##\s|\Z)/m) || [])[1] || ''
+    const bodySecs = [...secBody.matchAll(/^###\s*(.+?)\s*$/gm)].map((m) => m[1])
+    const missingRd = wantSecs.filter((w) => !bodySecs.some((t) => t.includes(w)))
+    if (!hasHeader) fail('primer/README', 'README 缺 `## 疾病概要` 一节（位置：项目简介之后、开发顺序之前）')
+    else if (missingRd.length) fail('primer/README', 'README 的疾病概要缺段（四段缺一不合格，没内容写「本台尚未整理」，不许删段）', missingRd.join('、'))
+    else ok('primer/README', 'README 疾病概要四段齐全', bodySecs.join(' › '))
+
+    // 数据文件：prototypes 下任一 primer-data.js
+    const protoDirs = (await listdir('prototypes')).filter((e) => e.isDirectory()).map((e) => `prototypes/${e.name}`)
+    let dataFile = ''
+    let dataText = ''
+    for (const d of protoDirs.reverse()) {
+      if (await exists(`${d}/primer-data.js`)) { dataFile = `${d}/primer-data.js`; dataText = await read(dataFile); break }
+    }
+    if (!dataFile) fail('primer/数据', '找不到 prototypes/<vX>/primer-data.js（window.DISEASE_PRIMER）')
+    else {
+      const ids = ['definition', 'evidence', 'landscape', 'trend'].filter((k) => new RegExp(`id\\s*:\\s*['"]${k}['"]`).test(dataText))
+      if (ids.length === 4) ok('primer/数据', 'primer-data.js 四段齐全', dataFile)
+      else fail('primer/数据', 'primer-data.js 四段不齐（缺 ' + (['definition', 'evidence', 'landscape', 'trend'].filter((k) => !ids.includes(k)).join('、')) + '）', dataFile)
+
+      // 趋势段禁止词：只扫 trend 那一段文本
+      const trendBlock = (dataText.match(/id\s*:\s*['"]trend['"]([\s\S]*?)\n\s{4}\}/) || [])[1] || ''
+      const banned = ['有望', '即将', '前景', '未来可期', '突破性', '颠覆', '革命性', '首选', '优于', '疗效更好', '建议使用', '强烈推荐', '治愈率', '生存期延长', '大幅提高', '迎来新选择']
+      const hit = banned.filter((w) => trendBlock.includes(w))
+      if (!trendBlock) warn('primer/趋势段', '没解析到 trend 段，禁止词需人工确认', dataFile)
+      else if (hit.length) fail('primer/趋势段', '发展趋势写了判断/展望类词（只许写已发生的事实：版本更替、批件、登记数量、分类更新）', hit.join('、'))
+      else ok('primer/趋势段', '趋势段无禁止词')
+    }
+
+    // 入口：原型 index.html 有 primer.js 或 data-primer-open
+    let entryHit = ''
+    for (const d of protoDirs.reverse()) {
+      if (!(await exists(`${d}/index.html`))) continue
+      const html = await read(`${d}/index.html`)
+      if (/primer\.js/.test(html) || /data-primer-open/.test(html)) { entryHit = `${d}/index.html`; break }
+    }
+    if (entryHit) ok('primer/入口', '原型已接入「?」入口', entryHit)
+    else fail('primer/入口', '原型没有 primer.js 或 data-primer-open：看板上点不开疾病概要')
+  }
+
   /* ---------- 5. 密钥卫生 ---------- */
   const gitignore = await read('.gitignore')
   const mineru = await read('dsh/mineru.js')
