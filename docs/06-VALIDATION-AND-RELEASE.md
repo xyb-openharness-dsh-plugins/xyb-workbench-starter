@@ -51,6 +51,19 @@ dsh plugin --profile '<app 内部 profile>' add -w --save-exact 'file:/absolute/
 
 此处 app 内部 profile 即使叫 `web`，也必须确认 `DSH_HOME` 指向 DSH Desktop app 的 Harness；不要运行 `dsh web`，也不要省略 DSH_HOME。安装后核对 app profile 的 `package.json` dependency 与 `dsh.profile.bundles`、node_modules 版本、`desktop-workbenches/state.json` 注册及 tarball hash；在另一 profile 核实没有意外安装。CLI 的 `--dump-config` 若无法加载 app 提供的私有 bundle，不应作为错误 profile 的证据，也不代表 Desktop UI 已加载。
 
+**Windows（未在真机实测，按 PowerShell 写；命令形态不对等于白折腾）：** Harness 在 `%APPDATA%\dsh-desktop\harness`，
+`export`/`VAR=` 前置在这里都不成立，要写成：
+
+```powershell
+$env:DSH_HOME = "$env:APPDATA\dsh-desktop\harness"
+$env:NODE_OPTIONS = ""
+npx --yes pnpm@10.15.0 --dir "$env:DSH_HOME\profiles\<profile>" add -w ".\release\<包名>-<版本>.tgz"
+```
+
+随后同样把包名写进该 profile 的 `dsh.profile.bundles` 再重启 Harness。**实现 e2e 时优先用 app 内受支持的安装入口**；
+找不到入口就保留 tarball 与 hash 并写"Desktop 未安装"，不要靠手改状态 JSON 绕过。路径一律先跑
+`node scripts/check-install.mjs`（打印它认的 app / Harness / profile），别从本文抄死路径。
+
 **本机实证（2026-10-18，breast-cancer-workbench 首装踩坑实录，同日两轮修正）——装错 profile 是最容易犯的错：**
 
 - **DSH Desktop app 实际读的 profile 是 `~/Library/Application Support/dsh-desktop/harness/profiles/web`**（name 叫 "dsh-profile-web"，pnpm 10.34.5，带 generationProjection）。**两个都不对**：`~/.dsh/profiles/web`（全局 CLI 用）和 `~/.dsh/profiles/desktop`（CLI 的另一个 profile，名字带 desktop 但 Desktop 不读它）——两次都装错过，重启后列表里没有就是没装对地方。
