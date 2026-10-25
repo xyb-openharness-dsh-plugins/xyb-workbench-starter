@@ -1,3 +1,29 @@
+## 2026-10-25 · 1.5.9 页面版本字面量闸门随 init 下发：UI 显示哪一版 = 服务端跑哪一版
+
+「版本号三处打架」是家族高频故障，但**页面那一处从来没人拦过**：`public/index.html` 的
+版本徽标和页脚可以写死 `v0.1.0`，升版时只动了 `VERSION` 和 `package.json`，页面还显示旧版本，
+**没有任何检查会响**——用户拿着旧版本号来提问，你只能反查他装的是哪一版。
+
+两个病种独立复现（L2 门槛）：
+
+1. **cervical-workbench**：自己在 `scripts/check-version.mjs:67` 立了「页面字面量去重后与 VERSION 比对」的闸门。
+2. **PF-ILD-workbench v0.2.0**：升版 `0.1.0 → 0.2.0` 后 audit 直接报红
+   `public/index.html 里有版本字面量与 VERSION 不一致（0.1.0）`——徽标 `#ver-chip` 与页脚
+   `#app-version` 各写死一处，而定点移植脚本只替换了 `prototype-bar` 那第三处。
+   顺带暴露一个更隐蔽的形态：**「可复跑的移植脚本」把漂移从代码转移到了脚本里**，脚本自己也会漂。
+
+下发 `scripts/check-version-literal.mjs`（进 `npm run check`，另有 `npm run check:version-literal`）：
+支持两种约定——**占位符约定**（页面写 `__VERSION_DISPLAY__` / `__BUILD_DATE__`，服务端注入，
+物理上不可能不一致，PF-ILD 已落地）与**字面量约定**（存量项目，出现的版本必须全部等于 `VERSION`）。
+原型阶段还没有 `public/index.html` 时**跳过**（check 从第一天就该是绿的）；
+页面完全不显示版本也判失败（看不见就不算错也是错）。测试 8 条含正反例与行号断言。
+
+新文档 `docs/35-PAGE-VERSION-LITERAL.md`。
+
+> 已知：本轮 `npm test` 在干净克隆上也失败 1 条（`ships the desktop-load verifier`，
+> `starter.test.mjs:59` 的 `/界面加载核验/` 不匹配）——**与本变更无关**，是 1.5.7 的既有问题，
+> 如实记录未修。
+
 ## 2026-10-25 · 1.5.8 从慢性粒细胞白血病（小粒宝 GranPal）回收：检查器覆盖面
 
 CML 工作台 M2 增补轮（三块家族既有能力：指标卡 3D 翻面 / 一图秀指标选择 / 临床试验三档匹配）回收到脚手架：

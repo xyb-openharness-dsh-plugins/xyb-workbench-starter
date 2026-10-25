@@ -70,6 +70,9 @@ async function main() {
   // 它查「跑起来会不会炸」——两层都要有。
   plan.set('scripts/smoke-activate.mjs', await readFile(join(starter,'templates/smoke-activate.mjs')))
   plan.set('scripts/verify-desktop-load.mjs', await readFile(join(starter,'templates/verify-desktop-load.mjs')))
+  // 页面版本字面量闸门：两个病种独立复现（cervical check-version / PF-ILD 升版 audit 报红）。
+  // 页面显示哪一版必须等于服务端跑的一版——靠人记不住，只能靠断言。
+  plan.set('scripts/check-version-literal.mjs', await readFile(join(starter,'templates/check-version-literal.mjs')))
   // VERSION 是版本唯一来源（audit 的 version/file 与 version/pkg 都指着它）。
   plan.set('VERSION', '0.1.0\n')
   const manifest = {
@@ -77,7 +80,8 @@ async function main() {
     main: './dsh/index.js', exports: { '.': './dsh/index.js', './client': './lib/client.js', './package.json': './package.json', './cordis.patch.yml': './cordis.patch.yml' },
     files: ['dsh','lib','assets','cordis.patch.yml','README.md','NOTICE.md'],
     scripts: {
-      check: 'node --check dsh/index.js && node --check lib/client.js && node scripts/check-workbench-package.mjs . && node scripts/check-host-contract.mjs && node scripts/smoke-activate.mjs && node scripts/check-probe-coverage.mjs',
+      check: 'node --check dsh/index.js && node --check lib/client.js && node scripts/check-workbench-package.mjs . && node scripts/check-host-contract.mjs && node scripts/smoke-activate.mjs && node scripts/check-probe-coverage.mjs && node scripts/check-version-literal.mjs',
+      'check:version-literal': 'node scripts/check-version-literal.mjs',
       'check:host': 'node scripts/check-host-contract.mjs',
       'smoke:activate': 'node scripts/smoke-activate.mjs',
       'verify:desktop': 'node scripts/verify-desktop-load.mjs',
