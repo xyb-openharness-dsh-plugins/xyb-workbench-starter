@@ -25,7 +25,15 @@
 1. 原生 `<details>/<summary>`：零 JS、键盘可用；默认全部收起。
 2. summary：`● 阶段名 · 日期 · 一句话概要 · 展开细节 ▸`（`::after` ▸/▾，不用 emoji）。
 3. 展开区 `grid repeat(2,minmax(0,1fr))`；≤900px 单列（30 号规则：块内纵向、minmax(0,1fr)）。
-4. **打印规则必须写**：`@media print{.phase-detail{display:grid!important} summary::after,.ph-hint{display:none} .phase-fold{break-inside:avoid}}`——不写就丢内容。
+4. **打印展开必须用 `beforeprint` JS，不能只靠 CSS**（2026-10-25 实测修正：Chrome `printToPDF` 下 `@media print{.phase-detail{display:grid!important}}` **无效**——`<details>` 收起内容仍被 content-visibility 隐藏，PDF 只有 summary）：
+   ```js
+   (function printExpandFoldouts(){
+     let prior=null;
+     window.addEventListener('beforeprint',()=>{const f=[...document.querySelectorAll('details.phase-fold')];prior=f.map(d=>d.open);f.forEach(d=>{d.open=true;});});
+     window.addEventListener('afterprint',()=>{if(!prior)return;document.querySelectorAll('details.phase-fold').forEach((d,i)=>{d.open=Boolean(prior[i]);});prior=null;});
+   })();
+   ```
+   CSS 只保留 `@media print{summary::after,.ph-hint{display:none}.phase-fold{break-inside:avoid}}`。**验收必须用 printToPDF 实测正文存在，不能只断言 CSS 规则存在**。
 5. 折叠卡下方保留「计划 vs 实际」表与口径说明。
 
 ## 4. 数据形状（demo 与开发版同源）

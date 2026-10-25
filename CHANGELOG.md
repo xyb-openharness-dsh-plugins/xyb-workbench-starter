@@ -19,6 +19,10 @@
 
 # 变更记录
 
+## 2026-10-25 · 32 号修正：折叠卡打印展开必须 beforeprint JS（CSS 不够）
+
+ENDO 独立评审 P0-2 实测：Chrome `printToPDF` 下 `@media print{.phase-detail{display:grid!important}}` 对收起态 `<details>` 无效——PDF 只输出 summary，五块正文缺失（content-visibility 仍 hidden）。修正：**beforeprint 时设 `open=true`、afterprint 恢复**；验收改为 printToPDF 实测正文（不能只断言 CSS 规则存在）。MEL 0.3.1 同步修复为 0.3.2。
+
 ## 2026-10-25 · 新增 prompts/FULL-CYCLE-KICKOFF.md v1.0（M0–M9 全流程启动提示词）
 
 六轮实战（GBM/MPM/THY/MEL/MM/ENDO）收敛为一键启动提示词：
