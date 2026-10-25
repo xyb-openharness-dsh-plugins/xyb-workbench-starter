@@ -17,6 +17,22 @@
 - **`docs/33-README-SCREENSHOTS.md`**（用户 2026-10-25 指示，**默认生效**）：测试截图入 README 说明关键功能——何时截（G2 后原型、M6 后真机、发版前刷新）、截哪 5 类（看板/癌种差异首屏/一图秀/红线页/折叠展开态）、放 `docs/screenshots/` 命名 `readme-<功能>-<版本>.png`、质量与红线（1440/真实渲染/无 PII/私密不入图）、README 固定五段结构、`check-readme-assets.mjs` 验收。
 - 挂钩：ZERO-TO-DEV §2.4 交付清单、CANCER-KICKOFF M6 流程。
 
+## 2026-10-25 · 1.5.6 激活烟测随 init 下发：真跑 apply()，复刻宿主 7 条 register 校验
+
+1.5.4 把宿主的静态校验抄成了 `check-host-contract.mjs`（正则比对字面量）。它拦得住写错数字，
+拦不住 `apply()` 里任何一处抛错——而 `web boot: 1 entry did not activate` 这两种都会报。
+
+新增 `templates/smoke-activate.mjs` → 派生项目得到 `scripts/smoke-activate.mjs`：
+桩件喂 `window.__ModuleLoader__` 与 `ctx`，真跑 `factory(require)` → `apply(ctx)` → `register(descriptor, Component)`，
+并按宿主原文逐条校验 title / Component / repository 正则 / customFrame / headerLayout / businessSide / businessWidth。
+
+- 接进派生项目的 `npm run check`，另有 `npm run smoke:activate` 单独跑
+- **反向对照随措辞一起下发**：把 `businessWidth` 改成 0.72（真实崩过 Desktop 的值）必须退出码 1
+- 证据等级写清：桩件复刻的是**规则**不是宿主运行时，只能证明「描述符合法、apply 不抛」，
+  不证明「渲染进程加载成功」——后者只有重启 Desktop 能验
+
+`npm test` 39/39。
+
 ## 2026-10-25 · 1.5.5 参考图不再随包：assets/ 只放运行时要用的东西
 
 `assets/reference/metric-trends/{breast-records,lymphoma-metrics}.png`（1.1MB）是**设计参考**，

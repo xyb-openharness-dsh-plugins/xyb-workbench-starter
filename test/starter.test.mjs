@@ -37,6 +37,23 @@ test('ships the host-contract gate (businessWidth > 0.7 crashes the target Deskt
  const gateRun=run(join(p.target,'scripts/check-host-contract.mjs'),[],p.target)
  assert.equal(gateRun.status,0,gateRun.stderr)
 })
+test('ships the activation smoke test (apply() must run, host 7 checks must pass, 0.72 must fail)',async t=>{
+ const p=await fixture(t,config);const r=init(p);assert.equal(r.status,0,r.stderr)
+ const pkg=JSON.parse(await readFile(join(p.target,'package.json'),'utf8'))
+ assert.match(pkg.scripts.check,/smoke-activate/)
+ assert.match(pkg.scripts['smoke:activate'],/smoke-activate/)
+ // 正例：生成的骨架必须真的能走完 apply() -> register()
+ const ok=run(join(p.target,'scripts/smoke-activate.mjs'),[],p.target)
+ assert.equal(ok.status,0,ok.stderr);assert.match(ok.stdout,/apply\(\) 走通/)
+ // 反向对照：宿主硬上限 0.7 的越界值必须被判死，否则烟测只是个新的错觉来源。
+ // business-first 骨架不写 businessWidth（走宿主默认），所以拿 split 那份注入越界值。
+ const sp=await fixture(t,{...config,layoutMode:'split'});assert.equal(init(sp).status,0)
+ const client=join(sp.target,'lib/client.js')
+ assert.match(await readFile(client,'utf8'),/businessWidth/)
+ await writeFile(client,(await readFile(client,'utf8')).replace(/"businessWidth": *[0-9.]+/,'"businessWidth":0.72'))
+ const bad=run(join(sp.target,'scripts/smoke-activate.mjs'),[],sp.target)
+ assert.notEqual(bad.status,0);assert.match(bad.stderr+bad.stdout,/between 0\.25 and 0\.7/)
+})
 test('unclear business requirement, unsafe slug/repository, invalid layout reject before writes',async t=>{
  for(const delta of [{targetUsers:''},{coreFlow:[]},{slug:'../../escape'},{repository:'https://not-github.invalid/a/b'},{layoutMode:'unknown'},{layoutMode:'split',businessWidth:.9},{layoutMode:'business-first',businessWidth:.72},{layoutMode:'business-first',businessWidth:.2}]){
   const f=await fixture(t,{...config,...delta});assert.notEqual(init(f).status,0);await assert.rejects(access(f.target))
