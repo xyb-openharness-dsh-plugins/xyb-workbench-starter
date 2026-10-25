@@ -31,7 +31,7 @@ init后先读取并向用户展示 `docs/DESIGN-PROMPT.md` 的实际路径，以
 
 ## 整页视图（内容多的东西不塞弹窗）
 
-从主页点开的内容，**预计超过 1.5 屏或需要内部分区就开一整页**，不要做 480px 弹窗。按 [docs/32-FULL-PAGE-VIEW.md](docs/32-FULL-PAGE-VIEW.md) 做，用 `assets/patterns/page-view.js` + `page-view.css`，项目清单填 `docs/FULL-PAGE-VIEW.md`（模板 `templates/FULL-PAGE-VIEW.md`）。三条不可让步：①**返回与关闭是两个入口**，只给 ✕ 不合格；②**关掉后主页停在原来的滚动位置、焦点回到触发元素**；③**Esc 与浏览器返回键都只退一层**，深 3 层不许一按全关。history 是导航栈的唯一真源——禁止用 `replaceState` 假装退栈（会多出一条假位置，返回键直接错位）。A1–A10 用 `node scripts/probe-page-view.mjs` 验（家族骨架自带演示与探针）；改导航行为必须同时跑 `--self-test` 反向对照，只跑正测的闸门等于没有闸门。既有项目不回溯改造，下一轮动到该页时升级。
+从主页点开的内容，**预计超过 1.5 屏或需要内部分区就开一整页**，不要做 480px 弹窗。按 [docs/32-FULL-PAGE-VIEW.md](docs/32-FULL-PAGE-VIEW.md) 做，用 `assets/patterns/page-view.js` + `page-view.css`，项目清单填 `docs/FULL-PAGE-VIEW.md`（模板 `templates/FULL-PAGE-VIEW.md`）。三条不可让步：①**返回与关闭是两个入口**，只给 ✕ 不合格；②**关掉后主页停在原来的滚动位置、焦点回到触发元素**；③**Esc 与浏览器返回键都只退一层**，深 3 层不许一按全关。history 是导航栈的唯一真源——禁止用 `replaceState` 假装退栈（会多出一条假位置，返回键直接错位）。原型要双击 `index.html` 就能开 → **`file://` 下不能 `import` ES module**，把实现内联成单文件（去掉 `export `、包 IIFE 挂 `window.createPageView`），做法见 `examples/page-view-standalone.html`。A1–A10 用 `node scripts/probe-page-view.mjs` 验（家族骨架自带演示与探针）；改导航行为必须同时跑 `--self-test` 反向对照，只跑正测的闸门等于没有闸门。既有项目不回溯改造，下一轮动到该页时升级。
 
 ## 指标趋势 Tab 与 3D 卡片
 

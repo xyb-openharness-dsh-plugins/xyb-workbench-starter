@@ -10,6 +10,7 @@
 - **新增 `scripts/probe-page-view.mjs`**：A1–A10 共 13 条真 Chrome 断言 + `--self-test` 反向对照，随 `init` 下发、`package.json` 加 `probe:page-view`。**实测抓到三个真问题**：① `back()` 用 `replaceState` 假装退栈 → history 多出一条假位置，浏览器返回键退到错位（改 history 驱动）；② 鼠标点击在多浏览器不给按钮焦点，只记 `activeElement` 会让 A4 形同虚设（补 `pointerdown` 落点兜底）；③ 探针自身两处错对象——`page.click` 会先 `scrollIntoView` 把主页滚回顶部（A5 永远测不出真问题），带 hash 的 `goto` 属同文档导航、模块不重跑（A7 假失败）。修正后 13/13 绿，自测 3 条 FAIL。
 - **`templates/FULL-PAGE-VIEW.md`** 项目实例模板（形态判定表/整页清单/导航口径/分区表/A1–A10 证据表），`init` 生成 `docs/FULL-PAGE-VIEW.md`。
 - **入口接线**：AGENTS.md 新增「整页视图」硬约束段（返回与关闭两个入口、回原滚动位置、Esc 与返回键只退一层、禁止 `replaceState` 假退栈）；`prompts/ZERO-TO-DEV.md` §1.4 加进原型必查件；`docs/07` 补「容器形态：先定弹窗还是整页」；`assets` manifest 与 README 同步。
+- **补 `examples/page-view-standalone.html`（同日追加）**：ES module 在 `file://` 下被 CORS 拦，而家族硬要求是「原型双击 `index.html` 就能开」——两者冲突。所以单文件演示把 `export ` 去掉、包 IIFE 挂 `window.createPageView`、CSS 内联，真 Chrome 以 `file://` 实测能开、0 error。**原型里不要 `import`，要内联**，写进 32 号与 AGENTS。
 - **`docs/LESSONS.md` 追加第 14 类**：导航栈不能"看起来退了"——`replaceState` 会让 URL 与返回键错位，验收必须在真浏览器上按返回键。
 
 ## 2026-10-25 · 1.5.2 产物级页签验收随包下发 + 教训 11/12/13

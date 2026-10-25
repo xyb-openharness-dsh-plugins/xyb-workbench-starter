@@ -6,7 +6,12 @@
 
 这条规范把该意见固化成家族可执行的设计：**内容多的东西不要塞弹窗，点开就是一整页；关掉要能回到刚才那一页，不是回到顶部。**
 
-可运行参考实现：`assets/patterns/page-view.js` + `assets/patterns/page-view.css`，演示见 `examples/page-view.html`。项目实例填写 `templates/FULL-PAGE-VIEW.md`。
+可运行参考实现：`assets/patterns/page-view.js` + `assets/patterns/page-view.css`，演示见 `examples/page-view.html`（走本地端口）与 `examples/page-view-standalone.html`（单文件、双击可开）。项目实例填写 `templates/FULL-PAGE-VIEW.md`。
+
+> **`file://` 的坑（必读）**：ES module 在 `file://` 下被 CORS 拦，`<script type="module">` 直接白屏。
+> 而家族的硬要求是「原型双击 `index.html` 就能开」。所以**原型里要内联**，不要 `import`：
+> 把 `page-view.js` 的 `export ` 去掉、包一层 IIFE 挂到 `window.createPageView`，CSS 整段塞进 `<style>`。
+> 参考做法看 `examples/page-view-standalone.html`（就是由上面两个文件生成的）。宿主里的正式页面可以正常 `import`。
 
 ---
 

@@ -7,7 +7,9 @@
 | `page-view.js` | [32 号整页视图](../../docs/32-FULL-PAGE-VIEW.md) | 整页视图导航栈：压栈/退一层/关闭、Esc 一层一退、浏览器返回键等价 `back()`、`#page=` 深链、焦点与滚动位置恢复 |
 | `page-view.css` | 同上 | 结构样式：一层遮罩、`clamp` 内边距、56px sticky 顶栏、1180px 内容宽、窄屏整屏、减少动效 |
 
-演示：`examples/page-view.html`（三层，可直接点）。验收：`node scripts/probe-page-view.mjs`（A1–A10，13 条断言；`--self-test` 做反向对照）。
+演示：`examples/page-view.html`（三层，需走本地端口，因为是 ESM）、`examples/page-view-standalone.html`（单文件内联版，**双击就能开**）。
+
+**`file://` 必须内联**：原型要双击可开，就不能 `import`——把 `page-view.js` 的 `export ` 去掉、包 IIFE 挂 `window.createPageView`，CSS 塞进 `<style>`；单文件演示就是这么做出来的。验收：`node scripts/probe-page-view.mjs`（A1–A10，13 条断言；`--self-test` 做反向对照）。
 
 ## 用的时候要改什么
 
