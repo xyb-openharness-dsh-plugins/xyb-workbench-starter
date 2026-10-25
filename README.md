@@ -1,5 +1,9 @@
 # 小胰宝 / 小x宝社区 Workbench 开发脚手架
 
+## Git开发快照 · 2026-10-25（三）整页视图进骨架
+
+用户点名把 `dsh-shopping-workbench` 的「点开就是一整页、关掉回主页/前一页」设计**保留到脚手架**，理由是"现有弹窗空间太小，功能无法扩大"。落地成 [32 号整页视图](docs/32-FULL-PAGE-VIEW.md) + 可运行实现 `assets/patterns/page-view.{js,css}` + 演示 `examples/page-view.html` + 13 条断言探针 `scripts/probe-page-view.mjs`（含 `--self-test` 反向对照）。三条硬约束：**返回与关闭是两个入口**、**关掉回原滚动位置且焦点回触发者**、**Esc 与浏览器返回键各只退一层**。history 是导航栈唯一真源，禁用 `replaceState` 假装退栈。项目清单填 `docs/FULL-PAGE-VIEW.md`（`init` 生成）。包版本 `1.5.3`。
+
 ## Git开发快照 · 2026-10-24（二）
 
 新增 [提示词 PROGRESS-REPORT](prompts/PROGRESS-REPORT.md)：把「看看现在到哪了 / 更新下进度条」这类请求固化成一套口径——先读 VERSION / DEV-PLAN / SIGNOFF / RELEASE / CHANGELOG / git log，再按 **A–G 结构**（一句话现状 → 进度条 → 里程碑表 → 用户能感知的事 → 踩过的坑 → 下一步三步 → 未验证清单）输出。四条口径不许放宽：**判据可验证 / 签认只认原话 / 三态分开写 / push≠发布**。它管"怎么讲给非工程读者"，判据与状态的唯一来源仍是 `docs/DEV-PLAN.md`（两者数字打架以 DEV-PLAN 为准，并当场修正 DEV-PLAN）。随 `init` 下发到新项目；已激活在 [CONTINUE](prompts/CONTINUE.md)（用户说"继续/汇报"时自动套用）、[ZERO-TO-DEV](prompts/ZERO-TO-DEV.md) 阶段汇报条、[22 号](docs/22-PHASES-AND-GATES.md)「最容易踩的坑」第 6 条。

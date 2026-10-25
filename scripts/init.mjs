@@ -79,7 +79,8 @@ async function main() {
       // 产物级验收：对**装进去的那一份**起服务并点页签，而不是对源码树。
       // 源码树跑得通完全不能说明装进去跑得通（files 白名单漏一个目录就够）。
       'probe:artifact': 'node scripts/serve-artifact.mjs',
-      'probe:tabs': 'python3 scripts/verify-tabs-on-artifact.py'
+      'probe:tabs': 'python3 scripts/verify-tabs-on-artifact.py',
+      'probe:page-view': 'node scripts/probe-page-view.mjs'
     },
     dsh: { bundle: { patch: './cordis.patch.yml' }, client: { platform: 'web', inject: ['dsh-desktop-workbenches'] } },
     repository: { type: 'git', url: cfg.repository },
@@ -112,12 +113,15 @@ async function main() {
   plan.set('project.config.json', Buffer.from(JSON.stringify(cfg,null,2)+'\n'))
   plan.set('docs/BRIEF.md', Buffer.from(`# 需求起点\n\n来源：初始化配置。用户、场景和流程是有效的SPEC互动素材；继承会话中已有明确确认，其余不能仅因配置通过校验就当成设计定稿或研究验证。\n\n目标用户：${cfg.targetUsers}\n\n场景：${cfg.scenario}\n\n核心流程：\n${cfg.coreFlow.map((s,i)=>`${i+1}. ${s}`).join('\n')}\n\n完成结果：${cfg.completion}\n\n初始布局选择：${cfg.layoutMode}\n\n先读取 docs/DESIGN-PROMPT.md，对齐设计者与研究/取舍原则，再逐项完善SPEC。待补：确认来源、Desktop 版本/平台、原型 hash、当前授权与离线/联网边界。\n`))
   for (const name of ['SPEC','TASKS','ACCEPTANCE','RELEASE']) plan.set('docs/'+name+'.md', await readFile(join(starter,'templates',name+'.md')))
-  for (const name of ['DESIGNER-BRIEF','DESIGN-SESSION','DESIGN-REVIEW','SCHEMA','API-CONTRACT','UI-DESIGN','SETTINGS-DESIGN','PROTOTYPE-REVIEW','HVT-REVIEW','ONE-CHART-SPEC','METRIC-TREND-SPEC']) plan.set('docs/'+name+'.md', await readFile(join(starter,'templates',name+'.md')))
+  for (const name of ['DESIGNER-BRIEF','DESIGN-SESSION','DESIGN-REVIEW','SCHEMA','API-CONTRACT','UI-DESIGN','SETTINGS-DESIGN','PROTOTYPE-REVIEW','HVT-REVIEW','ONE-CHART-SPEC','METRIC-TREND-SPEC','FULL-PAGE-VIEW']) plan.set('docs/'+name+'.md', await readFile(join(starter,'templates',name+'.md')))
   plan.set('docs/17-CLOSED-LOOP-PROJECT-FLOW.md', await readFile(join(starter,'docs/17-CLOSED-LOOP-PROJECT-FLOW.md')))
   plan.set('docs/PARITY.csv', await readFile(join(starter,'templates/PARITY.csv')))
   // 以真实 npm pack 清单为对象的装机测试：静态检查只看源码树，看不出发出去少了什么。
   plan.set('test/pack-contents.test.mjs', await readFile(join(starter,'templates/test-pack-contents.test.mjs')))
   plan.set('docs/DESIGN-PROMPT.md', await readFile(join(starter,'prompts/DESIGNER-FIRST.md')))
+  // 32 号整页视图的 A1–A10 验收探针随项目下发：项目自带的 examples/page-view.html 就是它的对象，
+  // 改造业务页时以它为起点，别从零写一套断言。
+  plan.set('scripts/probe-page-view.mjs', await readFile(join(starter,'scripts/probe-page-view.mjs')))
   // Preflight every planned path before creating anything. No silent overwrite or symlink traversal.
   let starterMetadata = {name:'dsh-wb-cli',version:'unknown'}, revision = null, dirty = null
   try { starterMetadata = JSON.parse(await readFile(join(starter,'package.json'),'utf8')) } catch {}

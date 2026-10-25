@@ -1,5 +1,17 @@
 # 变更记录
 
+## 2026-10-25 · 1.5.3 整页视图（32 号）——内容多的东西不再塞弹窗
+
+来源：用户评审 `dsh-shopping-workbench` 后的原话——「注意点击打开新页面，空间和内容更加丰富的设计，页面关闭后返回工作台主页或前一页。这个设计很不错，保留到脚手架，现有弹窗空间太小，功能无法扩大。」读源码后确认：参考仓库本身是 `<dialog class="drawer">` 做成近整页（`inset:12px` + `height:calc(100dvh-24px)`），**没有"返回前一页"**，那一层得自己补。
+
+- **新增 `docs/32-FULL-PAGE-VIEW.md`**：三层视图模型（主页/整页/二级整页）、弹窗与整页的**唯一判据**（内容超 1.5 屏或需分区 → 整页）、布局规格写死（`inset: clamp(8px,1.2vw,16px)`、56px sticky 顶栏、1180px 内容宽、只有 `.pv-body` 滚、≤760px 整屏）、焦点/滚动/减少动效四条、**A1–A10 验收表**与五条反例。
+- **新增 `assets/patterns/page-view.js` + `page-view.css`**：无依赖参考实现。导航栈 `open/back/close/home`，**history 是唯一真源**；Esc 一层一退；`#page=` 深链；每层记住自己的 `scrollTop`；关闭后焦点回触发者。
+- **新增 `examples/page-view.html`**：三层可点演示，`file://` 之外走本地端口即可（ESM 需 http）。
+- **新增 `scripts/probe-page-view.mjs`**：A1–A10 共 13 条真 Chrome 断言 + `--self-test` 反向对照，随 `init` 下发、`package.json` 加 `probe:page-view`。**实测抓到三个真问题**：① `back()` 用 `replaceState` 假装退栈 → history 多出一条假位置，浏览器返回键退到错位（改 history 驱动）；② 鼠标点击在多浏览器不给按钮焦点，只记 `activeElement` 会让 A4 形同虚设（补 `pointerdown` 落点兜底）；③ 探针自身两处错对象——`page.click` 会先 `scrollIntoView` 把主页滚回顶部（A5 永远测不出真问题），带 hash 的 `goto` 属同文档导航、模块不重跑（A7 假失败）。修正后 13/13 绿，自测 3 条 FAIL。
+- **`templates/FULL-PAGE-VIEW.md`** 项目实例模板（形态判定表/整页清单/导航口径/分区表/A1–A10 证据表），`init` 生成 `docs/FULL-PAGE-VIEW.md`。
+- **入口接线**：AGENTS.md 新增「整页视图」硬约束段（返回与关闭两个入口、回原滚动位置、Esc 与返回键只退一层、禁止 `replaceState` 假退栈）；`prompts/ZERO-TO-DEV.md` §1.4 加进原型必查件；`docs/07` 补「容器形态：先定弹窗还是整页」；`assets` manifest 与 README 同步。
+- **`docs/LESSONS.md` 追加第 14 类**：导航栈不能"看起来退了"——`replaceState` 会让 URL 与返回键错位，验收必须在真浏览器上按返回键。
+
 ## 2026-10-25 · 1.5.2 产物级页签验收随包下发 + 教训 11/12/13
 
 来源：头颈癌工作台（`head-neck-workbench`）M5/M6 实测——三个缺陷都不是「代码写错」，而是**验收位置错了**：一直在源码树上验，没有在装进去的那一份上验。

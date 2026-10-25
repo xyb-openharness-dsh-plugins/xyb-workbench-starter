@@ -29,6 +29,10 @@ init后先读取并向用户展示 `docs/DESIGN-PROMPT.md` 的实际路径，以
 
 设计或改造一图秀时，同时读取 [prompts/TIMELINE-MOTION-AND-EVENTS.md](prompts/TIMELINE-MOTION-AND-EVENTS.md)，把动画重播、独立事件泳道、事件标签与节点同ID联动、日期映射、减少动效终态纳入原型和 parity 审核。提示词参数是复刻目标，不是已完成证据；先用HTML呈现并记录确认范围，再同步正式工作台。品牌与医学场景按项目适配。
 
+## 整页视图（内容多的东西不塞弹窗）
+
+从主页点开的内容，**预计超过 1.5 屏或需要内部分区就开一整页**，不要做 480px 弹窗。按 [docs/32-FULL-PAGE-VIEW.md](docs/32-FULL-PAGE-VIEW.md) 做，用 `assets/patterns/page-view.js` + `page-view.css`，项目清单填 `docs/FULL-PAGE-VIEW.md`（模板 `templates/FULL-PAGE-VIEW.md`）。三条不可让步：①**返回与关闭是两个入口**，只给 ✕ 不合格；②**关掉后主页停在原来的滚动位置、焦点回到触发元素**；③**Esc 与浏览器返回键都只退一层**，深 3 层不许一按全关。history 是导航栈的唯一真源——禁止用 `replaceState` 假装退栈（会多出一条假位置，返回键直接错位）。A1–A10 用 `node scripts/probe-page-view.mjs` 验（家族骨架自带演示与探针）；改导航行为必须同时跑 `--self-test` 反向对照，只跑正测的闸门等于没有闸门。既有项目不回溯改造，下一轮动到该页时升级。
+
 ## 指标趋势 Tab 与 3D 卡片
 
 有检验趋势/指标卡时，先读 [docs/24-METRIC-TREND-TAB-DESIGN.md](docs/24-METRIC-TREND-TAB-DESIGN.md)，填 `docs/METRIC-TREND-SPEC.md`（模板在 `templates/METRIC-TREND-SPEC.md`），复用提示词 `prompts/METRIC-TREND-TAB.md`。按病情整理五Tab建立来源→核对→档案→分类指标→汇总；疾病特有入口映射保留。卡片按类别分组，两列/窄容器单列；正面最近值/单位/可比差值/次数/日期/来源，背面固定高度3D rotateY趋势，不上下展开。方法/单位/机构变化拆可比组，数据点打开来源不冒泡，隐藏面inert；同一目录供指标页与一图秀共用。MT01–MT15在HTML中实际验证与确认，再接生产业务。大病例必须验证曲线不被事件撑出首屏。
