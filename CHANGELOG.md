@@ -1,3 +1,24 @@
+## 2026-10-25 · 1.6.x 从慢性淋巴细胞白血病（小淋宝 LymPal）回收：移植残留检查器
+
+从 `cervical-workbench` 移植引擎到 `cll-workbench` 时，**底本品牌名进了患者界面**：
+`src/client.js` 的 `TITLE` 还是「小莲宝 CerviPal」、`scripts/dev-server.mjs` 用法行同款、
+两个测试断言 `/小莲宝/`，共 14 处；随后新检查器又抓出 `scripts/check-pack.mjs` 仍在请求
+`/api/cervical/...`（装机自检会 404）——**这个缺陷靠人工 grep 漏了一轮**。
+
+- **`scripts/check-derivative-leftovers.mjs`（新增，随 init 下发并入 `npm run check`）**：
+  扫 `dsh/ lib/ public/ src/ demo/ scripts/ test/ prototypes/` + `README.md`，
+  命中底本病种/品牌词表（25 条，含 CerviPal/小莲宝/cervical/宫颈 + 家族各仓品牌）即红；
+  行尾 `leftover-allow` 可豁免并须写理由；检查器自身文件跳过（否则词表扫自己永远红）。
+  **自带 `--self-test`**：4 条正反例 + 1 条元断言（清空词表后脏样本不再命中，证明断言有牙齿）。
+  实测：对本仓 61 文件零命中；对移植中的 CLL 仓先抓出 4 处（check-pack 的旧前缀），修完转绿。
+- **`docs/LESSONS.md` 新增 L28–L31**（从 CLL 回流）：
+  L28 检查器读生成物要先剥注释、并回查常量字面量（底本注释里的 `customFrame=true` 被当成值）；
+  L29 换病种必须**整体重写**五套测试（底本断言的是它的业务表名/私密分节，改常量是假绿）；
+  L30 「数据只有一个来源」要在**生成器与原型两处逐点**钉住（只比末值会放过分叉序列）；
+  L31 装机 profile 不能凭 `~/.dsh` 推断（Desktop 实际用 `~/Library/Application Support/dsh-desktop/harness/profiles/web`，
+  装错会「装成功但界面永不出现」）。
+- **待实施**：`check-workbench-package` 增加「`files` 未含运行时会读的目录」断言（与 NF 回流待实施⑤之②合并）。
+
 ## 2026-10-25 · 28 号新增 IP11：每页头部「和 AI 讨论」（GTN v0.7.0 参照）
 
 每页标题行常驻「和 AI 讨论」按钮（拉起对话栏 + 携带本页关键信息 discussFacts，不代发）；顶栏五态开关承担拉起/隐藏原生对话栏；弹窗类内容内置讨论入口。GTN v0.7.0 为参照实现（47 原型断言含 3 条 IP11 断言）。

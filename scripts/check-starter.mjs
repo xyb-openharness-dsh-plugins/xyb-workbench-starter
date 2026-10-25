@@ -8,6 +8,8 @@ async function walk(path) {
   const files=[]
   for(const e of await readdir(path,{withFileTypes:true})) {
     if(e.name==='node_modules'||e.name==='.git') continue
+    /* macOS 在 exFAT/U 盘上生成的 AppleDouble 元数据文件（._xxx）：不是项目文件，跳过 */
+    if(e.name.startsWith('._')) continue
     const full=join(path,e.name)
     if(e.isDirectory()) files.push(...await walk(full));else files.push(full)
   }
@@ -17,7 +19,7 @@ const files=await walk(root)
 for(const name of ['docs/24-METRIC-TREND-TAB-DESIGN.md','templates/METRIC-TREND-SPEC.md','prompts/METRIC-TREND-TAB.md','README.md','CHANGELOG.md','AGENTS.md','spec/STARTER-SPEC.md','docs/SOURCES.md','docs/LESSONS.md','docs/09-WORKBENCH-STATUS.md','docs/10-MARKET-PUBLISHING.md','docs/11-REUSABLE-PATTERNS.md','docs/15-HVT-REVIEW.md','docs/16-ONE-CHART-SPEC.md','docs/18-MINERU-PARSING.md','scripts/check-conformance.mjs','docs/19-PROTOTYPE-CRAFT.md','docs/20-AGENT-PANE-DESIGN.md','docs/21-RESEARCH-PLAYBOOK.md','docs/22-PHASES-AND-GATES.md','examples/workbench-status.mjs','examples/progressive-disclosure.html','examples/mineru-labparse-align.mjs','templates/MARKET-ACCEPTANCE.md','templates/HVT-REVIEW.md','templates/ONE-CHART-SPEC.md','prompts/MARKET-PUBLISH.md','project.config.example.json','prompts/DESIGNER-FIRST.md','prompts/NEW-CANCER-WORKBENCH.md','templates/DESIGNER-BRIEF.md','templates/DESIGN-REVIEW.md','docs/13-DESIGNER-FIRST.md','docs/14-HTML-AND-DATA-CONTRACT.md','templates/PROTOTYPE-REVIEW.md','templates/SETTINGS-DESIGN.md','project-template/scripts/serve-artifact.mjs','project-template/scripts/verify-tabs-on-artifact.py','project-template/test/pack-contents.test.mjs','project-template/scripts/check-assertion-strength.mjs','docs/32-FULL-PAGE-VIEW.md','templates/FULL-PAGE-VIEW.md','assets/patterns/page-view.js','assets/patterns/page-view.css','examples/page-view.html','examples/page-view-standalone.html','scripts/probe-page-view.mjs','docs/36-DISEASE-PRIMER.md','templates/DISEASE-PRIMER.md','assets/patterns/disease-primer.js','assets/patterns/disease-primer.css','examples/disease-primer.html','examples/disease-primer-data.js','scripts/probe-disease-primer.mjs']) {
   try {await readFile(join(root,name))}catch{errors.push('Missing '+name)}
 }
-for(const path of files.filter(p=>p.endsWith('.json'))) {
+for(const path of files.filter(p=>p.endsWith('.json')&&!p.split('/').pop().startsWith('._'))) {
   try{JSON.parse(await readFile(path,'utf8'))}catch(e){errors.push('Invalid JSON '+path+': '+e.message)}
 }
 for(const path of files.filter(p=>p.endsWith('.md')&&!p.includes('/reference/'))) {

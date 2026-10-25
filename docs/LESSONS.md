@@ -1,3 +1,57 @@
+## 2026-10-25 · 从慢性淋巴细胞白血病小淋宝 LymPal（cll-workbench v0.2.0）回收
+
+### L28 · 移植底本的检查器会把**底本病种名**当成本项目的期望值
+
+`scripts/check-host-contract.mjs` 从「底本 + 布局」拼出的字符串里正则找 `customFrame`。
+底本头部注释里写着「面板 customFrame=true · 业务 left 0.65」，而本项目的真实值是
+`const CUSTOM_FRAME = String(PANEL.customFrame === true)`（生成物里的常量引用）。三轮修法都不对：
+
+1. 先报 `true · 业务 left 0.65`（注释被当值）→ 只剥 `//`/`/*` 行头，**没剥块注释续行 ` * `**；
+2. 再报 `'true' === 'true'`（常量赋值式被当值）→ 把正则收窄成 `customFrame:\s*` 对象属性形态；
+3. 最终仍报 `CUSTOM_FRAME`（属性值本身是常量）→ 还要**解析常量定义**取字面量。
+
+**规则（可做成断言）**：检查器读生成物时，**先剥注释再匹配**，且属性值允许「常量名」——
+需回查 `const NAME = 'true'|'false'` 的定义。判据：把底本原样换成新病种，检查器应直接绿；
+若不绿，问题在检查器不在项目。
+
+### L29 · 五套测试是按底本**业务形状**写的，换病种必须整体重写而不是改常量
+
+底本的 `store/server/import-export/demo-parity/ui-parity` 断言的是 `metric_points`、`documents`、
+`candidate_fields`、私密分节 `vagina/sexual`。直接 `sed` 换病种名 → 31/42 红（不是环境问题，是形状不符）。
+CLL 的 19 表与 cervical 的 18 分节没有任何一列同名。
+
+**规则**：移植第一步先跑一遍底本测试，把红项按「形状不符 / 环境不符」分类；形状不符的一律
+**按本项目 schema 重写**（本仓重写后 41/41）。改常量能让它变绿的那种改法是假绿。
+
+### L30 · 「数据只有一个来源」要在**两处**同时钉住：生成器与原型
+
+原型（视觉基准）与 demo 生成器（入库基准）各有一份血象序列时，日期与点数会悄悄分叉
+（原型 10 点 2024-11 起 / 生成器 9 点 2024-03 起）。**正确方向是生成器服从原型**——
+原型是签认过的视觉基准，生成器跟它对齐后，parity 测试才有意义。
+
+**可断言**：`test/demo-parity` 里逐点 `deepStrictEqual(原型点位, 生成器点位)`，
+而不只比点数或末值。只比末值时两条不同序列也可能通过。
+
+### L31 · 装机目标 profile 不能凭 `~/.dsh` 推断
+
+本机同时存在两套：`~/.dsh/profiles/desktop`（通用 CLI）与
+`~/Library/Application Support/dsh-desktop/harness/profiles/web`（DSH Desktop app 实际使用）。
+按 06 号做「装到 ~/.dsh」会**装成功但 Desktop 永远看不到**，而 `verify-desktop-load` 会如实报
+「装机目录 未安装」。
+
+**规则（可做成断言）**：装机前先读 `desktop-workbenches/state.json` 的 `added` 数组——
+里面出现的 workbench 说明宿主认这个 profile；再用 `~/Library/Logs/DSH Desktop/harness.log`
+里出现的 `profiles/<名字>/node_modules` 路径交叉确认。两处一致才动手装。
+
+### 待实施⑦（下轮进检查器）
+
+- `check-workbench-package`：移植自底本时，若 `package.json` 的 `files` 未包含运行时会读的目录
+  （`schema`/`public`/`demo`），报红（与 NF 回流待实施⑤之②合并实现）。
+- 新增 `check-derivative-leftovers`：扫 `dsh/ lib/ public/ src/ test/ scripts/` 里出现
+  **底本病种名/底本品牌名**（如 `cervical`/`CerviPal`/`小莲宝`/`宫颈`）即报红。
+  本轮实测残留 14 处（`src/client.js` 标题、`dev-server.mjs` 用法行、两个测试的 brand 断言），
+  人工 `grep` 才清掉；这类残留会直接出现在患者界面上。
+
 ## 2026-10-25 · **假面孔 C：被空值骗过的真**
 
 慢性粒细胞白血病工作台（小粒宝）第四轮独立评审抓到的，比前两副面孔更隐蔽——**它不是假失败也不是假通过，是一条"证据看起来完备"的假通过**。

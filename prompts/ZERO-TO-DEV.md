@@ -142,7 +142,9 @@
 - 原型四件套 `prototypes/v0.2/{index.html, style.css, app.js, demo-data.js}`，`file://` 直接可开、无构建；  
   视觉只换 3 个品牌变量 + 品牌字 + 英文名，其余沿用家族骨架。
 - 四个必查件：① 每个二级页签与内容一一对应（穷举 `(view, sub)`）；② 首页右上角 AI 对话能开 / 收起 / 调宽；  
-  ③ 一图秀严格按原型（单调三次插值、末点 13px 避让、分类序列只画节点不连线）；  
+  ③ 一图秀严格按原型（单调三次插值、末点 13px 避让、分类序列只画节点不连线；**左栏控制版式与全期归一化/图例区间/pin 读数见 ONE-CHART-SPEC 2026-10-25 增补**）；
+  ③b 移植底本后**先跑 `node scripts/check-derivative-leftovers.mjs .`**：底本品牌名/病种名/接口前缀残留会直接出现在患者界面（CLL 实测 14+4 处）；
+  ③c 五套测试按本项目 schema **整体重写**，不改底本常量（LESSONS L29）；
   ④ 3D 卡整卡 180°、背面是迷你折线、分类记录不翻不连线。
 - **整页视图（32 号，2026-10-25 起）**：内容超过 1.5 屏或需要分区的交互（记录详情、报告原文、全屏图表、  
   日历、多字段编辑、逐题量表）**从主页点开就是一整页**，不做 480px 弹窗；弹窗只留确认与小选择。  
@@ -345,7 +347,7 @@ research/<癌种>-cancer/{manifest.json,trials-<年>.jsonl,<癌种>_cancer_trial
 assets/reference/ctcae/*.pdf + README.md
 assets/reference/guideline/{refs.json,cadence.json}（接指南时）
 guidebooks/ + manifest.json（原件，不入包）
-prototypes/v0.2/{index.html,style.css,app.js,demo-data.js}（治疗线用折叠卡模版：starter docs/32）；指标系列卡用 3D 翻转卡模版：starter templates/FLIP-METRIC-CARD.md
+prototypes/v0.2/{index.html,style.css,app.js,demo-data.js}（治疗线用折叠卡模版：starter docs/32）；指标系列卡用 3D 翻转卡模版：starter templates/FLIP-METRIC-CARD.md（**固定尺寸原位翻转 + 正面四要素 + 背面 sparkline**，见该文件 2026-10-25 增补节）；一图秀左栏控制版式（时间 chips + 分组勾选即时更新 + 显示开关 + 点选 pin 读数）见 starter templates/ONE-CHART-SPEC.md 2026-10-25 增补节
 dsh/{index,server,store,workbench,demo,readmodels}.js (+ ctcae.js / guideline.js / cadence.js)
 lib/{client,layout,version}.js
 public/{index.html,style.css,shell.css,app.js}
