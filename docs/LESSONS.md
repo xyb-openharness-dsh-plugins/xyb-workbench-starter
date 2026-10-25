@@ -388,3 +388,24 @@ history 是导航栈的**唯一真源**：
 2. **反向对照不能省**：越界值必须退出码 1。只签绿灯的烟测是新的错觉来源。
 3. **静态闸门与动态烟测是两层**：静态查「写了什么」（覆盖全、跑得快），
    动态查「跑起来会不会炸」（覆盖真实执行路径）。两层都过才敢说「装进去能活」。
+
+## 「装进去了」不等于「界面加载了」：两个 app、两本日志（1.5.7）
+
+**症状**：包已安装、`diff -r` 0 差异、`dsh.profile.bundles` 已登记，
+可界面永远等不到，连续几轮都只能说「等你重启」。
+
+**两个真因**：
+
+1. **装到另一个 app 的 profile**。同一台机器可能同时有
+   `DSH Desktop.app`（工作台产品，`Library/Application Support/dsh-desktop/harness/profiles/web`）
+   与 `DeepSeek Harness.app`（Agent 宿主，命令行 `--profile ~/.dsh/profiles/desktop`，
+   bundles 里一个工作台都没有）。判据是**那个 profile 里有没有别的兄弟工作台**，
+   不是路径长得像不像。
+2. **把旧日志当新证据**。`harness.log` 里 `[renderer] …` 行不带时间戳，
+   上一版的 `did not activate` 会永远留在文件里——任何「扫日志找 failed」的脚本都会误报。
+   正确切法：用最后一条 `Harness process exited` 把文件切成「上次 / 本次运行段」。
+   顺手记一个细节：`web boot: 1 entry did not activate` **不带包名**，只按包名过滤会整条漏掉。
+
+**回流**：`templates/verify-desktop-load.mjs` 随 init 下发，给出四种结论
+（已加载 / 激活失败 / 未运行或未重启 / 已重启无迹象），并带五条反例测试。
+**核验脚本自己也要有反例**——它的两种误判都是靠假现场抓出来的，不是靠真机。

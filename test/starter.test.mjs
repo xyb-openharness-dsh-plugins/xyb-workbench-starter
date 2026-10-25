@@ -1,6 +1,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { mkdtemp, readFile, writeFile, mkdir, rm, cp, access, symlink } from 'node:fs/promises'
+import { mkdtempSync, mkdirSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, resolve, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -9,6 +10,7 @@ import { readOwnership } from '../examples/ownership-adapter.mjs'
 const root=resolve(dirname(fileURLToPath(import.meta.url)),'..')
 const config={ packageName:'@community/demo-workbench',title:'测试工作台',repository:'https://github.com/community/demo-workbench',description:'仅离线生成检查，不安装到宿主',slug:'demo-workbench',layoutMode:'business-first',businessWidth:.65,targetUsers:'虚构测试用户',scenario:'管理虚构任务记录',coreFlow:['打开列表','记录并回顾结果'],completion:'可回顾的虚构条目' }
 const run=(file,args=[],cwd=root)=>spawnSync(process.execPath,[file,...args],{cwd,encoding:'utf8',timeout:20000})
+const runEnv=(file,args=[],env=process.env)=>spawnSync(process.execPath,[file,...args],{env,encoding:'utf8',timeout:20000})
 async function fixture(t,cfg=config){const dir=await mkdtemp(join(tmpdir(),'wb-starter-'));t.after(()=>rm(dir,{recursive:true,force:true}));const source=join(dir,'config.json');await writeFile(source,JSON.stringify(cfg));return {dir,source,target:join(dir,'project')}}
 const init=(f,source=root,extra=[])=>run(join(source,'scripts/init.mjs'),['--config',f.source,'--target',f.target,...extra])
 test('dry run writes nothing; generate split/customFrame; refuse overwrite without changing files',async t=>{
@@ -53,6 +55,33 @@ test('ships the activation smoke test (apply() must run, host 7 checks must pass
  await writeFile(client,(await readFile(client,'utf8')).replace(/"businessWidth": *[0-9.]+/,'"businessWidth":0.72'))
  const bad=run(join(sp.target,'scripts/smoke-activate.mjs'),[],sp.target)
  assert.notEqual(bad.status,0);assert.match(bad.stderr+bad.stdout,/between 0\.25 and 0\.7/)
+})
+test('ships the desktop-load verifier (two apps / stale log lines must not be misread)',async t=>{
+ const p=await fixture(t,config);const r=init(p);assert.equal(r.status,0,r.stderr)
+ const pkg=JSON.parse(await readFile(join(p.target,'package.json'),'utf8'))
+ assert.match(pkg.scripts['verify:desktop'],/verify-desktop-load/)
+ const script=join(p.target,'scripts/verify-desktop-load.mjs')
+ await access(script)
+ // 生成的项目还没装进宿主：必须给「未运行/未重启」这类可读结论，而不是抛栈
+ const out=run(script,[],p.target)
+ assert.match(out.stdout+out.stderr,/界面加载核验/)
+ assert.match(out.stdout,/DSH Desktop harness|dshHomePath/)
+ // 反例一：DSH Desktop 未运行（日志以 exited 收尾）→ 不许报「激活失败」
+ const fake=mkdtempSync(join(tmpdir(),'vd-'))
+ const harness=join(fake,'harness'),profile=join(harness,'profiles/web')
+ mkdirSync(join(profile,'node_modules',...JSON.parse(await readFile(join(p.target,'package.json'),'utf8')).name.split('/')),{recursive:true})
+ await writeFile(join(profile,'package.json'),JSON.stringify({dsh:{profile:{bundles:['@community/other-workbench']}}}))
+ mkdirSync(join(harness,'.xdpool'),{recursive:true})
+ await writeFile(join(harness,'.xdpool/startup.log'),'2026-01-01T00:00:00.000Z boot\n')
+ const log=join(fake,'harness.log')
+ await writeFile(log,['[renderer] web boot: 1 entry did not activate','[2026-01-01T00:05:00.000Z] +1ms [node] Harness process exited (exit code 0)'].join('\n')+'\n')
+ const notRunning=runEnv(script,[],{...process.env,HN_HARNESS:harness,HN_LOG:log})
+ assert.equal(notRunning.status,2,notRunning.stdout+notRunning.stderr)
+ assert.doesNotMatch(notRunning.stdout,/激活失败/)
+ // 反例二：本次运行段里的 did not activate 才算失败
+ await writeFile(log,['[2026-01-01T00:05:00.000Z] +1ms [node] Harness process exited (exit code 0)','[2026-01-01T09:00:00.000Z] +800ms [renderer] web boot: 1 entry did not activate'].join('\n')+'\n')
+ const failed=runEnv(script,[],{...process.env,HN_HARNESS:harness,HN_LOG:log})
+ assert.equal(failed.status,1,failed.stdout+failed.stderr)
 })
 test('unclear business requirement, unsafe slug/repository, invalid layout reject before writes',async t=>{
  for(const delta of [{targetUsers:''},{coreFlow:[]},{slug:'../../escape'},{repository:'https://not-github.invalid/a/b'},{layoutMode:'unknown'},{layoutMode:'split',businessWidth:.9},{layoutMode:'business-first',businessWidth:.72},{layoutMode:'business-first',businessWidth:.2}]){

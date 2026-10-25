@@ -69,6 +69,7 @@ async function main() {
   // 激活烟测：宿主 register() 的校验抄进桩件真跑一遍 apply()。静态闸门查「写了什么」，
   // 它查「跑起来会不会炸」——两层都要有。
   plan.set('scripts/smoke-activate.mjs', await readFile(join(starter,'templates/smoke-activate.mjs')))
+  plan.set('scripts/verify-desktop-load.mjs', await readFile(join(starter,'templates/verify-desktop-load.mjs')))
   // VERSION 是版本唯一来源（audit 的 version/file 与 version/pkg 都指着它）。
   plan.set('VERSION', '0.1.0\n')
   const manifest = {
@@ -79,6 +80,7 @@ async function main() {
       check: 'node --check dsh/index.js && node --check lib/client.js && node scripts/check-workbench-package.mjs . && node scripts/check-host-contract.mjs && node scripts/smoke-activate.mjs',
       'check:host': 'node scripts/check-host-contract.mjs',
       'smoke:activate': 'node scripts/smoke-activate.mjs',
+      'verify:desktop': 'node scripts/verify-desktop-load.mjs',
       // check 保持"从第一天就该是绿的"（语法 + 装包合同）；audit 是交付前的家族一致性闸口，
       // 新项目在做出 VERSION/lib/layout.js/测试之前必然有 fail，那是待办清单不是故障。
       test: 'node --test test/*.test.mjs',

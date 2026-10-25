@@ -1,3 +1,22 @@
+## 2026-10-25 · 1.5.7 界面加载核验随 init 下发：分清「装到哪个 app」与「旧日志不算数」
+
+装完包之后「界面到底加载了没有」是家族里反复踩的坑，两种误判各踩过一次：
+
+1. **装进另一个 app 的 profile**：本机可能同时装着 `DSH Desktop.app`（工作台产品，
+   profile 在 `Library/Application Support/dsh-desktop/harness/profiles/web`）与
+   `DeepSeek Harness.app`（Agent 宿主，profile 在 `~/.dsh/profiles/desktop`，bundles 里 0 个工作台）。
+   装到后者，重启一万次也不会加载。判据不是路径像不像，而是**目标 profile 里有没有别的兄弟工作台**。
+2. **把旧日志当新证据**：`harness.log` 里 `[renderer] …` 行**不带时间戳**，
+   上一版的 `did not activate` 会永远留在文件里。必须先用最后一条 `Harness process exited`
+   把文件切成「上次运行 / 本次运行段」，只看本次段；且 `did not activate` 这行**不带包名**，
+   只按包名过滤会漏掉整条信号。
+
+下发 `scripts/verify-desktop-load.mjs`（`npm run verify:desktop`）：只看宿主痕迹——本次运行段、
+装机 mtime 与启动先后、`dshHomePath` 数据目录、`desktop-workbenches/state.json`、profile 里的兄弟工作台数。
+退出码 0 已加载 / 1 激活失败 / 2 未运行或未重启 / 3 已重启无加载迹象。
+路径可用 `HN_HARNESS`、`HN_LOG` 覆盖（否则脚本无法自证）；测试含五条反例（未运行 / 旧日志不算数 /
+本次段失败 / 装错 profile / 已加载）。生成文件数 173。
+
 # 变更记录
 
 ## 2026-10-25 · 新增 prompts/FULL-CYCLE-KICKOFF.md v1.0（M0–M9 全流程启动提示词）
