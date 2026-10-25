@@ -83,6 +83,15 @@ assert(before === after);   // 恒成立——因为 before 和 after 都是空�
 **元教训（可直接做成断言）**：一条断言如果**在实现完全坏掉时也能通过**，它就不是断言，是装饰。
 写完立刻想一遍"我把核心逻辑删掉，这条还绿吗"——本项目那两条都会绿。
 
+## 2026-10-25 · 从神经纤维瘤病 v0.1.3 回收：profile 目录会被应用迁移
+
+**装包前先看运行中宿主的 argv**：`pgrep -fl "dsh-desktop-host/lib/index.js"` 第三个参数就是
+实际生效的 profile 目录。本轮应用已把 profile 从 `~/.dsh/profiles/desktop` 迁到
+`~/.dsh-classic/profiles/desktop`，旧目录被宿主重置为只剩 cordis.patch.yml 的空壳——
+往旧目录里登记依赖+bundles 一万次也不会加载。判据与 1.5.7「装到哪个 app」同源，这次是
+「装到哪个 profile 目录」。激活的硬证据：宿主按 `dshHomePath` 创建的数据目录里出现
+`schema_migrations` 有记录的 sqlite（真目录模式不灌演示数据，表计数 0 是正确行为）。
+
 ## 2026-10-25 · 从神经纤维瘤病小纤宝 FibroPal（neurofibromatosis-workbench v0.1.2）回收
 
 - **L26/L27 见上表**（真机 boot 的 ctx.config 未注入；files 漏 schema/）。**待实施⑤（下轮进检查器）**：`check-workbench-package` 增加——① `dsh/*.js` 出现 `ctx.config` 且对应 `apply(ctx` 无第二参 → 报错；② 存在 `dsh/store.js`（读 `../schema`）而 package.json files 缺 `schema` → 报错。
