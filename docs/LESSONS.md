@@ -409,3 +409,20 @@ history 是导航栈的**唯一真源**：
 **回流**：`templates/verify-desktop-load.mjs` 随 init 下发，给出四种结论
 （已加载 / 激活失败 / 未运行或未重启 / 已重启无迹象），并带五条反例测试。
 **核验脚本自己也要有反例**——它的两种误判都是靠假现场抓出来的，不是靠真机。
+
+## 2026-10-25 · 从肢端肥大症（acromegaly-workbench v0.2.0）回收
+
+1. **截屏脚本的"重复文件"陷阱**。原型走查截图 8 张里 settings.png 与
+   replacement.png md5 完全相同——设置页是 dialog，`#settings` 锚点不打开它，
+   截屏脚本拍到的是上一个页面。独立评审靠双 md5 比对抓出（P1）。
+   **切法：截 dialog 类页面必须先点开触发按钮再截；截图产物入库前做
+   全目录 md5 去重断言。**
+2. **罕见病中文词 0 命中 ≠ 无试验**。unified-trial-mcp 四通道里 CDE DENIED、
+   ChiCTR/ICTRP FAILED 时，中文标准名会全部 0 条，英文机制词
+   （growth hormone excess）才是 ctv 的有效命中词。manifest 里 FAILED/DENIED
+   不计覆盖，README 写"中文词 0 条（通道未过，待重试）"而不是"无相关试验"。
+3. **非肿瘤生化监测病种的路由词表要扩**：check-wording 除肿瘤判定词外须加
+   "生化控制/未控制/该查了"类随访判定词——判定归医生在罕见病随访场景
+   同样是一票否决。
+4. **多单位混现（ng/mL vs μg/L）从 schema 层解决**：metric_point.unit 逐行随附
+   + 脚注声明换算关系，趋势读模型不换算、照抄——避免任何"归一化即判定"的空间。
