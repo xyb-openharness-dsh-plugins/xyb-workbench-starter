@@ -252,6 +252,11 @@
 4. `public/`：`index.html`（三段式顶栏 + `#agent-splitter`/`#agent-hide`/`#agent-label` + `noindex` + 内联 favicon）、  
    `style.css`（原型 + 只改字号三处 + `[hidden]`）、`shell.css`、`app.js`。  
    `app.js` 用**复制原型 → 定点替换**迁移（数据加载、AI 五态、宽度、版本、启动异步化），不要手抄。
+   > **替换完必须清引用（2026-10-25 PF-ILD 实测）**：原型阶段页面里有 `<script src="demo-data.js">`，
+   > 开发版改成异步 `/api/bootstrap` 后没人再需要这个文件——**但标签很容易留在 `index.html` 里**。
+   > 它不会报错：请求 404 → SPA 兜底把 `index.html` 当 JS 返回 → `SyntaxError: Unexpected token '<'`
+   > → **整页脚本全废**，而 DOM 里 header/导航/卡片标题都在（HTML 本来就有），看起来像"能开但没数据"。
+   > 迁移后立刻跑 `node scripts/check-static-refs.mjs`，M5 之后它已进 `npm run check`。
    **数据加载替换必须两侧同验注入契约（GBM 踩 4）**：页面拼 `${API_BASE}/api/xxx` 时，契约定稿（v0.1.3）：**API_BASE = 挂载前缀（独立启动空串，宿主 `/api/<slug>`），页面统一拼 `${API_BASE}/api/xxx`，守卫只禁交界重复 `/api/api`（`/(^|/)api$/`），不许 `includes('/api')` 一刀切**——宿主前缀含 `/api` 是正常的。API_BASE 校验必须带双形态回归测试；启动期校验失败**渲染错误横幅，禁止裸 throw 白屏**。
 5. `scripts/`：`dev-server.mjs`、`build-version.mjs`、`check-{syntax,schema,wording,version,install}.mjs`、  
    `check-demo-columns.mjs`（执行 `schema/00*.sql` **全部**迁移再比对列）。
@@ -464,6 +469,10 @@ dsh-wb-cli audit <项目目录> --json   # 机器读（CI / 汇报）
 | 界面文案"看着对" | 状态由缺失推导，文案却反过来说结果（"超标了但缺上限"） | 逐条问：这句话的前提我有数据支持吗 |
 | 单测全绿但桌面端错 | 夹具比线上干净（手写 `10^9/L`，实际是 `$10^9/L$`） | 夹具用真实产物片段，去掉患者信息 |
 | "0 条结果" | 可能是通道没覆盖该癌种 | 每来源带覆盖声明；离线通道对非胰腺癌一律写"未配置" |
+| **页面"能打开"** | 可能是 HTML 还在、JS 全废了——`<script src>` 指向不存在的文件不会报错，只是安静地什么也不做；若静态层 SPA 兜底，还会把 `index.html` 当 JS 递过去，控制台只有一句和真正原因无关的 `Unexpected token '<'` | 打开 DevTools 看 Console 是否 0 error；跑 `check-static-refs.mjs`；把被引用文件临时改名，看页面是否变空 |
+| **被引用的 `.js` "存在"** | 存在不等于是对的——它可能是兜底页的 HTML | `check-static-refs.mjs` 会读文件头判 `<`；grep 看不出 |
+| **上限提示"弹出来了"** | 提示对了不代表状态对了：`toast(...); return` 之后，checkbox 的**浏览器原生勾选已经发生**，界面显示 N+1、数据只有 N；拒绝路径 `return` 之后的 `render()` 根本执行不到 | 点超限项，数界面上勾了几个、再数数据里有几个；跑 `check-choice-limit.mjs` |
+| **删了一个文件** | 引用它的地方不会报错，只是引用了空气 | 删除后跑 `check-static-refs.mjs` 与真浏览器；别只看 `git status` |
 
 ---
 
