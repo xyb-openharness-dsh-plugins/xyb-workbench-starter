@@ -102,9 +102,12 @@ async function main() {
   if (/customFrame\s*:\s*true/.test(layout)) ok('panel/customFrame', 'customFrame 已开启（宿主把会话节点交给插件排版）')
   else fail('panel/customFrame', 'lib/layout.js 里没有 customFrame: true（会退回标准分栏，顶栏无 AI 按钮、分栏不可拖）')
 
+  // 上限 0.7 是**宿主硬约束**，不是风格偏好：desktopWorkbenches.register() 里
+  // businessWidth > 0.7 直接 throw → 插件激活失败 → DSH Desktop 起不来。
+  // 2026-10-25 head-neck-workbench 就栽在这（当时的闸门写到 0.75，比宿主还宽，等于放行）。
   const width = Number(layout.match(/businessWidth\s*:\s*([\d.]+)/)?.[1])
-  if (Number.isFinite(width) && width > 0.55 && width < 0.75) ok('panel/businessWidth', 'businessWidth 在合理区间', String(width))
-  else if (layout) fail('panel/businessWidth', 'businessWidth 缺失或越界（应 0.55–0.75，家族取值 0.6–0.7）', String(width || '未找到'))
+  if (Number.isFinite(width) && width > 0.55 && width <= 0.7) ok('panel/businessWidth', 'businessWidth 在合理区间', String(width))
+  else if (layout) fail('panel/businessWidth', 'businessWidth 缺失或越界（应 0.55–0.7，硬上限来自宿主 register()；家族取值 0.6–0.68）', String(width || '未找到'))
 
   const paneBlock = layout.match(/AGENT_PANE\s*=\s*(?:Object\.freeze\()?\{([\s\S]*?)\}/)?.[1] || ''
   const paneMin = Number(paneBlock.match(/(?:^|\s)min\s*:\s*([\d.]+)/)?.[1])

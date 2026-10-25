@@ -25,8 +25,20 @@ test('dry run writes nothing; generate split/customFrame; refuse overwrite witho
  r=init(f);assert.notEqual(r.status,0);assert.match(r.stderr,/Existing files/);assert.deepEqual(await readFile(path),before)
  const split=await fixture(t,{...config,layoutMode:'split'});r=init(split);assert.equal(r.status,0,r.stderr);assert.match(await readFile(join(split.target,'lib/client.js'),'utf8'),/"businessWidth":0.65/)
 })
+test('ships the host-contract gate (businessWidth > 0.7 crashes the target Desktop)',async t=>{
+ const p=await fixture(t,config);const r=init(p);assert.equal(r.status,0,r.stderr)
+ // 宿主 register() 硬上限 0.7：越界会让插件激活失败、DSH Desktop 起不来，本地 check 必须拦得住
+ const gate=await readFile(join(p.target,'scripts/check-host-contract.mjs'),'utf8')
+ assert.match(gate,/width < 0\.25 \|\| width > 0\.7/)
+ const pkg=JSON.parse(await readFile(join(p.target,'package.json'),'utf8'))
+ assert.match(pkg.scripts.check,/check-host-contract/)
+ assert.match(pkg.scripts['check:host'],/check-host-contract/)
+ // 派生项目就地跑得起来
+ const gateRun=run(join(p.target,'scripts/check-host-contract.mjs'),[],p.target)
+ assert.equal(gateRun.status,0,gateRun.stderr)
+})
 test('unclear business requirement, unsafe slug/repository, invalid layout reject before writes',async t=>{
- for(const delta of [{targetUsers:''},{coreFlow:[]},{slug:'../../escape'},{repository:'https://not-github.invalid/a/b'},{layoutMode:'unknown'},{layoutMode:'split',businessWidth:.9}]){
+ for(const delta of [{targetUsers:''},{coreFlow:[]},{slug:'../../escape'},{repository:'https://not-github.invalid/a/b'},{layoutMode:'unknown'},{layoutMode:'split',businessWidth:.9},{layoutMode:'business-first',businessWidth:.72},{layoutMode:'business-first',businessWidth:.2}]){
   const f=await fixture(t,{...config,...delta});assert.notEqual(init(f).status,0);await assert.rejects(access(f.target))
  }
 })

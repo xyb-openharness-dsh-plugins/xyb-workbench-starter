@@ -39,7 +39,9 @@ async function main() {
   if (!/^https:\/\/github\.com\/[a-zA-Z0-9][a-zA-Z0-9-]*\/[a-zA-Z0-9][a-zA-Z0-9._-]*\/?$/.test(cfg.repository)) throw new Error('repository must be a canonical GitHub HTTPS URL')
   cfg.repository = cfg.repository.replace(/\/$/, '').replace(/\.git$/, '').toLowerCase()
   if (!['business-first','split'].includes(cfg.layoutMode)) throw new Error('Explicit layoutMode required: business-first or split')
-  if (cfg.layoutMode === 'split' && (!Number.isFinite(cfg.businessWidth) || cfg.businessWidth < .25 || cfg.businessWidth > .7)) throw new Error('split businessWidth must be 0.25..0.7')
+  // businessWidth 的 0.7 是宿主 register() 的硬上限，两种布局都要守——越界会让插件激活失败、
+  // 目标 Desktop 起不来（不是样式问题）。business-first 下它写进 lib/client.js 的 BUSINESS_WIDTH。
+  if (cfg.businessWidth !== undefined && (!Number.isFinite(cfg.businessWidth) || cfg.businessWidth < .25 || cfg.businessWidth > .7)) throw new Error('businessWidth must be 0.25..0.7（宿主 register() 硬上限）')
   const target = resolve(options.target)
   if (within(starter, target) || within(target, starter)) throw new Error('Target must be outside the starter directory and not its ancestor')
   const destStat = await exists(target)
@@ -62,6 +64,8 @@ async function main() {
   plan.set('scripts/check-workbench-package.mjs', await readFile(join(starter,'scripts/check-workbench-package.mjs')))
   // 家族一致性检查随项目下发：交付前必须在本项目目录里跑得起来，而不是回 starter 里跑。
   plan.set('scripts/check-conformance.mjs', await readFile(join(starter,'scripts/check-conformance.mjs')))
+  // 宿主 register() 校验的本地副本：businessWidth 越界这类错本地全绿、装进去崩，只能靠它拦。
+  plan.set('scripts/check-host-contract.mjs', await readFile(join(starter,'templates/check-host-contract.mjs')))
   // VERSION 是版本唯一来源（audit 的 version/file 与 version/pkg 都指着它）。
   plan.set('VERSION', '0.1.0\n')
   const manifest = {
@@ -69,7 +73,8 @@ async function main() {
     main: './dsh/index.js', exports: { '.': './dsh/index.js', './client': './lib/client.js', './package.json': './package.json', './cordis.patch.yml': './cordis.patch.yml' },
     files: ['dsh','lib','assets','cordis.patch.yml','README.md','NOTICE.md'],
     scripts: {
-      check: 'node --check dsh/index.js && node --check lib/client.js && node scripts/check-workbench-package.mjs .',
+      check: 'node --check dsh/index.js && node --check lib/client.js && node scripts/check-workbench-package.mjs . && node scripts/check-host-contract.mjs',
+      'check:host': 'node scripts/check-host-contract.mjs',
       // check 保持"从第一天就该是绿的"（语法 + 装包合同）；audit 是交付前的家族一致性闸口，
       // 新项目在做出 VERSION/lib/layout.js/测试之前必然有 fail，那是待办清单不是故障。
       test: 'node --test test/*.test.mjs',

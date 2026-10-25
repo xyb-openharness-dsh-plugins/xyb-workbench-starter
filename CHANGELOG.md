@@ -8,6 +8,38 @@
 - **`docs/33-README-SCREENSHOTS.md`**（用户 2026-10-25 指示，**默认生效**）：测试截图入 README 说明关键功能——何时截（G2 后原型、M6 后真机、发版前刷新）、截哪 5 类（看板/癌种差异首屏/一图秀/红线页/折叠展开态）、放 `docs/screenshots/` 命名 `readme-<功能>-<版本>.png`、质量与红线（1440/真实渲染/无 PII/私密不入图）、README 固定五段结构、`check-readme-assets.mjs` 验收。
 - 挂钩：ZERO-TO-DEV §2.4 交付清单、CANCER-KICKOFF M6 流程。
 
+## 2026-10-25 · 1.5.4 「本地全绿、装进去能活」是两套校验——宿主注册契约随包下发
+
+头颈癌工作台（head-neck-workbench）装进 Desktop 后**整机起不来**：渲染进程报
+`web boot: 1 entry did not activate` + `<包>: failed`，没有栈、没有字段名，
+随后 `plugin-recovery` 自动把插件从 profile 卸掉，app 才恢复。
+
+根因是宿主 `desktopWorkbenches.register()` 里的一条硬校验：
+**`0.25 ≤ businessWidth ≤ 0.7`**。项目写了脚手架惯用的 `0.72`，`> 0.7` → throw →
+插件 `apply` 失败。**这条校验只在渲染进程里，本地 `check` / `test` / `audit` 一条都覆盖不到。**
+
+### 修了什么
+
+1. **`check-conformance.mjs` 的上限从 0.75 收到 0.7**。原来写 `width > 0.55 && width < 0.75`——
+   比宿主上限还宽，等于给越界值放行。这是闸门本身写错，比没有闸门更糟：它给了"已检查"的错觉。
+2. **`init.mjs` 对两种布局都校验 businessWidth**。原来只在 `layoutMode === 'split'` 时校验
+   `0.25..0.7`，`business-first`（自定义外壳，宽度写在 `lib/client.js` 的 `BUSINESS_WIDTH`）完全不校验。
+3. **新增 `templates/check-host-contract.mjs` 并随 init 下发**（`npm run check` + `npm run check:host`）：
+   把宿主 7 条 `register()` 校验复刻成本地闸门——title/Component、repository 必须是 GitHub URL、
+   customFrame 布尔、businessSide 枚举、**businessWidth ∈ [0.25,0.7]**、headerLayout 枚举、
+   业务区宽度 + 会话默认占比 ≤ 1。同时认 `const BUSINESS_WIDTH = n` 与 `"businessWidth": n` 两种写法。
+4. `test/starter.test.mjs` 补 2 条：派生项目里闸门跑得起来、`check`/`check:host` 已接线；
+   拒绝清单加 `business-first` 的 0.72 与 0.2 两个越界值。
+
+### 验证（双向，不是单向绿灯）
+- 正例：`businessWidth: 0.68` → 派生项目 `check-host-contract.mjs` 退出码 0。
+- 负例 1：注入 `"businessWidth":0.72` → 退出码 1，点名 `businessWidth=0.72 超出宿主硬区间 [0.25, 0.7]` + 宿主原文。
+- 负例 2：repository 改成 `https://gitlab.com/...` → 退出码 1，点名 `不是合法 GitHub URL`。
+- starter 自身 `npm test` **38/38**、`check-starter` **167 文件 pass**。
+
+**给后续项目的判据**：凡是「装进去才崩、崩得没细节」的，第一反应应当去宿主源码里把它那几条校验
+抄下来变成本地闸门，而不是继续在本地加更细的业务自测——本地自测测的是你以为的合同，不是宿主的合同。
+
 ## 2026-10-25 · 1.5.3 整页视图（32 号）——内容多的东西不再塞弹窗
 
 来源：用户评审 `dsh-shopping-workbench` 后的原话——「注意点击打开新页面，空间和内容更加丰富的设计，页面关闭后返回工作台主页或前一页。这个设计很不错，保留到脚手架，现有弹窗空间太小，功能无法扩大。」读源码后确认：参考仓库本身是 `<dialog class="drawer">` 做成近整页（`inset:12px` + `height:calc(100dvh-24px)`），**没有"返回前一页"**，那一层得自己补。

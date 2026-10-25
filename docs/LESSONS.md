@@ -352,3 +352,25 @@ history 是导航栈的**唯一真源**：
 - 注入的 CSS 缺陷会被后续 `page.goto` 冲掉 → 用注入缺陷做反向对照时，缺陷必须落在**同一份文档**的断言上。
 
 所以反向对照（`--self-test`）不是形式主义：它证明的是**闸门抓得住缺陷**，而不只是"现在跑绿了"。
+
+## 「本地全绿」与「装进去能活」是两套校验（1.5.4）
+
+宿主在**渲染进程**里对插件描述符做的校验，本地脚本一条都覆盖不到——除非你主动把规则抄过来。
+2026-10-25 head-neck-workbench 装进去后 Desktop 起不来，日志只有：
+
+```
+[renderer] Error: web boot: 1 entry did not activate
+[renderer] @xyb-community/head-neck-workbench: failed
+```
+
+真因是 `businessWidth: 0.72 > 0.7`（宿主 `register()` 硬上限）。而脚手架的
+`check-conformance` 当时把上限写成 **0.75**，比宿主还宽，于是**给了"已检查"的错觉**——
+**闸门写错比没有闸门更糟**，因为它会终止你的怀疑。
+
+三条可复用做法：
+
+1. **把宿主校验抄成本地闸门**（`templates/check-host-contract.mjs`），并随 init 下发到每个项目；
+   宿主的校验在 `app.asar → node_modules/dsh-desktop-workbenches/client.js` 的 `register()` 里。
+2. **闸门必须有反向对照**：能签"通过"，也要能签"不通过"。只有单向绿灯的闸门等于没有闸门。
+3. **硬约束的数字只在宿主里定义一次**，本地闸门的边界值不许比宿主宽；宽了就改成一样宽。
+
