@@ -1,3 +1,42 @@
+# 变更记录
+
+## 2026-10-25 · 1.5.8 界面加载核验不再「先 exit」：本机没有那个目录也是一种有效结论
+
+`templates/verify-desktop-load.mjs` 在 1.5.7 下发后暴露两个可移植性缺陷，都**在本机复现**：
+
+1. **入口 `process.exit(2)` 太早**。原码 `if (!existsSync(HARNESS)) { console.error('找不到 DSH Desktop 的 harness 目录'); process.exit(2) }`，
+   于是下发给任意项目后，本机装的是 `DeepSeek Harness.app`（profile 在 `~/.dsh/profiles/desktop`）时，
+   只得到一句"找不到目录"，看不到任何判据——而这恰恰是 1.5.7 自己指出的"两个 app"问题。
+   现在改成：继续往下走、每条证据标「未找到」，结论段给可操作下一步
+   （`ps aux | grep "DeepSeek Harness"` 看 `--profile`，再用 `HN_HARNESS=` 重跑）。
+2. **模板里写死了别的项目的包名**。日志过滤正则里留着 `head-neck-workbench`——模板要下发给任意
+   工作台，这是「换名复用」的反向版。改为从本项目 `package.json` 的 `name` 推导
+   （`shortName = PKG.split('/').pop()`，正则先 escape）。
+3. **starter 自己的 `npm test` 在本机是红的**（39 pass / 1 fail）：测试断言脚本必打"界面加载核验"
+   这行标题，而入口 exit 让它打不出来。**闸门自己写错比没有闸门更糟**——同一类问题 1.5.4 刚写过一遍。
+   修完后 **40 pass / 0 fail**，并补**反例三**把这个行为钉住（`HN_HARNESS` 指向不存在目录时，
+   仍须打印判据标题、且必须指出"你装的可能不是这个 app"）。
+
+## 2026-10-25 · 从原发性胆汁性胆管炎（pbc-workbench 小管宝 v0.2.3）回收
+
+R2 非肿瘤慢性病型（无分期、无肿瘤负荷、长期单药 + 生化应答），坑与前面几轮肿瘤形态不重叠。
+九条可断言优先，明细见 `docs/LESSONS.md` 的「从原发性胆汁性胆管炎回收」一节：
+
+- **`toISOString()` 不能把本地日期转 `YYYY-MM-DD`**：东八区退一天，`2024-03-20`+6 个月显示 `2024-09-19`。
+- **读模型形状由原型 demo-data 决定**：`bootstrap.profiles` 第一版返回对象，原型 `find()` 静默变空态。
+- **演示库必须走真实 schema + 真实播种器**：手抄 DDL 必然与迁移文件分叉，分叉后演示库就验不了读模型。
+- **宿主「不拒绝」可能返回 `null`**：`writeHead(null)` 抛 `ERR_HTTP_INVALID_STATUS_CODE`，整条服务链崩（不是 500）。
+- **宿主没给 `connection.requestRejection` 时必须 503**，不许跳过鉴权放行（本机资料裸奔）。
+- **鉴权要能单测就得从插件入口拆文件**：入口 import Schemastery，单测环境无该 peer。
+- **scripts 用连字符不用冒号**：覆盖率正则认 `check-version` 不认 `check:version`，会被判"缺项"。
+- **`Number('<5')` 是 `NaN` → 被判 0 级**："低于检出下限"显示成"正常"。
+- **`startWorkbenchServer().url` 带结尾 `/`**：拼出 `//api/…` 掉进静态目录回 `index.html`（症状 `Unexpected token '<'`）。
+
+检查器待实施清单追加 ⑧⑨⑩（冻结合同表清单解析、`files` 白名单反推、`repository` 两种写法），
+以及 ⑥⑦ 两条模板可移植性（不许写死具体包名、"某个目录不存在"不许在入口 exit）。
+试验库采集另收三条口径：`doctor` 的 `OK` ≠ 能跑通（ICTRP venv/sidecar 实测）、截断必须落
+`truncated` 而非 `ready`、聚合终态优先级必须要求"有命中"。
+
 ## 2026-10-25 · 1.5.7 界面加载核验随 init 下发：分清「装到哪个 app」与「旧日志不算数」
 
 装完包之后「界面到底加载了没有」是家族里反复踩的坑，两种误判各踩过一次：
@@ -16,8 +55,6 @@
 退出码 0 已加载 / 1 激活失败 / 2 未运行或未重启 / 3 已重启无加载迹象。
 路径可用 `HN_HARNESS`、`HN_LOG` 覆盖（否则脚本无法自证）；测试含五条反例（未运行 / 旧日志不算数 /
 本次段失败 / 装错 profile / 已加载）。生成文件数 173。
-
-# 变更记录
 
 ## 2026-10-25 · 从 GTN（gtn-workbench 小葡宝 v0.4.0）回收
 

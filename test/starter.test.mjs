@@ -82,6 +82,15 @@ test('ships the desktop-load verifier (two apps / stale log lines must not be mi
  await writeFile(log,['[2026-01-01T00:05:00.000Z] +1ms [node] Harness process exited (exit code 0)','[2026-01-01T09:00:00.000Z] +800ms [renderer] web boot: 1 entry did not activate'].join('\n')+'\n')
  const failed=runEnv(script,[],{...process.env,HN_HARNESS:harness,HN_LOG:log})
  assert.equal(failed.status,1,failed.stdout+failed.stderr)
+ // 反例三：harness 目录根本不存在时，不许只丢一句"找不到目录"就退出——
+ //   必须仍打印判据行 + 给出"你可能装的是另一个 app"的可操作结论（1.5.7 的第一号误判来源）。
+ const missing=runEnv(script,[],{...process.env,HN_HARNESS:join(fake,'no-such-harness'),HN_LOG:join(fake,'no-such.log')})
+ assert.equal(missing.status,2)
+ const text=missing.stdout+missing.stderr
+ assert.match(text,/界面加载核验/, '找不到 harness 时连标题都不打，用户拿不到任何判据')
+ assert.match(text,/另一个 profile|DeepSeek Harness/, '必须指出"可能是另一个 app"，否则用户只会反复重启')
+ // 也不许在 stderr 里只留一行原始报错后静默退出（第一版就是 console.error + exit(2)）
+ assert.doesNotMatch(missing.stderr, /^找不到 DSH Desktop 的 harness 目录：.*\n?$/)
 })
 test('unclear business requirement, unsafe slug/repository, invalid layout reject before writes',async t=>{
  for(const delta of [{targetUsers:''},{coreFlow:[]},{slug:'../../escape'},{repository:'https://not-github.invalid/a/b'},{layoutMode:'unknown'},{layoutMode:'split',businessWidth:.9},{layoutMode:'business-first',businessWidth:.72},{layoutMode:'business-first',businessWidth:.2}]){

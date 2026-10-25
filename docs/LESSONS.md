@@ -470,3 +470,116 @@ history 是导航栈的**唯一真源**：
    preparation timed out` 时，用 `playwright-core` + `channel:'chrome'`
    （系统 Chrome headless）直接截本地 server，交互（点导航/开折叠卡）
    用 locator 完成——33 号 README 截图链路不受影响。
+
+## 2026-10-25 · 从原发性胆汁性胆管炎（pbc-workbench v0.2.3 小管宝）回收
+
+这一轮是 R2 非肿瘤慢性病型（无分期、无肿瘤负荷、长期单药 + 生化应答），
+与前面几轮肿瘤形态的坑不重叠。九条按「可断言 > 文档」排：
+
+1. **`toISOString()` 不能拿来把本地日期转 `YYYY-MM-DD`**。复查节奏用
+   `d.toISOString().slice(0,10)` 拼日期，东八区本地零点被转成 UTC 前一天，
+   `2024-03-20` + 6 个月显示成 `2024-09-19`——用户照着约复查会**早一天**。
+   切法：手拼 `` `${y}-${pad(m+1)}-${pad(d)}` ``。**可断言（待实施）**：
+   原型巡检加一条正则——`app.js` 里出现 `toISOString().slice(0,10)` 直接红；
+   复算类断言取「东八区+6 个月」与「UTC+6 个月」两个期望值，必须命中前者。
+
+2. **读模型返回的形状由原型 demo-data 决定，不由实现方便决定**。`bootstrap.profiles`
+   第一版返回对象 `{A:{…},B:{…}}`，而原型写的是 `DEMO.profiles.find(p=>p.key===…)`
+   ——开发版因此静默变成"没有档案"，页面不报错、控制台不报错，只是空。
+   切法：**形状以 demo-data 为准**（这里是数组）。**可断言（已实装到本项目）**：
+   `test/demo-parity.test.mjs` 用 `assert.deepStrictEqual(bootstrap.profiles, DEMO.profiles)`
+   逐字段比；starter 侧建议把这条断言提到 `templates/`，成为每个项目的默认闸门。
+
+3. **演示库必须走真实 schema + 真实播种器，不能手抄一份 DDL**。手抄的第二套
+   建表语句不会跟着迁移文件演进（演示库缺 `lab_name`、缺 `parse_jobs`），
+   而"验读模型"正是这个产物唯一的价值——分叉之后就等于没验。
+   切法：`buildDemoDatabase()` 删旧文件 → `DatabaseSync` → 按编号执行 `schema/00*.sql`
+   → 调 `seedDemo()`。**可断言（已实装）**：`scripts/check-demo-columns.mjs` 把
+   schema 全执行进内存库，与演示库**双向**比表集合（缺表和多表都报），再给
+   每张允许空的表写一句理由。
+
+4. **宿主"不拒绝"可能返回 `null`，鉴权判定必须用真值判**。插件入口原来写
+   `if (rejection !== undefined) { res.writeHead(rejection) }`，宿主不拒绝时给
+   `null` → `writeHead(null)` 抛
+   `RangeError [ERR_HTTP_INVALID_STATUS_CODE]: Invalid status code: null`，
+   **整条服务链崩掉，不是 500**。切法：`if (rejection)`。
+   **可断言（已实装到本项目 `test/host-auth.test.mjs` ②③）**：假宿主分别回
+   `null` 与 `undefined`，都必须 200。
+
+5. **宿主没给 `connection.requestRejection` 时必须 503，不许跳过鉴权放行**。
+   原实现找不到能力就 `return api(req,res)`——宿主少给一个能力，本机资料就裸奔。
+   切法：503 + `AUTH_UNAVAILABLE`，并提示"这不是你的操作问题"。
+   **可断言**：同上一文件 ①，断言 `calls.length === 0`（连业务 handler 都不许进）。
+
+6. **鉴权这段要能单测，就得从插件入口拆成独立文件**。`dsh/index.js` 顶部
+   `import Schema from '@deepseek-ai/schemastery'`，单测环境没有这份 peer，
+   import 即 `ERR_MODULE_NOT_FOUND: Cannot find package '@deepseek-ai/schemastery'`。
+   切法：`dsh/auth.js` 只依赖 `node:http` 的语义，`createAuthorized({api, connection})`，
+   入口一行接上。**规则**：想在 Node 单测里覆盖的分支，不许留在会 import peer 依赖的文件里。
+
+7. **scripts 名字用连字符，不要用冒号**。`check-conformance.mjs` 的检查链覆盖率
+   正则匹配的是 `check-version|build-version` 这类字面量，`check:version` 会被判成
+   "检查链缺少这一项"——检查器没错，是命名不在它的识别范围内。**可断言（待实施）**：
+   覆盖率正则同时接受 `check:version` 形式，或 `package.json` 里出现冒号命名直接红。
+
+8. **`Number('<5')` 是 `NaN`，被判成 0 级**。化验值里有 `<5`、`<0.5` 这类"低于检出下限"，
+   宽松的 `Number(v)` 转出 `NaN`，`ratio NaN` 一路比较到底落进 0 级——**"低于检出下限"
+   显示成"正常"**。切法：`const n = Number(v); return Number.isFinite(n) ? n : null`，
+   `null` 走"无法分级"分支。同类第二个坑：分级表标了 `approx: true`（表示借了通用下限）
+   但其实没有通用下限表可借，等于"说借了却没借"。**可断言（已实装）**：
+   `test/ctcae.test.mjs` 钉住 `120/40=3.0→1 级` 与 `120.1/40→2 级` 两个点、
+   `'<5'` 落 `{state:'none',reason:'no-value'}`、缺下限时结果带 `approx:true` 且数值确实来自通用表。
+
+9. **`startWorkbenchServer()` 返回的 `url` 带结尾 `/`**。`base + '/api/…'` 拼成 `//api/…`，
+   请求掉进静态目录、回 `index.html`，症状是 `JSON.parse` 报 `Unexpected token '<'`
+   ——看起来像接口挂了，其实是自己拼错。切法：`url.replace(/\/$/,'')`。
+   **可断言（待实施）**：`startWorkbenchServer` 返回的 `url` 不带尾斜杠，
+   或模板里提供 `joinUrl()` 并在 `test/server.test.mjs` 里钉一条。
+
+### 检查器待实施清单追加（PBC 轮）
+
+- ⑥ **模板里不许出现任何一个具体工作台的包名**。`templates/verify-desktop-load.mjs`
+  里写死了 `head-neck-workbench` 作为日志过滤词——模板要下发给任意工作台，这属
+  「换名复用」的反向版（把某一轮的名字留在了通用件里）。已改为从本项目
+  `package.json` 的 `name` 推导。**可断言**：starter 自检扫 `templates/`，命中
+  `*-workbench` 字面量即红（本项目自身除外）。
+- ⑦ **「本机没有某个目录」不是错误，是另一个分支**。同一模板原来在入口
+  `if (!existsSync(HARNESS)) { console.error(...); process.exit(2) }`，
+  结果：① 下发给任意项目后，本机没有那个目录时只得到一句"找不到目录"，
+  看不到任何判据；② starter 自己的 `npm test` 在本机就红（因为本机装的是
+  `DeepSeek Harness.app`，profile 在 `~/.dsh/profiles/desktop`，不是
+  `~/Library/Application Support/dsh-desktop/harness`）。切法：入口不 exit，
+  继续往下走、每条证据标「未找到」，结论段给可操作下一步
+  （`ps aux | grep "DeepSeek Harness"` 看 `--profile`，再用 `HN_HARNESS=` 重跑）。
+  **可断言（已实装）**：`test/starter.test.mjs` 反例三——`HN_HARNESS` 指向不存在的
+  目录时仍必须打印判据标题，且必须指出"你装的可能不是这个 app"。
+- ⑧ **`check-schema` 的冻结合同里，表清单那一行不能夹任何说明文字或 `**` 加粗**。
+  合同用正则 `/表清单（N 张）\*\*：([\s\S]*?)2\. /` 抽清单再按 `/` 切，行内写
+  "（由 0002 引入）"会被当成表名，报"合同列了但库里没有：demo_meta    （由 0002…"。
+  说明必须挪到独立编号条目。**可断言（待实施）**：解析出的表名必须匹配
+  `^[a-z_][a-z0-9_]*$`，否则报"表清单里有非表名内容"而不是含糊的"库里没有"。
+- ⑨ **`package.json` 的 `files` 白名单漏掉运行时 import 的目录，只有装包检查能抓到**。
+  本轮漏过两次：漏 `public/`（`test/pack-contents.test.mjs` 抓到"缺 public/index.html"）、
+  漏 `demo/build-demo-data.mjs`（`check-workbench-package` 报
+  `Runtime module not covered by files allowlist: demo/build-demo-data.mjs ← imported by dsh/demo.js`）。
+  **可断言（已实装到本项目，建议进模板）**：从 `dsh/` 的 import 图反推运行时要哪些文件，
+  与 `files` 求差集。
+- ⑩ **npm `repository` 字段有两种写法**（字符串 / `{type:'git', url}`）。构建脚本只认
+  字符串时，对象被 `String()` 成 `"[object Object]"`，报错信息完全看不出问题在哪
+  （本项目首个 `build-client` 就卡在这里）。**可断言（已实装）**：`canonicalRepository()`
+  两种写法都接，且报错时把原值打出来。
+
+### 试验库采集（M4）的三条口径
+
+- **`doctor` 报的 `OK` 不等于能跑通**。`unified-trial-mcp` 的 `npm run doctor` 对
+  ICTRP 回 `OK`（因为它只检查入口文件存在），实际查询回 `UPSTREAM_UNKNOWN_ERROR`；
+  真正的判据是子服务自己的 `node dist/cli/setup-cli.js doctor`（报
+  `❌ venv: no interpreter at .../.venv/bin/python3`、`❌ sidecar: not answering at
+  http://127.0.0.1:8849/health`），跑一次 `setup` 装完 venv 才真的能查。
+  **规则**：通道可用性以"这次真的返回了记录"为准，不以任何 doctor/自检脚本的绿灯为准。
+- **截断必须落 `truncated`，不能落 `ready`**。上游给满 `requestedLimit` 条、或带
+  `completeness.isLowerBound=true` 时，必须把 `ready` 降级成 `truncated`，
+  否则界面写"已查完"而实际只拿到前 200 条。
+- **聚合时的终态优先级必须要求"有命中"**。多查询合一个来源状态时，若无条件让
+  "查过"压过"没查过"，最后一条零命中查询会把前面真命中过的 `SUCCESS` 覆盖成
+  `NO_RESULTS`——来源明明是好的，却被记成"查了没有"。

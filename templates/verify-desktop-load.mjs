@@ -59,10 +59,11 @@ const INSTALLED = join(PROFILE, 'node_modules', ...PKG.split('/'))
 const rows = []
 const push = (k, v, ok) => rows.push({ k, v, ok })
 
-if (!existsSync(HARNESS)) {
-  console.error(`找不到 DSH Desktop 的 harness 目录：${HARNESS}`)
-  process.exit(2)
-}
+/* 本机没有那个目录**不是错误**，是"这台机器上装的可能是另一个 app"（1.5.7 的两个 app 问题）。
+   第一版在这里 `process.exit(2)`，结果：① 生成的空项目里跑它只得到一句"找不到目录"，看不到任何判据；
+   ② 测试拿 HN_HARNESS 指向临时目录以外的场景时，连"界面加载核验"这行标题都打不出来。
+   现在改成继续往下走、每条证据都标「未找到」，最后在结论段给出可操作的下一步。 */
+const harnessFound = existsSync(HARNESS)
 
 /* ---------- 1. 把 harness.log 切成「上次退出之前 / 本次运行段」 ---------- */
 let segment = []
@@ -81,7 +82,9 @@ if (existsSync(LOG)) {
   segment = cut === -1 ? all : all.slice(cut + 1)
 }
 const running = segment.length > 0
-push('DSH Desktop harness', running ? `运行中（本次段 ${segment.length} 行日志）` : '未运行', running)
+push('DSH Desktop harness', harnessFound
+  ? (running ? `运行中（本次段 ${segment.length} 行日志）` : '未运行')
+  : `未找到 ${HARNESS}（这台机器上装的可能不是它）`, harnessFound && running)
 push('上次退出', exitedAt ? exitedAt.toISOString() : '日志里没有退出记录', true)
 
 /* ---------- 2. 装机时刻与版本 ---------- */
@@ -112,7 +115,10 @@ push('本次启动', bootAt ? bootAt.toISOString() : '未运行，无启动时�
 /* ---------- 4. 本次运行段里与本包相关的日志 ---------- */
 // 注意：`web boot: 1 entry did not activate` 这行**不带包名**，只过滤包名会漏掉整条失败信号
 // （这个脚本的第一版就漏了，由 test/desktop-load.test.mjs 的反例抓出来）
-const mine = segment.filter((l) => /head-neck-workbench|did not activate|plugin-recovery|plugin-removal/.test(l))
+const shortName = PKG.split('/').pop()
+const mine = segment.filter((l) => new RegExp(
+  `${shortName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}|did not activate|plugin-recovery|plugin-removal`,
+).test(l))
 const failures = mine.filter((l) =>
   /did not activate/.test(l) ||
   /plugin-recovery/.test(l) ||
@@ -148,6 +154,13 @@ console.log('界面加载核验（证据全部来自宿主留下的事实）\n')
 for (const r of rows) console.log(`  ${r.ok ? '·' : '!'} ${r.k.padEnd(width)}  ${r.v}`)
 console.log('')
 
+if (!harnessFound) {
+  console.log('? 结论：这台机器上没有 DSH Desktop 的 harness 目录，本脚本无从取证。')
+  console.log(`  本次探测的路径是 ${HARNESS}。若你装的是「DeepSeek Harness」而不是「DSH Desktop」，`)
+  console.log('  它用的是另一个 profile：先 `ps aux | grep "DeepSeek Harness"` 看进程参数里的 --profile 路径，')
+  console.log('  再用 HN_HARNESS=<那个 harness 根> 重跑本脚本。两个 app 装错一个是 1.5.7 的第一号误判来源。')
+  process.exit(2)
+}
 if (failures.some((l) => /did not activate/.test(l))) {
   console.log('✗ 结论：**本次运行**里插件激活失败（宿主日志有「did not activate」原文，见上）。')
   console.log('  先跑 npm run smoke:activate 复现，再对照宿主 7 条 register 校验。')
