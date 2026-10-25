@@ -255,6 +255,30 @@ async function main() {
     else fail('primer/入口', '原型没有 primer.js 或 data-primer-open：看板上点不开疾病概要')
   }
 
+  /* ---------- 4c. 部署目标（37 号，最高优先级） ---------- */
+  // 只看脚本与文件，不看 README 自述：文档写"只装 DSH Desktop"不算数，
+  // 装机脚本里没有这条判断，实际装机照样会装到 ~/.dsh 或另一款 Harness 上。
+  {
+    const installScript = await read('scripts/check-install.mjs')
+    if (!installScript) {
+      fail('deploy/装机脚本', '缺少 scripts/check-install.mjs（随 init 下发；没它没人验"到底装到哪了"）')
+    } else {
+      const missing = []
+      if (!/dsh-desktop[\s\S]{0,80}harness/.test(installScript)) missing.push('没认 DSH Desktop 的 harness 目录')
+      if (!/dshdesktop\.com/.test(installScript)) missing.push('没装时没有下载地址 dshdesktop.com')
+      if (!/\.dsh/.test(installScript)) missing.push('没有点名排除 ~/.dsh')
+      if (!/DeepSeek Harness/.test(installScript)) missing.push('没有点名排除 DeepSeek Harness')
+      if (missing.length) fail('deploy/装机脚本', '装机脚本没守住"只装本机 DSH Desktop"（规则见 starter docs/37-DEPLOY-TARGET.md）', missing.join('、'))
+      else ok('deploy/装机脚本', '装机脚本认 DSH Desktop 为唯一目标，并排除 ~/.dsh 与 DeepSeek Harness')
+    }
+
+    const agentsMd = await read('AGENTS.md')
+    if (!agentsMd) fail('deploy/AGENTS', '缺少 AGENTS.md（部署目标要求写在开头的最高优先级段）')
+    else if (!/^##\s*部署目标/m.test(agentsMd)) fail('deploy/AGENTS', 'AGENTS.md 缺「## 部署目标」段（要求层，别只写在 docs 里）')
+    else if (!/dshdesktop\.com/.test(agentsMd)) fail('deploy/AGENTS', 'AGENTS.md 的部署目标段没给下载地址 dshdesktop.com')
+    else ok('deploy/AGENTS', 'AGENTS.md 保留「部署目标」段与下载地址')
+  }
+
   /* ---------- 5. 密钥卫生 ---------- */
   const gitignore = await read('.gitignore')
   const mineru = await read('dsh/mineru.js')

@@ -43,3 +43,9 @@ AGENTS 为短规则入口；docs 为分主题指南；templates 为需求、规�
 - init复制上述文档、模板、提示词和示例；README、CHANGELOG、CLI与溯源marker的版本一致。已认可的项目复盘见docs/11-REUSABLE-PATTERNS.md；新增经验先审阅再纳入。
 - 本机更新必须交付到实际安装版本；UI渐进披露和外部信息可信度原则分别进入设计/API/验收合同，并在不同业务主题中复用。
 - POI需求按docs/12-AMAP-POI.md选用高德能力，提供归一化示例、配置/范围/坐标与验证模板，不引入通用必需地图依赖或真实凭据。
+
+## 1.7.0 增补
+
+- **部署目标只有一台**（docs/37）：工作台只装进本机 **DSH Desktop**（`io.dsh.desktop`）自己的 `harness/profiles/*`；`~/.dsh/profiles/*`（`dsh` CLI 侧）与 **DeepSeek Harness.app**（`com.deepseek.dsh`）都不是目标，装上去不算交付。
+- 机器上没装 DSH Desktop 时**停下**并给出 <https://www.dshdesktop.com/>，装完启动一次再继续；不先开发后补装，不拿 dev server 或别的 Harness 顶替。
+- 判据由 `scripts/check-install.mjs`（随 `init` 下发）回答"装没装 / 登记到哪个 profile"；`npm run audit` 的 `deploy/装机脚本`、`deploy/AGENTS` 两条只查这条规则是否还在（fail 不交付），不替代真机装机。

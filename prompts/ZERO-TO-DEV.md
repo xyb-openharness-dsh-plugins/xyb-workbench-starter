@@ -23,6 +23,21 @@
 
 ## 阶段 0：用 starter init，先把"规矩"立起来
 
+### 0.0 先找 dsh-desktop：宿主找错，后面全白做
+
+**这是最高优先级的一步，排在 init 之前。** 目标只有一台：本机 **DSH Desktop**（`/Applications/DSH Desktop.app`，`io.dsh.desktop`），它的 Harness 在
+`~/Library/Application Support/dsh-desktop/harness/profiles/<宿主实际加载的 profile>`（本机为 `web`；profile 名以宿主配置为准，不按目录名猜）。
+
+| 探测 | 命令 | 结论 |
+| --- | --- | --- |
+| 装没装 | `ls -d "/Applications/DSH Desktop.app"` | 没有 → **停下** |
+| 跑没跑过 | `ls -d "$HOME/Library/Application Support/dsh-desktop/harness/profiles"` | 没有 → 让用户启动一次 |
+| 装到哪了 | `node scripts/check-install.mjs` | 未登记 / 只登记在别处 → 不算交付 |
+
+- **没装 Desktop**：当场停，把 <https://www.dshdesktop.com/> 给用户，等他装好并**启动一次**再往下走。不要先开发再补装。
+- **两个明确排除的目标**：① `~/.dsh/profiles/*`（`dsh` CLI 侧的 Harness，Desktop 不读）；② `DeepSeek Harness.app`（`com.deepseek.dsh`，另一款 app，profile 不共享）。装上去不是"备选"，是"没装"。
+- 规则全文见 starter `docs/37-DEPLOY-TARGET.md`；装机手法（pnpm、`DSH_HOME`、`bundles`）见 `docs/06-VALIDATION-AND-RELEASE.md`。
+
 ### 0.1 初始化（不写业务代码）
 
 1. 用社区脚手架初始化：`dsh-wb-cli`（`~/Downloads/xyb-workbench-starter`，`bin/dsh-wb-cli.mjs`）  
@@ -363,8 +378,10 @@ README.md / CHANGELOG.md / VERSION / package.json
 
 1. `NODE_OPTIONS=` 前置，`npm run build:version` → `npm run check` → `npm pack`，tgz 放 `release/`（`*.tgz` 已被忽略，不入库）。
 2. **装机目录要认准**：Desktop 的 profile 在  
-   `~/Library/Application Support/dsh-desktop/harness/profiles/web`，**不是** `~/.dsh/profiles/*`（那是 CLI 侧，Desktop 不读）。  
-   换机器先跑 `scripts/check-install.mjs`（只读探测 + 打印判定依据），不照抄路径。
+   `~/Library/Application Support/dsh-desktop/harness/profiles/web`，**不是** `~/.dsh/profiles/*`（那是 CLI 侧，Desktop 不读），  
+   **也不是** `DeepSeek Harness.app`（`com.deepseek.dsh`，另一款 app，profile 不共享）。  
+   换机器先跑 `scripts/check-install.mjs`（只读探测 + 打印判定依据）；它报"没找到 DSH Desktop"就停下来，  
+   把 <https://www.dshdesktop.com/> 给用户，装完启动一次再继续——不照抄路径，也不拿别的宿主顶替。
 3. 装：`DSH_HOME=<harness 目录> NODE_OPTIONS= npx pnpm@10.15.0 --dir <profile> add -w <绝对路径>.tgz`，  
    然后把包名写进该 profile 的 `dsh.profile.bundles`。profile 的 `dependencies` 会记成 `file:<绝对路径>.tgz`——  
    所以**仓库根的 tgz 不能随手删**（删了下次 pnpm 解析就断）。

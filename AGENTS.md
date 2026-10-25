@@ -4,6 +4,23 @@
 
 **项目闭环必读：** [docs/17-CLOSED-LOOP-PROJECT-FLOW.md](docs/17-CLOSED-LOOP-PROJECT-FLOW.md)。按“需求调研→需求确认→HTML原型自检→开发者确认→需要时研究/筛选数据→系统开发（parity >98%）→测试修复→DSH Desktop RC/发包环境核验→发布→人工反馈→复盘沉淀”推进。各阶段未达进入条件时继续当前阶段；用户已确认的事项继承，不重复确认。
 
+## 部署目标：只认本机 DSH Desktop（最高优先级，2026-10-26）
+
+**先把宿主找对，再谈写代码。** 宿主找错不会报错，只会安静地没效果：页面能开、`npm run check` 全绿、tgz 也打出来了，用户在 Desktop 列表里就是看不到这台工作台。规则全文见 [docs/37-DEPLOY-TARGET.md](docs/37-DEPLOY-TARGET.md)。
+
+动手前先探一次（只读，不写盘）：
+
+```bash
+ls -d "/Applications/DSH Desktop.app"                                    # macOS 是否装了 DSH Desktop（io.dsh.desktop）
+ls -d "$HOME/Library/Application Support/dsh-desktop/harness/profiles"   # 它自己的 Harness profile
+node scripts/check-install.mjs                                           # 本包是否已登记到它实际加载的 profile
+```
+
+- **唯一合法目标**：`DSH Desktop.app`（`io.dsh.desktop`）自己的 `harness/profiles/<宿主实际加载的那个>`（本机为 `~/Library/Application Support/dsh-desktop/harness/profiles/web`）。profile 名以宿主 argv/config 为准，**不按目录名猜**——`~/.dsh/profiles/web` 同名但完全不是同一个地方。
+- **两个明确排除、装了也不算交付的目标**：① `~/.dsh/profiles/*`（`dsh` CLI 侧的 Harness，Desktop 不读）；② `DeepSeek Harness.app`（`com.deepseek.dsh`）自己的 profile（另一款 app，不共享 profile）。
+- **没装 DSH Desktop**：当场停下，把 <https://www.dshdesktop.com/> 给用户，装完**启动一次**（首次启动才生成 Harness 与 `state.json`）再继续。不许拿 dev server、`~/.dsh`、DeepSeek Harness 顶替，也不许把这一步写成“已验证”。
+- **交付措辞**：`check` 绿 / tgz 打出来 / 代码 push **都不等于装上**。只有目标 profile 的 `dependencies` 有本包、`dsh.profile.bundles` 有本包名、重启后列表能打开，才算装机；没跑过就写“未验证”。
+
 ## 每次开始
 
 1. 先读 README、当前任务/交接、相关 spec；检查 `git status --short`。保留已有未提交修改。

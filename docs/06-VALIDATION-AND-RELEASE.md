@@ -1,5 +1,15 @@
 # 检查、安装和发布
 
+## 0. 部署目标只有一台（2026-10-26，最高优先级）
+
+**规则看 [37-DEPLOY-TARGET.md](37-DEPLOY-TARGET.md)，本页只讲手法。** 三句话：
+
+1. 唯一目标 = 本机 **DSH Desktop**（`io.dsh.desktop`）自己的 `harness/profiles/<宿主实际加载的那个>`；
+2. **排除** `~/.dsh/profiles/*`（`dsh` CLI 侧）与 **DeepSeek Harness.app**（`com.deepseek.dsh`，另一款 app）——装上去是"没装"，不是"备选"；
+3. **没装 Desktop** → 停下，给 <https://www.dshdesktop.com/>，装完启动一次再继续；不要先开发再补装，也不要拿 dev server 顶替。
+
+机器判据一条命令：`node scripts/check-install.mjs`（随 `init` 下发，只读；`DSH_DESKTOP_APP=none` 可反向对照"没装"分支）。
+
 ## 分层验证与节奏
 
 | 改动 | 最小合理检查 | 不能替代 |

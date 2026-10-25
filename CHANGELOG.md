@@ -1,3 +1,41 @@
+## 2026-10-26 · 1.7.0 部署目标：只认本机 DSH Desktop（top 要求）
+
+用户点名加一条**最高优先级**要求：开发出来的工作台**默认部署到本机已安装的 dsh-desktop**，
+**不许**装到 `~/.dsh`，也**不许**装到 **DeepSeek Harness.app**；机器上没装 dsh-desktop 时，
+当场停下并把下载地址 <https://www.dshdesktop.com/> 给用户。
+
+为什么单列一条而不是塞进 06 号：装错宿主**不会报错**，只会安静地没效果——页面能开、
+`npm run check` 全绿、tgz 也打了，用户在 Desktop 列表里就是看不到这台。三种表现各自对应
+不同真因（列表没有 = 装进 Desktop 不读的 Harness；有但旧版 = 装到另一个 profile；
+市场不显示"已安装" = 手工装法无安装记录），都不是"再装一次"能解决的。
+
+本机实测（2026-10-26）：DSH Desktop.app `io.dsh.desktop` 0.12.0，Harness 在
+`~/Library/Application Support/dsh-desktop/harness/profiles/web`；`dsh` CLI 0.1.0-rc.6 用
+`~/.dsh/profiles/{desktop,tui,web}`；**DeepSeek Harness.app `com.deepseek.dsh` 0.2.1-rc.2 是另一款 app**，
+profile 不共享。`~/.dsh/profiles/web` 与目标**同名**却完全不是同一个地方——这是最容易骗过人的一处。
+
+落地：
+
+- 新增 [docs/37-DEPLOY-TARGET.md](docs/37-DEPLOY-TARGET.md)：唯一目标 / 两个排除目标 / 三条硬判据 /
+  没装怎么办 / 明确未做（Windows 未实测、DeepSeek Harness 的 profile 位置未实测）。
+- `AGENTS.md` 开头新增「## 部署目标：只认本机 DSH Desktop（最高优先级）」——**要求层**，
+  `init` 生成的每个项目都带着；`prompts/ZERO-TO-DEV.md` 加 **§0.0 先找 dsh-desktop**（排在 init 之前），
+  §3.3 装机第 2 条同步点名 DeepSeek Harness 与下载地址。
+- `project-template/scripts/check-install.mjs` 重写判定：先回答"这台机器装没装 Desktop"
+  （`/Applications/DSH Desktop.app` 或 `desktop-workbenches/` 证据），再说"登记到哪个 profile"；
+  没装时打印下载地址并退出 1；机器上存在 DeepSeek Harness.app 时明确写"不是部署目标"。
+  新增 `DSH_DESKTOP_APP=none` 反向对照入口——改这段必须自己验一次"没装"分支，只验正向等于没验。
+  同时修掉一个真实假绿：app 卸载后只剩残留目录，旧逻辑照样报"判定基准 Desktop"，
+  把"没装"盖过去；现在 `desktopPresent` 是绕不过去的前置条件。
+- `check-conformance.mjs` 加 `deploy/装机脚本`、`deploy/AGENTS` 两条审计项（只看出脚本与 AGENTS，
+  不看 README 自述）。拿旧项目做反向对照：肉瘤 `sarcoma-workbench` 当场两项 FAIL，
+  且准确指出它只缺"下载地址 + DeepSeek Harness 排除"（`~/.dsh` 它本来就有）。
+- `docs/06-VALIDATION-AND-RELEASE.md` 加「§0 部署目标只有一台」并声明**规则看 37 号、手法看 06 号**，
+  避免同一件事两份权威。
+
+存量 20+ 工作台不回填（AGENTS 与 check-install 都是建仓快照），下一轮动到哪台按 37 号重新核对。
+包版本 `1.7.0`。
+
 ## 2026-10-26 · 1.6.3 页视图自测：注三个缺陷却只要求抓到两个
 
 `probe-page-view.mjs --self-test` 注入的是三个缺陷（抹空顶栏标题、藏掉关闭入口、解除背景滚动锁），
