@@ -77,7 +77,7 @@ async function main() {
     main: './dsh/index.js', exports: { '.': './dsh/index.js', './client': './lib/client.js', './package.json': './package.json', './cordis.patch.yml': './cordis.patch.yml' },
     files: ['dsh','lib','assets','cordis.patch.yml','README.md','NOTICE.md'],
     scripts: {
-      check: 'node --check dsh/index.js && node --check lib/client.js && node scripts/check-workbench-package.mjs . && node scripts/check-host-contract.mjs && node scripts/smoke-activate.mjs',
+      check: 'node --check dsh/index.js && node --check lib/client.js && node scripts/check-workbench-package.mjs . && node scripts/check-host-contract.mjs && node scripts/smoke-activate.mjs && node scripts/check-probe-coverage.mjs',
       'check:host': 'node scripts/check-host-contract.mjs',
       'smoke:activate': 'node scripts/smoke-activate.mjs',
       'verify:desktop': 'node scripts/verify-desktop-load.mjs',
