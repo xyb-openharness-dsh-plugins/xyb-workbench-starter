@@ -45,6 +45,11 @@ profile 不共享。`~/.dsh/profiles/web` 与目标**同名**却完全不是同�
 `deploy/*` 两条通过；`check-install.mjs` 三支手测（未装 / 已装未登记 / 已登记），
 Windows 与 Linux 分支用 `Object.defineProperty(process,'platform',…)` 跑过提示文案——**真机仍未装过，如实记"未实测"**。
 
+**提交归属说明**：1.7.0 的代码主体在 `60da308`；"跨平台"这一轮（三平台探测 + PowerShell 命令 + `--app`）
+是用户追问后补的，恰好与另一会话的 35 号改动同时在工作树里，被 `git add -A` 一起收进了 `17d012f`——
+内容完整，只是那个提交信息没提这件事。用 `git log -- docs/37-DEPLOY-TARGET.md` 会看到 `17d012f`，
+原因记在这里。**教训**：并行会话共用同一个工作树时，提交前必须显式列路径，不要 `git add -A`。
+
 存量 20+ 工作台不回填（AGENTS 与 check-install 都是建仓快照），下一轮动到哪台按 37 号重新核对。
 包版本 `1.7.0`。
 
