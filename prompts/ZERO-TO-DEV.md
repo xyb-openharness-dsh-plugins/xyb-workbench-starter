@@ -25,18 +25,19 @@
 
 ### 0.0 先找 dsh-desktop：宿主找错，后面全白做
 
-**这是最高优先级的一步，排在 init 之前。** 目标只有一台：本机 **DSH Desktop**（`/Applications/DSH Desktop.app`，`io.dsh.desktop`），它的 Harness 在
-`~/Library/Application Support/dsh-desktop/harness/profiles/<宿主实际加载的 profile>`（本机为 `web`；profile 名以宿主配置为准，不按目录名猜）。
+**这是最高优先级的一步，排在 init 之前。** 目标只有一台：本机 **DSH Desktop**（`io.dsh.desktop`）。
+Harness 在 app 自己的 userData 下——macOS `~/Library/Application Support/dsh-desktop/harness`、
+Windows `%APPDATA%\dsh-desktop\harness`、Linux `${XDG_CONFIG_HOME:-~/.config}/dsh-desktop/harness`。
 
-| 探测 | 命令 | 结论 |
+| 探测 | 怎么探（三平台同一命令） | 结论 |
 | --- | --- | --- |
-| 装没装 | `ls -d "/Applications/DSH Desktop.app"` | 没有 → **停下** |
-| 跑没跑过 | `ls -d "$HOME/Library/Application Support/dsh-desktop/harness/profiles"` | 没有 → 让用户启动一次 |
-| 装到哪了 | `node scripts/check-install.mjs` | 未登记 / 只登记在别处 → 不算交付 |
+| 装没装 / 跑没跑过 | `node scripts/check-install.mjs`（看"判定基准"那一行） | 报"没找到 DSH Desktop" → **停下**；报"没有可用 Harness" → 让用户启动一次 |
+| 装到哪了 | 同上，看 `dependencies` + `dsh.profile.bundles` | 未登记 / 只登记在别处 → 不算交付 |
+| app 在非常规位置 | `--app <路径>` 或 `DSH_DESKTOP_APP=<路径>` | 显式指定，别改脚本常量 |
 
-- **没装 Desktop**：当场停，把 <https://www.dshdesktop.com/> 给用户，等他装好并**启动一次**再往下走。不要先开发再补装。
-- **两个明确排除的目标**：① `~/.dsh/profiles/*`（`dsh` CLI 侧的 Harness，Desktop 不读）；② `DeepSeek Harness.app`（`com.deepseek.dsh`，另一款 app，profile 不共享）。装上去不是"备选"，是"没装"。
-- 规则全文见 starter `docs/37-DEPLOY-TARGET.md`；装机手法（pnpm、`DSH_HOME`、`bundles`）见 `docs/06-VALIDATION-AND-RELEASE.md`。
+- **没装 Desktop**：当场停，把 <https://www.dshdesktop.com/> 给用户（对应平台的安装包），等他装好并**启动一次**再往下走。不要先开发再补装。
+- **两个明确排除的目标**：① `~/.dsh/profiles/*`（`dsh` CLI 侧的 Harness，Desktop 不读；Windows 为 `%USERPROFILE%\.dsh`）；② `DeepSeek Harness`（`com.deepseek.dsh`，另一款 app，profile 不共享）。装上去不是"备选"，是"没装"。
+- 规则全文见 starter `docs/37-DEPLOY-TARGET.md`；装机手法（包管理器、`DSH_HOME`、`bundles`、Windows/macOS 命令差异）见 `docs/06-VALIDATION-AND-RELEASE.md`。
 
 ### 0.1 初始化（不写业务代码）
 
@@ -377,14 +378,16 @@ README.md / CHANGELOG.md / VERSION / package.json
 ## 阶段 3（3.3）：按发布规范做 dsh-desktop 实测
 
 1. `NODE_OPTIONS=` 前置，`npm run build:version` → `npm run check` → `npm pack`，tgz 放 `release/`（`*.tgz` 已被忽略，不入库）。
-2. **装机目录要认准**：Desktop 的 profile 在  
-   `~/Library/Application Support/dsh-desktop/harness/profiles/web`，**不是** `~/.dsh/profiles/*`（那是 CLI 侧，Desktop 不读），  
-   **也不是** `DeepSeek Harness.app`（`com.deepseek.dsh`，另一款 app，profile 不共享）。  
-   换机器先跑 `scripts/check-install.mjs`（只读探测 + 打印判定依据）；它报"没找到 DSH Desktop"就停下来，  
-   把 <https://www.dshdesktop.com/> 给用户，装完启动一次再继续——不照抄路径，也不拿别的宿主顶替。
+2. **装机目录要认准**：Desktop 的 profile 在 app 自己的 Harness 下（macOS `~/Library/Application Support/dsh-desktop/harness/profiles/<名>`、  
+   Windows `%APPDATA%\dsh-desktop\harness\profiles\<名>`、Linux `${XDG_CONFIG_HOME:-~/.config}/dsh-desktop/harness/profiles/<名>`），  
+   **不是** `~/.dsh/profiles/*`（那是 CLI 侧，Desktop 不读），**也不是** `DeepSeek Harness`（`com.deepseek.dsh`，另一款 app，不共享 profile）。  
+   不背路径：跑 `node scripts/check-install.mjs`，以它打印的"判定基准"为准（`--app` 可指定非常规安装位置）；  
+   它报"没找到 DSH Desktop"就停下来，把 <https://www.dshdesktop.com/> 给用户，装完启动一次再继续——不拿别的宿主顶替。
 3. 装：`DSH_HOME=<harness 目录> NODE_OPTIONS= npx pnpm@10.15.0 --dir <profile> add -w <绝对路径>.tgz`，  
    然后把包名写进该 profile 的 `dsh.profile.bundles`。profile 的 `dependencies` 会记成 `file:<绝对路径>.tgz`——  
-   所以**仓库根的 tgz 不能随手删**（删了下次 pnpm 解析就断）。
+   所以**仓库根的 tgz 不能随手删**（删了下次 pnpm 解析就断）。  
+   **Windows 用 PowerShell**：`$env:DSH_HOME="…"; $env:NODE_OPTIONS=""` 再跑同一条 `npx`，`export`/`VAR=` 前置在那边不成立；  
+   app 自带的包管理器在安装目录的 `resources` 下（各版本布局不同，看目录，不猜）。
 4. 装机判据只看宿主信号，不看 curl：`package.json` 的 `dsh.profile.bundles`、`state.json` 的 added/pinned、  
    `harness.log` 有无 import failed；外部直连拿 401/403 是授权闸生效，**不代表没装上**。  
    再验一条：`import('./dsh/index.js')` 能过，`name` 与 `inject`（如 `["webServer","connection"]`）对得上。

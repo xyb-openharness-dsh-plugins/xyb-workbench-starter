@@ -46,6 +46,7 @@ AGENTS 为短规则入口；docs 为分主题指南；templates 为需求、规�
 
 ## 1.7.0 增补
 
-- **部署目标只有一台**（docs/37）：工作台只装进本机 **DSH Desktop**（`io.dsh.desktop`）自己的 `harness/profiles/*`；`~/.dsh/profiles/*`（`dsh` CLI 侧）与 **DeepSeek Harness.app**（`com.deepseek.dsh`）都不是目标，装上去不算交付。
+- **部署目标只有一台**（docs/37）：工作台只装进本机 **DSH Desktop**（`io.dsh.desktop`）自己的 `harness/profiles/*`；`~/.dsh/profiles/*`（`dsh` CLI 侧）与 **DeepSeek Harness**（`com.deepseek.dsh`）都不是目标，装上去不算交付。
+- **跨平台**：这是 GitHub 项目，macOS / Windows / Linux 都要能用。位置由 `scripts/check-install.mjs` 现场探测（macOS 实测；Windows / Linux 按 Electron 安装与 userData 约定列探测点，未在真机实测，如实标注），文档不要求使用者背单个平台的路径；装机命令按平台分开写（PowerShell 不认 `export`）。
 - 机器上没装 DSH Desktop 时**停下**并给出 <https://www.dshdesktop.com/>，装完启动一次再继续；不先开发后补装，不拿 dev server 或别的 Harness 顶替。
 - 判据由 `scripts/check-install.mjs`（随 `init` 下发）回答"装没装 / 登记到哪个 profile"；`npm run audit` 的 `deploy/装机脚本`、`deploy/AGENTS` 两条只查这条规则是否还在（fail 不交付），不替代真机装机。

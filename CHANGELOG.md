@@ -17,21 +17,33 @@ profile 不共享。`~/.dsh/profiles/web` 与目标**同名**却完全不是同�
 落地：
 
 - 新增 [docs/37-DEPLOY-TARGET.md](docs/37-DEPLOY-TARGET.md)：唯一目标 / 两个排除目标 / 三条硬判据 /
-  没装怎么办 / 明确未做（Windows 未实测、DeepSeek Harness 的 profile 位置未实测）。
+  没装怎么办 / 明确未做（Windows、Linux 未在真机实测）。
+- **跨平台（用户追问后补的一轮）**：这是 GitHub 项目，使用者不一定是 macOS，所以
+  ① 文档不再写"要背的 macOS 路径"，只给三平台对照表并说明"位置由脚本探测"；
+  ② `check-install.mjs` 按平台列探测点（macOS `/Applications`＋`~/Applications`；Windows
+  `%LOCALAPPDATA%\Programs\DSH Desktop`、`%LOCALAPPDATA%\dsh-desktop`（Squirrel）、`%APPDATA%\Programs\…`、
+  `%PROGRAMFILES%`、`%PROGRAMFILES(x86)%`；Linux `/opt`、`/usr/lib`、`~/.local/share`＋常见目录里的 `.AppImage`），
+  Harness 一律走各自 userData（mac `Application Support`、Win `%APPDATA%`、Linux `XDG_CONFIG_HOME`）；
+  ③ 装机命令分开写——**PowerShell 不认 `export`，`VAR=` 前置也只在 sh 里成立**，Windows 给 `$env:DSH_HOME`／`$env:NODE_OPTIONS`；
+  ④ 新增 `--app <路径>`，绿色版/便携版/自定义目录不必改脚本常量。
 - `AGENTS.md` 开头新增「## 部署目标：只认本机 DSH Desktop（最高优先级）」——**要求层**，
   `init` 生成的每个项目都带着；`prompts/ZERO-TO-DEV.md` 加 **§0.0 先找 dsh-desktop**（排在 init 之前），
-  §3.3 装机第 2 条同步点名 DeepSeek Harness 与下载地址。
+  §3.3 装机第 2、3 条同步点名 DeepSeek Harness、三平台位置与 Windows 命令差异。
 - `project-template/scripts/check-install.mjs` 重写判定：先回答"这台机器装没装 Desktop"
-  （`/Applications/DSH Desktop.app` 或 `desktop-workbenches/` 证据），再说"登记到哪个 profile"；
-  没装时打印下载地址并退出 1；机器上存在 DeepSeek Harness.app 时明确写"不是部署目标"。
+  （各平台 app 路径，或 `desktop-workbenches/` 证据），再说"登记到哪个 profile"；
+  没装时打印下载地址并退出 1；机器上存在 DeepSeek Harness 时明确写"不是部署目标"。
   新增 `DSH_DESKTOP_APP=none` 反向对照入口——改这段必须自己验一次"没装"分支，只验正向等于没验。
   同时修掉一个真实假绿：app 卸载后只剩残留目录，旧逻辑照样报"判定基准 Desktop"，
-  把"没装"盖过去；现在 `desktopPresent` 是绕不过去的前置条件。
+  把"没装"盖过去（Windows 上 `%APPDATA%` 残留更常见）；现在 `desktopPresent` 是绕不过去的前置条件。
 - `check-conformance.mjs` 加 `deploy/装机脚本`、`deploy/AGENTS` 两条审计项（只看出脚本与 AGENTS，
   不看 README 自述）。拿旧项目做反向对照：肉瘤 `sarcoma-workbench` 当场两项 FAIL，
   且准确指出它只缺"下载地址 + DeepSeek Harness 排除"（`~/.dsh` 它本来就有）。
 - `docs/06-VALIDATION-AND-RELEASE.md` 加「§0 部署目标只有一台」并声明**规则看 37 号、手法看 06 号**，
   避免同一件事两份权威。
+
+**验证**：`npm run check` 194 files / 0 error、`npm test` 62/62；`init` 生成探针项目（197 files）后
+`deploy/*` 两条通过；`check-install.mjs` 三支手测（未装 / 已装未登记 / 已登记），
+Windows 与 Linux 分支用 `Object.defineProperty(process,'platform',…)` 跑过提示文案——**真机仍未装过，如实记"未实测"**。
 
 存量 20+ 工作台不回填（AGENTS 与 check-install 都是建仓快照），下一轮动到哪台按 37 号重新核对。
 包版本 `1.7.0`。

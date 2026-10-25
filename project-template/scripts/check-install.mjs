@@ -2,29 +2,35 @@
 /**
  * 装机目标检查：本包必须登记到 **DSH Desktop 实际加载的那个 Harness profile**。
  *
- * 判据不是目录名。2026-10-21 实测（DSH Desktop 0.12.0）：Desktop 用的是 app 自己的 Harness，
- *   macOS: ~/Library/Application Support/dsh-desktop/harness，活动 profile 名恰好叫 `web`
- *   Windows: %APPDATA%/dsh-desktop/harness（Electron userData 约定；未在 Windows 实测）
- * 而 `~/.dsh/profiles/*` 是 CLI 侧的另一份 Harness —— Desktop **不读**。
+ * 三个平台都适用（这是个 GitHub 项目，使用者不一定是 macOS）：
+ *   macOS  Harness: ~/Library/Application Support/dsh-desktop/harness   （2026-10-21 实测 0.12.0）
+ *   Windows Harness: %APPDATA%\dsh-desktop\harness                      （Electron userData 约定，未在 Windows 实测）
+ *   Linux  Harness: ${XDG_CONFIG_HOME:-~/.config}/dsh-desktop/harness     （同上，未实测）
+ * 三处共同点：都在 app 自己的 userData 下、都有一个 `profiles/<名>` 目录。
+ * **别背路径**——脚本自己去探（app 装在哪、harness 在哪、活动 profile 叫什么都由探测回答）。
+ *
+ * 判据不是目录名，也不是"目录存在"。Desktop 用的是 app 自己的 Harness，而
+ * `~/.dsh/profiles/*`（各平台都是 `~/.dsh`）是 CLI 侧的另一份 —— Desktop **不读**。
  * 另外 `package.json` 的 `dsh.client.platform = "web"` 指客户端运行环境，与装机目录无关。
  *
  * 2026-10-26 起这条是**最高优先级规则**（starter docs/37-DEPLOY-TARGET.md）：
  *   唯一目标 = DSH Desktop（io.dsh.desktop）自己的 harness profile；
- *   排除目标 = ① ~/.dsh/profiles/*（dsh CLI 侧）② DeepSeek Harness.app（com.deepseek.dsh，另一款 app）。
+ *   排除目标 = ① ~/.dsh/profiles/*（dsh CLI 侧）② DeepSeek Harness（com.deepseek.dsh，另一款 app）。
  *   没装 Desktop 时不再往下猜，直接给下载地址 https://www.dshdesktop.com/ 并退出 1。
  *
  * 用法：
- *   node scripts/check-install.mjs                  # 自动探测 Desktop Harness
+ *   node scripts/check-install.mjs                  # 自动探测（三个平台同一命令）
  *   node scripts/check-install.mjs --home <dir> --profile <name>
+ *   node scripts/check-install.mjs --app <app 路径>  # app 装在非常规位置时显式指定
  *   node scripts/check-install.mjs --json
  * 退出码：0 = 已在 Desktop 实际加载的 profile 中登记；1 = 未装 Desktop、未登记，或只登记在别处。
  *
  * 反向对照（改这里的话必须自己验一次）：`DSH_DESKTOP_APP=none` 模拟"没装 Desktop"，
- * 应当打印下载地址并退出 1；`DSH_DESKTOP_APP=<path>` 指定 app 位置。别只验正向。
+ * 应当打印下载地址并退出 1；`DSH_DESKTOP_APP=<path>` 或 `--app <path>` 指定 app 位置。别只验正向。
  *
  * 这个脚本只做**只读核对**，不写任何文件；装包命令请用目标版本明确支持的入口。
  */
-import { readFileSync, existsSync } from 'node:fs';
+import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join, resolve } from 'node:path';
 
@@ -41,29 +47,61 @@ function argValue(flag) {
 const pkg = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'));
 const NAME = pkg.name;
 
+/** Electron 的 userData 根：mac = ~/Library/Application Support，win = %APPDATA%，linux = ~/.config。 */
 function appSupportRoot() {
   if (process.platform === 'darwin') return join(homedir(), 'Library', 'Application Support');
   if (process.platform === 'win32') return process.env.APPDATA || join(homedir(), 'AppData', 'Roaming');
   return process.env.XDG_CONFIG_HOME || join(homedir(), '.config');
 }
 
-/** DSH Desktop 自身的安装位置（只用于回答"这台机器到底装没装"）。 */
+/**
+ * "这台机器上可能装着 DSH Desktop 的位置"。三个平台各几处，**判断装没装靠探测**，
+ * 不靠背路径——本机是 macOS，Windows/Linux 的位置按 Electron 安装约定列，未逐一实测。
+ */
 function desktopAppPaths() {
+  const home = homedir();
   if (process.platform === 'darwin') {
-    return ['/Applications/DSH Desktop.app', join(homedir(), 'Applications', 'DSH Desktop.app')];
+    return ['/Applications/DSH Desktop.app', join(home, 'Applications', 'DSH Desktop.app')];
   }
   if (process.platform === 'win32') {
+    const local = process.env.LOCALAPPDATA || join(home, 'AppData', 'Local');
+    const roaming = process.env.APPDATA || join(home, 'AppData', 'Roaming');
     return [
-      join(process.env.LOCALAPPDATA || '', 'Programs', 'DSH Desktop'),
+      join(local, 'Programs', 'DSH Desktop'), // electron-builder / NSIS 的每用户默认位置
+      join(local, 'dsh-desktop'), // Squirrel 风格：app-<版本> 同级还有 Update.exe
+      join(roaming, 'Programs', 'DSH Desktop'),
       join(process.env.ProgramFiles || 'C:\\Program Files', 'DSH Desktop'),
+      join(process.env['ProgramFiles(x86)'] || 'C:\\Program Files (x86)', 'DSH Desktop'),
     ];
   }
-  return [];
+  return [
+    '/opt/DSH Desktop',
+    '/opt/dsh-desktop',
+    '/usr/lib/dsh-desktop',
+    join(home, '.local', 'share', 'dsh-desktop'),
+  ];
 }
+
+/** Linux 还常发 AppImage 单文件：扫几个常放目录，按文件名认（知道位置比知道模板可靠）。 */
+function linuxAppImages(pattern) {
+  if (process.platform !== 'linux') return [];
+  const hits = [];
+  for (const dir of [join(homedir(), 'Applications'), join(homedir(), 'bin'), '/opt', join(homedir(), 'Downloads')]) {
+    try {
+      for (const name of readdirSync(dir)) if (pattern.test(name)) hits.push(join(dir, name));
+    } catch {
+      /* 目录不存在很正常，跳过 */
+    }
+  }
+  return hits;
+}
+
+const appFlag = argValue('--app');
 const simulatedAbsent = process.env.DSH_DESKTOP_APP === 'none';
+/** 探测顺序：--app 显式指定 → 环境变量 → 各平台常规位置。 */
 const desktopApp = simulatedAbsent
   ? null
-  : process.env.DSH_DESKTOP_APP || desktopAppPaths().find((p) => existsSync(p)) || null;
+  : appFlag || process.env.DSH_DESKTOP_APP || [...desktopAppPaths(), ...linuxAppImages(/^dsh[ _-]?desktop.*\.appimage$/i)].find((p) => existsSync(p)) || null;
 
 const appHome = join(appSupportRoot(), 'dsh-desktop', 'harness');
 /** Desktop 真的在这台机器上的证据：app 安装位置，或它已经跑过一次留下的 desktop-workbenches。 */
@@ -75,17 +113,20 @@ const desktopPresent = Boolean(desktopApp) || harnessSeen;
 
 /** 另一款 app：DeepSeek Harness（com.deepseek.dsh）。装了也不是目标，只用于把话说明白。 */
 function otherDesktopApps() {
-  const list = [];
-  if (process.platform === 'darwin') {
-    for (const p of ['/Applications/DeepSeek Harness.app', join(homedir(), 'Applications', 'DeepSeek Harness.app')]) {
-      if (existsSync(p)) list.push({ label: 'DeepSeek Harness.app（com.deepseek.dsh）', path: p });
-    }
-  }
-  if (process.platform === 'win32') {
-    const p = join(process.env.LOCALAPPDATA || '', 'Programs', 'DeepSeek Harness');
-    if (existsSync(p)) list.push({ label: 'DeepSeek Harness（com.deepseek.dsh）', path: p });
-  }
-  return list;
+  const home = homedir();
+  const local = process.env.LOCALAPPDATA || join(home, 'AppData', 'Local');
+  const paths =
+    process.platform === 'darwin'
+      ? ['/Applications/DeepSeek Harness.app', join(home, 'Applications', 'DeepSeek Harness.app')]
+      : process.platform === 'win32'
+        ? [
+            join(local, 'Programs', 'DeepSeek Harness'),
+            join(local, 'deepseek-harness'),
+            join(process.env.ProgramFiles || 'C:\\Program Files', 'DeepSeek Harness'),
+          ]
+        : ['/opt/DeepSeek Harness', '/opt/deepseek-harness', ...linuxAppImages(/^deepseek[ _-]?harness.*\.appimage$/i)];
+  const label = process.platform === 'win32' ? 'DeepSeek Harness（com.deepseek.dsh）' : 'DeepSeek Harness.app（com.deepseek.dsh）';
+  return paths.filter((p) => existsSync(p)).map((path) => ({ label, path }));
 }
 
 /** 候选 Harness：先 Desktop app 自己的，再 DSH_HOME，最后 CLI 侧（只用于提示"装错地方"）。 */
@@ -206,17 +247,38 @@ for (const app of others) {
   lines.push(`! 机器上还有 ${app.label}（${app.path}）—— 不是部署目标，profile 不与 DSH Desktop 共享。`);
 }
 
+/**
+ * 装机命令按平台给：Windows 的 PowerShell 不认 `export`，`NODE_OPTIONS=` 前置也只在 sh 里成立。
+ * 抄错一处就是"命令跑不通 → 以为没装对"，所以这里分开写，不写"通用版"。
+ */
+function installHint(live) {
+  const profileDir = join(live.home, 'profiles', live.profile);
+  const pkgJson = join(profileDir, 'package.json');
+  if (process.platform === 'win32') {
+    return [
+      '装包命令（PowerShell；目标版本明确支持本地 tgz 时才用，先查 `dsh plugin add --help`）：',
+      `  $env:DSH_HOME = "${live.home}"`,
+      '  $env:NODE_OPTIONS = ""',
+      `  npx --yes pnpm@10.15.0 --dir "${profileDir}" add -w ".\\release\\<包名>-<版本>.tgz"`,
+      `  再把 ${NAME} 加进 ${pkgJson} 的 dsh.profile.bundles，重启 Harness。`,
+      '用 app 自带的 pnpm/node：位置在 app 安装目录的 resources 下（各版本布局不同，看目录，不猜）。',
+      '不要装到 %USERPROFILE%\\.dsh\\profiles\\*——Desktop 不读那里，装上也只是「配置层有了」。',
+    ];
+  }
+  return [
+    '装包命令（macOS / Linux，bash 或 zsh；目标版本明确支持本地 tgz 时才用，先查 `dsh plugin add --help`）：',
+    `  export DSH_HOME="${live.home}"`,
+    `  export PATH="$DSH_HOME/.desktop-bin:$PATH"   # macOS：用 app 自带的 pnpm / node`,
+    `  NODE_OPTIONS= npx --yes pnpm@10.15.0 --dir "$DSH_HOME/profiles/${live.profile}" add -w ./release/<包名>-<版本>.tgz`,
+    `  再把 ${NAME} 加进 "$DSH_HOME/profiles/${live.profile}/package.json" 的 dsh.profile.bundles，重启 Harness。`,
+    '不要装到 ~/.dsh/profiles/*——Desktop 不读那里，装上也只是「配置层有了」。',
+  ];
+}
+
 if (!ok) {
   lines.push('');
   lines.push('目标只有一台：DSH Desktop（io.dsh.desktop）自己的 harness profile。');
-  if (live) {
-    lines.push('装包命令（目标版本明确支持本地 tgz 时才用；先查 `dsh plugin add --help`）：');
-    lines.push(`  export DSH_HOME="${live.home}"`);
-    lines.push(`  export PATH="$DSH_HOME/.desktop-bin:$PATH"   # 用 app 自带的 pnpm / node`);
-    lines.push(`  NODE_OPTIONS= npx --yes pnpm@10.15.0 --dir "$DSH_HOME/profiles/${live.profile}" add -w ./release/<包名>-<版本>.tgz`);
-    lines.push(`  再把 ${NAME} 加进 "$DSH_HOME/profiles/${live.profile}/package.json" 的 dsh.profile.bundles，重启 Harness。`);
-    lines.push('不要装到 ~/.dsh/profiles/*——Desktop 不读那里，装上也只是「配置层有了」。');
-  }
+  if (live) lines.push(...installHint(live));
 }
 
 if (jsonOut) {
