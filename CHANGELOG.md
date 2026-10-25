@@ -493,3 +493,8 @@
 ## 未发布 · 2026-10-25 从肢端肥大症（acromegaly v0.2.0）回收
 
 LESSONS 新增 4 条：dialog 截图 md5 去重断言（settings.png 复制件 P1）、罕见病中文词 0 命中与英文机制词命中口径、罕见病随访判定词表扩充、化验多单位逐行随附不换算。待实施检查器清单：截图 md5 去重（check-shots-dedup）。
+
+
+## 未发布 · 2026-10-25 补 · 从肢端肥大症 0.2.1 回收
+
+LESSONS 追加 2 条：协议链接端到端对穿断言（public 未 postMessage 的两端各自实现假象）、原生输入 submit() 自动发送 API 与守卫。待实施检查器清单：build-public 断言"协议链接↔postMessage 对穿"。

@@ -426,3 +426,19 @@ history 是导航栈的**唯一真源**：
    同样是一票否决。
 4. **多单位混现（ng/mL vs μg/L）从 schema 层解决**：metric_point.unit 逐行随附
    + 脚注声明换算关系，趋势读模型不换算、照抄——避免任何"归一化即判定"的空间。
+
+## 2026-10-25 补 · 从肢端肥大症 0.2.1 回收
+
+5. **协议链接 ≠ 链路通了**。0.2.0 原型里 AI 按钮渲染了
+   `acromegaly:agent-draft` 链接、壳层也监听了 postMessage——但
+   public/app.js 从未真正 `postMessage` 给 parent，开发版 AI 按钮
+   实际连不到原生会话，两端各自"看起来实现了"。0.2.1 靠用户真机
+   需求（一键发送）才暴露。**切法：build-public 的数据层补丁里加
+   一条断言——原型 app.js 含协议链接时，public 产物必须含
+   `parent.postMessage`；壳层监听与页面发送要在一个测试里对穿。**
+6. **原生输入自动发送的 API 与守卫**（用户授权场景）：
+   `conversation.input.for(actx)` 的动词表除 `setDraft` 外还有
+   `submit()`（queue 模式，内部自带 phase/draft 守卫）。自动发送
+   仍要外层双守卫：仅 plain 相 + 草稿非空才调；失败降级为"草稿
+   保留待手动回车"。家族默认仍是只填不发，改成自动发送必须留
+   用户授权留痕（CHANGELOG + INTERACTION-DESIGN 修订段）。
