@@ -53,8 +53,8 @@
       "path": "patterns/disease-primer.js",
       "source": "authored in this starter",
       "purpose": "36 号疾病概要（「?」入口）的整页视图实现：无依赖经典脚本，open=pushState / close=history.back()",
-      "sha256": "8e87d001ba6f6a2b0cce255234597a09ce3656adead9607d2c06c2e83e462893",
-      "bytes": 10076
+      "sha256": "7cdfc833ab56ee1219d3400c429921f99ee91b2666a6ba5fd48a4bf2ae0904f3",
+      "bytes": 10776
     },
     {
       "path": "patterns/disease-primer.css",

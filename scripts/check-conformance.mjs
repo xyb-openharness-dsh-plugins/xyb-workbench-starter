@@ -200,10 +200,23 @@ async function main() {
   {
     const readme = await read('README.md')
     const wantSecs = ['定义', '医学资料规范和指南情况', '目前治疗全景概要', '发展趋势']
-    const hasHeader = /^##\s*疾病概要/m.test(readme)
-    // 只在本节范围内看三级标题：取 `## 疾病概要` 到下一个 `## ` 之间的内容
-    const secBody = (readme.match(/^##\s*疾病概要\s*$([\s\S]*?)(?=^##\s|\Z)/m) || [])[1] || ''
-    const bodySecs = [...secBody.matchAll(/^###\s*(.+?)\s*$/gm)].map((m) => m[1])
+    const hasHeader = /^##\s*疾病概要\s*$/m.test(readme)
+    // 只在本节范围内看三级标题：逐行扫，遇到下一个 `## ` 就停。
+    // 早先这里用 /^##\s*疾病概要([\s\S]*?)(?=^##\s|\Z)/m —— **JavaScript 没有 \Z**，
+    // 它退化成字面量 "Z"，README 里一出现 "TMZ" 就在那个 Z 处截断，后两段被判缺段
+    // （2026-10-25 GBM 实测踩到，误报 primer/README fail）。逐行扫没有这个坑。
+    const bodySecs = []
+    {
+      const lines = readme.split('\n')
+      const start = lines.findIndex((l) => /^##\s*疾病概要\s*$/.test(l))
+      if (start >= 0) {
+        for (let i = start + 1; i < lines.length; i++) {
+          if (/^##\s/.test(lines[i])) break
+          const m = lines[i].match(/^###\s*(.+?)\s*$/)
+          if (m) bodySecs.push(m[1])
+        }
+      }
+    }
     const missingRd = wantSecs.filter((w) => !bodySecs.some((t) => t.includes(w)))
     if (!hasHeader) fail('primer/README', 'README 缺 `## 疾病概要` 一节（位置：项目简介之后、开发顺序之前）')
     else if (missingRd.length) fail('primer/README', 'README 的疾病概要缺段（四段缺一不合格，没内容写「本台尚未整理」，不许删段）', missingRd.join('、'))

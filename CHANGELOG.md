@@ -1,3 +1,24 @@
+## 2026-10-25 · 1.6.1 36 号落地一天后修的两个真 bug
+
+全家族铺开第一天（22 个有原型的病种 + 7 个仅有 README 的），暴露两处实现缺陷：
+
+1. **`check-conformance.mjs` 里写了 `\Z` —— JavaScript 没有这个转义。**
+   `/^##\s*疾病概要([\s\S]*?)(?=^##\s|\Z)/m` 里的 `\Z` 退化成**字面量 "Z"**，
+   于是"本节到下一个 `##` 为止"实际变成"到第一个 Z 为止"。GBM 项目 README 里 TMZ 出现十几次，
+   后面两段被截掉，`primer/README` 误报"缺段"（数据与文案其实都写了）。
+   改成逐行扫、遇到下一个 `##` 停，没有转义可用错的余地。
+   **元教训：正则里的转义写错不会报错，它只是悄悄地按另一个意思匹配。**
+   跨语言习惯（`\Z` 在 Python/PCRE 里是"字符串末尾"）搬进 JS 就是这颗雷。
+
+2. **模块接管已存在的按钮时没补 a11y 属性。**
+   `mount()` 原实现假定 `[data-primer-open]` 上的 `aria-label` 作者已经写全。
+   head-neck 是 93KB 单文件、顶栏结构与本家其他项目不同，按钮只能手写，
+   结果只有可见的 "?"，读屏软件读出来就是一个问号。改成接管时补齐
+   `aria-label` / `aria-haspopup` / `aria-controls`（已有值不覆盖）。
+
+同步：16 个已落地的项目各提一条 `chore(36): primer 模块同步到 starter 1.6.1`，
+`head-neck`、`bladder`（无 `.top-actions`，模块退到 `.topbar`）两个特殊布局复跑仍 9/9。
+
 ## 2026-10-25 · 1.6.x 从慢性淋巴细胞白血病（小淋宝 LymPal）回收：移植残留检查器
 
 从 `cervical-workbench` 移植引擎到 `cll-workbench` 时，**底本品牌名进了患者界面**：
@@ -18,6 +39,7 @@
   L31 装机 profile 不能凭 `~/.dsh` 推断（Desktop 实际用 `~/Library/Application Support/dsh-desktop/harness/profiles/web`，
   装错会「装成功但界面永不出现」）。
 - **待实施**：`check-workbench-package` 增加「`files` 未含运行时会读的目录」断言（与 NF 回流待实施⑤之②合并）。
+
 
 ## 2026-10-25 · 28 号新增 IP11：每页头部「和 AI 讨论」（GTN v0.7.0 参照）
 
