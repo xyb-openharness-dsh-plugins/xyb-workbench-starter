@@ -130,3 +130,8 @@ profile：`~/Library/Application Support/dsh-desktop/harness/profiles/web`（本
 6. **schema 断言器要自校验哈希**。`check-schema.mjs` 不只查"有无判读列"，
    还比对 `freeze-contract.md` 里记录的 sha256 与当前文件——否则"冻结"只是口头约定，
    谁改一行 ALTER 都能悄悄过。反例测试：改一个空格即报"冻结被破坏"。
+
+## 2026-10-26 · 从神经纤维瘤病 0.1.5 回收：激活失败的两个判据坑
+
+- **L28 · mkdirSync(recursive) 返回值不可当路径**：`mkdirSync(dir, { recursive: true })` 在目标目录**已存在**时返回 `undefined`；把它传给 `join()`/`readFile` 等 → `TypeError [ERR_INVALID_ARG_TYPE]: The "path" argument must be of type string`。表现极阴：**首次安装能跑（目录被创建），之后每次重启必挂**，工作台从列表里消失。修复：mkdir 与拼路径分离（`mkdirSync(dir,{recursive:true}); join(dir,'db.sqlite')`），开库失败降级 503 + health `degraded`，不裸 throw；回归测试要"同一 root 连开两次"。
+- **L29 · "装上了没有"的判据次序**：`Harness is ready` ≠ 每个 bundle 都激活；数据目录/工作台清单有痕迹 ≠ 界面看得见。正确顺序：① 看本次运行段（最后一条 `Harness process exited` 之后）有没有 `<plugin-id>` 的 error 行；② 看 profile 里 node_modules 链接与 bundles 登记；③ 最后才是人眼确认界面。
