@@ -171,3 +171,16 @@ profile：`~/Library/Application Support/dsh-desktop/harness/profiles/web`（本
   改仓库后要先重装（或显式传目录）再跑 smoke，否则测的是旧包（本轮即因此漏报两小时）。
 - 三层排查顺序：① `.dsh-market/state.json` disabled → ② profile `cordis.patch.yml` 的 `disabled: true` →
   ③ 本次运行段 `<plugin-id>` error / `no loader entry matched` → ④ node_modules 版本 + bundles → ⑤ 人眼。
+## 2026-10-26 补 · 从急性髓系白血病 0.3.2 回收（真机加载不起来）
+
+7. **`ctx.<any> = …` 必须先 provide，否则整个插件不激活**。小橙宝把诊断信息挂到
+   `ctx.amlWorkbench`，`inject` 里没有、`provide` 也没声明；本地 `smoke:activate`
+   **全绿**（桩件不校验 provide），装进 Desktop 后宿主日志只有一行
+   `cannot set property "amlWorkbench" without provide`，界面上就是"加载不起来"。
+   **切法（两条，都已落地）**：
+   - 诊断信息别挂 ctx：走 `bootstrap` 响应的 `source` 字段、事件回调或 return 值；
+   - 静态断言 `templates/check-ctx-provide.mjs`：扫 `ctx.<key> =` 是否都在
+     `export const provide` 里（框架键白名单），正负例各一条。
+8. **"桩件通过"是装机面最危险的假绿**。这条与 0.2.4 的"截图文案"、GBM 的"register 七条"
+   同类：凡是**只有真宿主才走到**的校验，必须在开发期静态化或用真宿主探针，
+   不能拿桩件全绿当装机通过。判据：桩件只验"我调用了什么 API"，不验"宿主允许什么"。

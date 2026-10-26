@@ -370,3 +370,8 @@ CML 工作台 M2 增补轮（三块家族既有能力：指标卡 3D 翻面 / �
 
 LESSONS 追加 6 条：判定对≠提示可见（弹窗接管 + 源码级守卫）、不可忽略对话框的事件拦截（dataset.emergency + cancel/遮罩）、写入点必须配渲染断言、README 截图三项断言（路径存在/无重复 md5/版本一致）、SVG 标签避让、schema 断言器自校验哈希。
 **两个检查器已实施并随 init 下发**：`check-dialog-handoff.mjs`（onSave 再开弹窗必须 return true 接管；不可忽略框必须有 cancel/遮罩拦截）、`check-render-after-write.mjs`（每个 mem() 写入点都要有读取/渲染；支持聚合访问器避免误报）。小橙宝仓接入后立即抓到 3 个真实「只写不读」缺陷（txf/oral/deaths 中 txf、oral 为真缺陷、deaths 为聚合访问误报——断言器因此增加聚合访问器识别）。
+
+
+## 未发布 · 2026-10-26 补 · 从 AML 0.3.2 回收
+
+LESSONS 追加 2 条：`ctx.<any> = …` 必须 provide（否则插件不激活，桩件烟测抓不到）、"桩件通过"是装机面最危险的假绿。新增 `templates/check-ctx-provide.mjs`（扫 ctx 写 vs provide 声明，框架键白名单，正负例实测），已接入小橙宝 check 链并抓到真缺陷。
