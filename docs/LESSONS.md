@@ -184,3 +184,14 @@ profile：`~/Library/Application Support/dsh-desktop/harness/profiles/web`（本
 8. **"桩件通过"是装机面最危险的假绿**。这条与 0.2.4 的"截图文案"、GBM 的"register 七条"
    同类：凡是**只有真宿主才走到**的校验，必须在开发期静态化或用真宿主探针，
    不能拿桩件全绿当装机通过。判据：桩件只验"我调用了什么 API"，不验"宿主允许什么"。
+
+## 2026-10-27 · 从神经纤维瘤病 0.1.14 回收：degraded 字段早就说了实话，别只看 200
+
+- **L36 · npm `files` 与运行时读路径的第二变体**：L27 是 schema/，这次是 **demo 唯一源文件**
+  （`prototypes/v0.1/demo-data.js`）。凡代码里 `new URL('../…', import.meta.url)` 读的文件都要进 files；
+  装机后EN OENT 会让 openStore **降级**（degraded=true + STORE_UNAVAILABLE），界面全空但不报错、
+  health 仍 200——极易被当成"装好了只是没数据"。对策：health 的 `degraded`/`storeError` 字段
+  是一等信号，装机验证先 `curl /health` 看这两个字段；check 断言"运行时读的每个相对路径都进 files"。
+- **L37 · 真机空库注入演示数据是 M5 家族惯例**：空库（subjects=0）时 seedDemo（demo_meta 标记
+  `demo=true`），客户端顶栏/看板明示「演示数据，与原型同一份 demo-data 唯一源」；已有真实数据
+  （subjects>0）绝不注入。这样 M5 真机界面与原型逐像素同源，v0.2 写入闭环再引入真实数据。
