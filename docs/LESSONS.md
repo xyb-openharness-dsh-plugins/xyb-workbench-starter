@@ -157,3 +157,17 @@ profile：`~/Library/Application Support/dsh-desktop/harness/profiles/web`（本
   正确写法：`ctx.effect(() => () => { try { close(db) } catch {} })`；路由守卫必须收口
   async rejection（`const out = handler(req,res); if (out?.then) out.catch(fail)`），
   否则"禁裸 throw"只覆盖了同步路径。回归测试两条：setup 阶段不得 close；async rejection 必须被捕获。
+
+## 2026-10-26 · 从神经纤维瘤病 0.1.11 回收：「装上了但不出现」的三层判据
+
+工作台在 DSH Desktop 里消失，可能是三层各自独立的问题，必须按顺序查完：
+
+- **L32 · 市场层禁用最隐蔽**：profile 下 `.dsh-market/state.json` 的 `disabled` 数组会整包禁用插件；
+  日志只有 `toggle: <pkg>: no loader entry matched`。此时 cordis.patch.yml 干净、包与 bundles 都在、
+  代码也修好了，但 loader 根本不挂载 → 启动段"无错误"、界面永远不出现。
+  核对：`cat <profile>/.dsh-market/state.json`，把本包从 disabled 移除（关应用后改，或走市场 UI 启用）。
+- **L33 · 客户端 register 引用未定义变量**：描述符里写了只存在于组件内部的 state（如 healthVersion），
+  register 每次抛错；症状同"没注册"。smoke-activate 能抓到，但它默认测 **profile 里已安装的拷贝**——
+  改仓库后要先重装（或显式传目录）再跑 smoke，否则测的是旧包（本轮即因此漏报两小时）。
+- 三层排查顺序：① `.dsh-market/state.json` disabled → ② profile `cordis.patch.yml` 的 `disabled: true` →
+  ③ 本次运行段 `<plugin-id>` error / `no loader entry matched` → ④ node_modules 版本 + bundles → ⑤ 人眼。
