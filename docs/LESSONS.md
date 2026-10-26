@@ -195,3 +195,16 @@ profile：`~/Library/Application Support/dsh-desktop/harness/profiles/web`（本
 - **L37 · 真机空库注入演示数据是 M5 家族惯例**：空库（subjects=0）时 seedDemo（demo_meta 标记
   `demo=true`），客户端顶栏/看板明示「演示数据，与原型同一份 demo-data 唯一源」；已有真实数据
   （subjects>0）绝不注入。这样 M5 真机界面与原型逐像素同源，v0.2 写入闭环再引入真实数据。
+
+## 2026-10-27 · 从神经纤维瘤病 0.1.16 回收：Desktop 侧 UI 的正解是「原型即 iframe」
+
+- **L38 · 手写第二套 React 界面必被用户打回**：Desktop 模式下家族标准是 customFrame 客户端 +
+  服务端 `/api/<slug>/ui/` 静态承载**已签认原型**（index/style/app/demo-data 进 files），
+  客户端只做：顶栏（AI 对话按钮/版本/说明）、iframe 业务区、原生会话挂载、splitter 25–45%、
+  收起不卸载。照抄同 profile 兄弟包（如 narcolepsy）的 client.js 做字符串级移植最快，
+  主题色/文案/消息类型（如 `nf:agent-draft`）替换干净即可；iframe 内用
+  `window.parent.postMessage({type:'<pkg>:agent-draft', prompt})` 把草稿交给原生会话。
+- **L39 · 批量替换必须 assert**：python/脚本对源码做字符串替换时，替换目标不存在会让修复
+  静默失效（本轮 imports 替换漏掉 → ReferenceError → 条目 did not activate → 路由 404）。
+  规矩：每个 replace 后 assert 变化确实发生；装机验证用带鉴权 curl 对比 401（存在）/404（未挂载）——
+  全站 auth 中间件下 401 恰恰证明路由已注册。
