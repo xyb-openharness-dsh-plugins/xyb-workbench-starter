@@ -100,3 +100,33 @@ profile：`~/Library/Application Support/dsh-desktop/harness/profiles/web`（本
 - **可复用结构（templates 挂钩）**：`templates/FLIP-METRIC-CARD.md`——分系列有序指标卡墙 + 正面当前值/背面最近记录与来源的 3D 翻转卡（含 reduce-motion 降级与键盘 Enter 支持），与 32 号折叠卡并列的第二个"原型即模版"结构；`prompts/ZERO-TO-DEV.md` 已在功能线清单挂引用。
 - **流程规则**：自动领取前必须按 issues 搜索确认无人正在做（本轮 PF-ILD/地贫/儿童急淋均已被认领，BACKLOG 未认领池 ≠ issues 现实）；判读词黑名单在 NF 语境追加"恶变/癌变风险提示、遗传概率建议"两类（仅静态来源引用豁免）。
 - **待实施⑥（既有失败，2026-10-25 实测）**：starter `npm test` 中 "ships the desktop-load verifier" 在本机失败——`verify-desktop-load.mjs` 在找不到 DSH Desktop harness 目录时直接抛「找不到…harness 目录」，没走到「界面加载核验」可读结论分支（test/starter.test.mjs:59 期望 `/界面加载核验/`）。该失败早于本次 NF 回流（stash 验证过），按不修绿纪律只登记不擅改。
+
+## 2026-10-26 · 从急性髓系白血病（aml-workbench v0.3.0）回收
+
+1. **判定对 ≠ 提示可见**。`classifyTemp` 的边界逻辑 11 例全过，纯函数断言 9/9 绿；
+   但 UI 层 `onSave(vals); closeModal()` 把刚弹出的急症框当成录入框一起关掉了——
+   家属录 38.5℃ **什么提示都看不到**，体温静默入库。5 个 check 全绿，红线已破。
+   **切法（两条）**：
+   - 表单保存回调要能"接管弹窗"：`const handled = onSave(vals); if (handled !== true) closeModal()`
+     ——凡是 onSave 里会再开弹窗/对话框的，必须走这条；
+   - 断言器必须有一层**源码级守卫**：grep 出「先关后弹」的调用顺序 + `dataset.emergency` 标记 +
+     cancel/遮罩拦截。纯函数断言永远看不见 UI 编排。
+2. **"不可忽略"必须写进事件拦截，不能只写文案**。急症框文案写着"不可忽略关闭"，
+   但 `<dialog>` 默认 Esc 可关、遮罩 click 可关——全文件 `addEventListener('cancel')` 只有 0 处。
+   **切法**：不可忽略对话框 = `dataset.emergency='1'` + `cancel` preventDefault + 遮罩点击忽略 +
+   唯一出口按钮 + closeModal 时清标记（否则下一次普通弹窗也被锁）。
+3. **"写进去"和"看得见"是两件事**。`mem().temps.push(...)` 写了，但 `grep mem().temps`
+   三处全是写、无一处渲染——家人代记的体温曲线只能存不能看。**切法**：每个新写入点都必须
+   配一条"写入后渲染出现"的断言（录 1 条 → 图上/列表里 +1）；这类缺失静态检查抓不到，
+   要靠"写入点 → 读取点"双向 grep 核对。
+4. **README 截图会静默腐烂**。同一目录存在 `-0.2.0`（新，1000px）与 `-v0.2.0`（旧，940px）
+   两套，README 引用的是旧的，其中一张还是根本不存在的文件名（破图）。**切法**：
+   截图产物入库前做三项断言——① 引用路径全部存在；② 全目录 md5 无重复；
+   ③ 文件名版本 == VERSION；并删除旧命名的一套（两套并存必然引错）。
+5. **SVG 标签要避让，位置由上一条决定**。hourLane 事件标签（12:40 / 13:10）、
+   一图秀输注泳道（红细胞×1 / 血小板×1）都直接 `x+6` 绘制，实测包围盒相交叠印成黑块。
+   **切法**：同泳道内按 x 排序，相邻 < 阈值则交替上下两行（配引导线）；
+   一图秀末点标签的 `cursor` 避让模式可直接复用。
+6. **schema 断言器要自校验哈希**。`check-schema.mjs` 不只查"有无判读列"，
+   还比对 `freeze-contract.md` 里记录的 sha256 与当前文件——否则"冻结"只是口头约定，
+   谁改一行 ALTER 都能悄悄过。反例测试：改一个空格即报"冻结被破坏"。

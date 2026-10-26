@@ -364,3 +364,9 @@ CML 工作台 M2 增补轮（三块家族既有能力：指标卡 3D 翻面 / �
 ## 1.7.1 — 2026-10-25
 
 34/35 号契约入架收尾：06 号（VALIDATION-AND-RELEASE）检查器清单新增"条件触发检查器"节（check-agent-draft-bridge A1–A4 / check-trial-matching T1–T3b，触发即必过、未实现跳过）；README 新增 Git 开发快照（七）。
+
+
+## 未发布 · 2026-10-26 · 从急性髓系白血病（aml v0.3.0）回收
+
+LESSONS 追加 6 条：判定对≠提示可见（弹窗接管 + 源码级守卫）、不可忽略对话框的事件拦截（dataset.emergency + cancel/遮罩）、写入点必须配渲染断言、README 截图三项断言（路径存在/无重复 md5/版本一致）、SVG 标签避让、schema 断言器自校验哈希。
+**两个检查器已实施并随 init 下发**：`check-dialog-handoff.mjs`（onSave 再开弹窗必须 return true 接管；不可忽略框必须有 cancel/遮罩拦截）、`check-render-after-write.mjs`（每个 mem() 写入点都要有读取/渲染；支持聚合访问器避免误报）。小橙宝仓接入后立即抓到 3 个真实「只写不读」缺陷（txf/oral/deaths 中 txf、oral 为真缺陷、deaths 为聚合访问误报——断言器因此增加聚合访问器识别）。
