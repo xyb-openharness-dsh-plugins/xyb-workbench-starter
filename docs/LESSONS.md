@@ -146,3 +146,14 @@ profile：`~/Library/Application Support/dsh-desktop/harness/profiles/web`（本
   ② 看 harness.log 本次运行段有没有 `<plugin-id>` 的 error 行；
   ③ 核 node_modules 版本与 package.json bundles 登记；
   ④ 最后人眼确认。
+
+## 2026-10-26 · 从神经纤维瘤病 0.1.6 回收：ctx.effect 不是「注册清理函数」
+
+- **L31 · `ctx.effect(fn)` 会立即执行 fn，fn 的返回值才是 disposer**。写成
+  `ctx.effect(() => { close(db) })` 等于在 apply 阶段立刻关库；之后任何查询抛
+  `Error: database is not open`，若 handler 是 async 且未被收口，就变成
+  `unhandled rejection` → DSH Desktop 打 `dsh: fatal load failure` → 进入 plugin recovery
+  并**自动写 `disabled: true`**（症状：工作台从列表消失，且启动段看起来"没有插件错误"）。
+  正确写法：`ctx.effect(() => () => { try { close(db) } catch {} })`；路由守卫必须收口
+  async rejection（`const out = handler(req,res); if (out?.then) out.catch(fail)`），
+  否则"禁裸 throw"只覆盖了同步路径。回归测试两条：setup 阶段不得 close；async rejection 必须被捕获。
