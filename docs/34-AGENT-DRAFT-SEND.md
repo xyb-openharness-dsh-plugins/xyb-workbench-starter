@@ -9,6 +9,7 @@
 | --- | --- | --- |
 | 1 入口 | 业务页（public/app.js） | `<a href="<app>:agent-draft?prompt=…">` 协议链接；点击 `preventDefault` |
 | 2 发送 | 业务页 | **嵌入式形态**（`window.parent !== window`）→ `window.parent.postMessage({ type: '<app>:agent-draft', prompt, send: true }, location.origin)`；**独立打开**（file://）→ 本地演示面板 + 文案说明未接通，不假装发送 |
+| 2b 面板唯一性 | 业务页 | **演示面板只存在于独立打开形态**。嵌入式下原生会话是唯一 AI 面板：业务页自有的 AI 面板（顶栏 toggle/splitter/pane）必须整体隐藏，不允许『演示面板 + 原生会话』双面板并存（肢端肥大症 0.2.0–0.2.3 真机实漏：右侧出现『AI 协助·演示』残留）。实现：EMBEDDED 探测 → renderAgent 早退 + agent-toggle 动作嵌入式 no-op |
 | 3 送达 | 壳层（src/client.js→lib） | `message` 监听：校验 `event.source === 自己 iframe 的 contentWindow` **且** `event.origin === location.origin`，prompt 截断（≤8000）；`rememberDraft({sessionId, prompt, send})` 持久队列 |
 | 4 填发 | 壳层 | `conversation.input.for(actx)`：`setDraft(草稿)` → 若 `send===true`：复取 snapshot，**仅 `phase==='plain'` 且草稿非空**才 `input.submit?.()`（queue 模式） |
 
@@ -35,6 +36,7 @@
 1. `public/app.js` 出现 `href^="<app>:agent-draft"` ⇒ 必须出现 `parent.postMessage` 且消息含 `send`（对穿断言：0.2.0 肢端肥大症两段各自实现、实际不通的真实坑）。
 2. `lib/client.js` 必须监听同 `<app>:agent-draft` 类型且校验 `event.source`。
 3. `lib/client.js` 自动发送必须带双守卫字符串证据（`phase === 'plain'` 与 `submit`）。
+4. **面板唯一性（2b）**：`public/app.js` 含 `parent.postMessage`（支持嵌入式）且含 `agent-pane` ⇒ 必须含嵌入式门控证据（`EMBEDDED` 常量或 `window.parent !== window` 出现 ≥2 处：发送分支 + 面板门控）——防『演示面板漏进装机版』。
 
 ## 五、留痕要求
 

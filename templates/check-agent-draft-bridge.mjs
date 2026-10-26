@@ -30,6 +30,11 @@ if (pub) {
   const hasSend = /\bsend\s*:\s*true\b/.test(pub)
   if (hasLink && !hasPost) problems.push('A1 页面有 agent-draft 协议链接但没有 parent.postMessage（假接通）')
   if (hasLink && hasPost && !hasSend) problems.push('A1 postMessage 未携带 send:true（34 号默认一键发送；回退须留痕）')
+  // A4 面板唯一性（34 号 §一 2b）：支持嵌入式的页面不得无条件渲染自有演示面板
+  if (hasPost && pub.includes('agent-pane')) {
+    const gate = /const EMBEDDED/.test(pub) || (pub.match(/window\.parent !== window/g) || []).length >= 2
+    if (!gate) problems.push('A4 嵌入式支持但演示面板无门控（EMBEDDED 常量或 window.parent !== window ≥2 处）——面板会漏进装机版')
+  }
 }
 if (cli) {
   if (!cli.includes(`${slug.split('/').pop()}:agent-draft`) && !cli.includes(':agent-draft')) problems.push('A2 壳层未监听 <app>:agent-draft 消息')
