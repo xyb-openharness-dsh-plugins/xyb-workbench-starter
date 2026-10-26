@@ -164,16 +164,17 @@ peer warning 不是加载结论；查宿主实际提供服务与日志。不能�
 因为**检查器自己先写错过一次**：`check-choice-limit.mjs` 第一版把调用方末尾的 `render()` 算进了拒绝分支窗口，
 反例判成通过。没有反例测试，检查器就是新的错觉来源。
 
-### 条件触发检查器（34/35 号契约，随 init 下发）
+### 条件触发检查器（34/35/38 号契约，随 init 下发）
 
-除上面六个常开检查器外，还有两个**按功能触发**的契约断言器——实现了对应功能的仓必须过，未实现则自动跳过（不误报）：
+除上面六个常开检查器外，还有几个**按功能触发**的契约断言器——实现了对应功能的仓必须过，未实现则自动跳过（不误报）：
 
 | 检查器 | 触发条件 | 查什么 | 抓的是哪一类 | 来源 |
 | --- | --- | --- | --- | --- |
-| `check-agent-draft-bridge.mjs`（34 号） | `public/app.js` 出现 `agent-draft` 协议链接 / `lib/client.js` 存在 | A1 页面→壳层 postMessage 对穿（含 `send:true`）；A2 壳层监听+`event.source` 双校验；A3 自动发送双守卫（plain 相+submit）；A4 **面板唯一性**——嵌入式下演示面板必须有门控 | **两端各自实现、链路实际不通**（0.2.0 AI 按钮连不到原生会话）；**演示面板漏进装机版**（0.2.0–0.2.3 真机实漏"AI 协助·演示"残留） | 肢端肥大症 0.2.0–0.2.4 |
+| `check-agent-draft-bridge.mjs`（34 号） | `public/app.js` 出现 `agent-draft` 协议链接 / `lib/client.js` 存在 | A1 页面→壳层 postMessage 对穿（含 `send:true`）；A2 壳层监听+`event.source` 双校验；A3 自动发送双守卫（plain 相+submit）；A4 **面板唯一性**——门控必须出现在**面板显隐函数体内**（不是只查常量存在） | **两端各自实现、链路实际不通**（0.2.0 AI 按钮连不到原生会话）；**演示面板漏进装机版**（0.2.0–0.2.3 真机实漏"AI 协助·演示"残留）；**常量有但显隐没门控**（AML 0.2.0：`setAgent()` 无条件显示，装机后双面板） | 肢端肥大症 0.2.0–0.2.4；AML 0.2.0 |
 | `check-trial-matching.mjs`（35 号） | `dsh/src/public` 出现 `trialMatch` 类符号（明确匹配模块） | T1 三态词；T2 禁 eligible/suitability 判读列与"适配度/入组概率"命名；T2b 四档分层词 + "不是入组资格"声明；T3 "未核实"+快照日期语境 | **匹配结果替医生下判定**；缺证据链的裸指数 | 35 号 v2（参考实现：biliary-tract match-0.1.0） |
+| `check-medical-threshold.mjs`（38 号） | 项目里有"按阈值把记录分流到不同处置"的功能（发热 / 低血糖 / 出血分级 / 肾功能分期 / 剂量调整线） | 把判定函数从源码抽出、在 Node 里**真实执行**，跑边界值/时长/无效值 ≥6 条用例 + **1 条元断言**（把旧的错误写法写回来，必须被抓住） | **文案里定义写对、代码判错**——最典型是 `v >= 38.3 \|\| v >= 38.0` 等价于 `v >= 38.0`，时长条件被吞掉，单次 38.1℃ 也弹急症；探针全绿因为它只验"弹了没" | AML 小橙宝 v0.2.0 M2 评审（2026-10-26） |
 
-接入方式：项目 `package.json` 的 `check` 链追加 `node scripts/check-*.mjs .`（模板在 starter `templates/`，init 下发）；判据变更先改 34/35 号、再改检查器，与 IP 层同纪律。
+接入方式：项目 `package.json` 的 `check` 链追加 `node scripts/check-*.mjs .`（模板在 starter `templates/`，init 下发）；判据变更先改 34/35/38 号、再改检查器，与 IP 层同纪律。
 
 **静态查不到的部分，靠一次装机副本探针**：加载 `profiles/<profile>/node_modules/<pkg>/dsh/index.js`（宿主注入的 peer 用最小 shim 顶替），喂假宿主（`webServer.register` / `connection.requestRejection` / `effect`），再让真 Chrome 走一遍页面。判据至少四条：`health` 200 且版本与包一致、`bootstrap` 六件齐全、写一条业务数据后**回读磁盘库有数**（内存库也会 200）、12 页逐个点开有内容且 `scrollWidth === innerWidth`、0 未捕获异常 0 失败请求。参考实现：`attr-workbench/scripts/probe-install.mjs`。
 
