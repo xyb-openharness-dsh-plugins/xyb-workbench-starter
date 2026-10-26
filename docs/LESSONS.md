@@ -135,3 +135,14 @@ profile：`~/Library/Application Support/dsh-desktop/harness/profiles/web`（本
 
 - **L28 · mkdirSync(recursive) 返回值不可当路径**：`mkdirSync(dir, { recursive: true })` 在目标目录**已存在**时返回 `undefined`；把它传给 `join()`/`readFile` 等 → `TypeError [ERR_INVALID_ARG_TYPE]: The "path" argument must be of type string`。表现极阴：**首次安装能跑（目录被创建），之后每次重启必挂**，工作台从列表里消失。修复：mkdir 与拼路径分离（`mkdirSync(dir,{recursive:true}); join(dir,'db.sqlite')`），开库失败降级 503 + health `degraded`，不裸 throw；回归测试要"同一 root 连开两次"。
 - **L29 · "装上了没有"的判据次序**：`Harness is ready` ≠ 每个 bundle 都激活；数据目录/工作台清单有痕迹 ≠ 界面看得见。正确顺序：① 看本次运行段（最后一条 `Harness process exited` 之后）有没有 `<plugin-id>` 的 error 行；② 看 profile 里 node_modules 链接与 bundles 登记；③ 最后才是人眼确认界面。
+
+## 2026-10-26 · 从神经纤维瘤病 0.1.5 二次回收：Desktop 会自动禁用崩溃过的插件
+
+- **L30 · 激活崩溃 → 自动禁用，之后"修好了也不出现"**：DSH Desktop 在一次 bundle 激活失败后，会往 profile
+  `cordis.patch.yml` 追加 `- id: <plugin-id>\n  disabled: true`，并留 `cordis.patch.yml.pre-disable-<id>-<时间>` 备份
+  （package.json 也有 `.pre-…-disable-…` 备份）。此后即使升级到修好的版本，条目仍被禁用，宿主启动段"干净无错"
+  （因为根本没加载），列表里永远不出现。**排查"工作台不出现"的完整顺序**：
+  ① `grep "id: <plugin-id>" -A2 profile/cordis.patch.yml` 看有无 `disabled: true`（有就删掉该条，删前备份）；
+  ② 看 harness.log 本次运行段有没有 `<plugin-id>` 的 error 行；
+  ③ 核 node_modules 版本与 package.json bundles 登记；
+  ④ 最后人眼确认。
