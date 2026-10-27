@@ -166,7 +166,39 @@ window.DISEASE_PRIMER = {
 
 `sections` 少于 4 段、或四个 `id` 不齐，模块照常渲染但控制台报一条 `console.warn`，探针判 FAIL。
 
-## 5. 验收（P1–P8）
+### 4.3 排版对齐：正文右边界必须与表格一致（2026-10-27 用户实指，硬约束）
+
+浮窗里「定义」段的换行点与下方表格不一致、看着像「左边距没对齐」，根因不是边距，是**宽度上限**：
+
+| 元素 | 曾用过 | 结果 |
+|---|---|---|
+| `.dp-lead` 段首说明 / `.dp-points li` 列表项 | `max-width: 68ch`（≈557px） | 在 787px 处换行 |
+| `.dp-table` / `.dp-section h3` / `.dp-src` | 吃满 `.dp-inner`（980px） | 右边界 1210px |
+
+左边界都是 0（对齐），右边界差 400+px，段落换行点于是各不相同——看起来就是"边距和下面不对齐"。
+
+**规则（参考实现已改，新仓直接继承；存量仓按 PRIMER-BACKFILL 覆盖 css 即得）**：
+
+1. **正文块不设 `max-width`**：`.dp-lead`、`.dp-points li` 与表格同宽，四类元素右边界一致；
+2. **列表缩进移到 `li` 上**：`.dp-points{ padding-left: 0; list-style: none }` + `.dp-points li{ position:relative; padding-left:18px }` + `li::before` 画项目符号。
+   这样 **ul 这个块本身的右边界与正文/表格一致**，符号仍缩进——直接给 `ul` 加 `padding-left` 会让整个块的右边界比正文少 18px，正是"列表比段落短一截"的来源；
+3. **表格给 `min-width: 640px`**：窄容器下由 `.dp-table-wrap{overflow-x:auto}` 横向滚动，**不压缩列宽**——压缩会把单元格压成逐字换行，比横向滚动更难读。
+   **表格因此是唯一允许右边界超出容器的元素**（滚动是设计意图），探针按「有 overflow-x:auto 即豁免」判定；
+4. **长文可读性不用 `max-width` 换**：`68ch` 会牺牲对齐一致性，宽度交给 `.dp-inner` 统一控制（默认 980px）；
+5. **项目级选择器必须限定作用域**：浮窗挂在 `body` 下，任何裸 `p{max-width:…}` / `ul{padding-left:…}`
+   都会穿透进浮窗，把 `.dp-lead` / `.dp-src` / `.dp-points` 一起卡窄或推偏。
+   写 `main p{}`、`.workbench p{}` 这类作用域选择器。**这条是本轮真实踩到的**：starter 自己的
+   `examples/disease-primer.html` 就带 `p{max-width:70ch}`，导致参考实现自测 P9 失败（已修）。
+
+**验证方式（探针 P9，已加入）**：浮窗打开后量 `.dp-lead` / `.dp-points li` / `.dp-table` / `.dp-src` 的 `getBoundingClientRect()`：
+
+- **左基线**：四者与 `.dp-inner` 的左边差都 ≤1px；
+- **右边界**：**文本类三类**（正文/列表/来源行）右边界极差 ≤2px；
+- **表格**：允许超出容器，但必须有可滚动父级（`.dp-table-wrap` 的 `overflow-x` 为 `auto`）；
+- **三档**：1440/900/390 都要过；
+- **前置断言**：测量前面板必须真实可见（宽高 ≥100px）。P7 按过 Esc 会关面板，不复开就量到全 0 的隐藏元素 —— 极差恒为 0，**假通过**。这条前置断言就是防它的。
+
+## 5. 验收（P1–P9）
 
 | 编号 | 判据 | 怎么测 |
 |---|---|---|
@@ -178,6 +210,7 @@ window.DISEASE_PRIMER = {
 | P6 | 关闭后焦点回到触发按钮，页面滚动位置不变 | 量 `document.activeElement` 与 `scrollY` |
 | P7 | `Esc` 只退一层（不刷新、不离开页面） | 按键后仍在本页 |
 | P8 | 数据四段齐全；趋势段不含禁止词 | 读 `window.DISEASE_PRIMER` |
+| P9 | 排版对齐：正文/列表/来源行同左基线、右边界极差 ≤2px；表格允许横向滚动（须有 overflow-x:auto） | 量 `.dp-lead`/`.dp-points li`/`.dp-table`/`.dp-src` 与 `.dp-inner` 的 rect，1440/900/390 三档 |
 
 反向对照：`node scripts/probe-disease-primer.mjs --self-test` 必须至少 3 条 FAIL。
 只报绿不报红的闸门等于没有闸门（LESSONS 第 13 类）。
