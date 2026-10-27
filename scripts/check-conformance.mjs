@@ -195,6 +195,40 @@ async function main() {
   if (existsSync(join(target, 'prototypes/v0.2/index.html'))) ok('ui/原型基线', '有 prototypes/v0.2 基线')
   else warn('ui/原型基线', '没有 prototypes/v0.2：视觉验收缺少唯一基准')
 
+  /* ---------- 4a. 随包界面（2026-10-27 补） ----------
+     此前只剩两条弱规则：`public/index.html` 存在才查版本一致（不存在整段跳过）、
+     `prototypes/v0.2` 缺失只是 warn。于是"dsh/lib 齐全、包里一个 HTML 都没有"的包能全绿：
+     装机后看到的是客户端外壳自绘的骨架（小前宝 0.1.1 就是这么发出去的）。
+     这里补三条只看文件的硬规则。 */
+  {
+    const shellClient = await read(pkg.exports?.['./client'] || 'lib/client.js')
+    const shellDsh = await read(pkg.main || 'dsh/index.js')
+    const uiEntry = (shellClient.match(/UI_ENTRY\s*=\s*['"`]([^'"`]+)/) || shellDsh.match(/UI_ENTRY\s*=\s*['"`]([^'"`]+)/) || [])[1]
+    const hasPublic = existsSync(join(target, 'public/index.html'))
+    const protoDirs = (await listdir('prototypes')).filter((e) => e.isDirectory() && existsSync(join(target, 'prototypes', e.name, 'index.html'))).map((e) => `prototypes/${e.name}`)
+    const files = (pkg.files || []).map((g) => g.replace(/^\.\//, '').replace(/\/$/, ''))
+    const shipped = (dir) => files.some((g) => dir === g || dir.startsWith(g + '/'))
+
+    if (uiEntry && hasPublic && shipped('public')) {
+      ok('ui/随包界面', 'public/index.html 存在、随包发出，外壳用 UI_ENTRY 装 iframe', `${uiEntry} → public/`)
+    } else if (uiEntry && hasPublic && !shipped('public')) {
+      fail('ui/随包发布', 'public/ 不在 package.json files 里：装机包里没有界面', `files=${JSON.stringify(pkg.files || [])}`)
+    } else if (!uiEntry && hasPublic) {
+      fail('ui/外壳入口', '有 public/index.html，但 lib/client.js 没有 UI_ENTRY：外壳没把界面装进面板')
+    } else if (!uiEntry && !hasPublic) {
+      fail('ui/外壳入口', protoDirs.length
+        ? `界面只在 ${protoDirs.join(' / ')} 里，没提升到 public/，外壳也没有 UI_ENTRY`
+        : '既没有 public/index.html，外壳也没有 iframe UI_ENTRY：装了只看到骨架')
+    } else {
+      ok('ui/随包界面', 'public/index.html 随包发出', uiEntry)
+    }
+
+    /* 外壳自绘业务卡片＝家族口径禁止的第二种界面（装配层应该只做入口 + iframe） */
+    const drawn = /wb-status-(?:eyebrow|days|line)|data-status-days|接入骨架/.test(shellClient)
+    if (drawn && !uiEntry) fail('ui/外壳自绘', 'lib/client.js 自己在画业务卡片，且没有 iframe UI_ENTRY：装配层不该当业务页')
+    else if (drawn && uiEntry) warn('ui/外壳自绘', 'lib/client.js 里仍有自绘业务卡片（只应作为界面加载失败时的兜底，且要写清注释）')
+  }
+
   /* ---------- 4b. 疾病概要（36 号） ---------- */
   // 只看文件与代码，不看文档自述：README 写"已加 ? 图标"不算数。
   {
