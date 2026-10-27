@@ -1,6 +1,6 @@
 {
   "name": "dsh-wb-cli",
-  "version": "1.10.0-rc.2",
+  "version": "1.10.0-rc.3",
   "private": true,
   "description": "小胰宝/小x宝社区 DSH Workbench Git 分发与项目初始化工具",
   "type": "module",
@@ -31,8 +31,9 @@
     "test"
   ],
   "scripts": {
-    "check": "node --check bin/dsh-wb-cli.mjs && node --check cli/main.mjs && node --check scripts/init.mjs && node --check project-template/scripts/check-install.mjs && node --check scripts/check-conformance.mjs && node --check scripts/probe-disease-primer.mjs && node --check templates/check-primer-links.mjs && node templates/check-primer-links.mjs --self-test && node scripts/check-starter.mjs",
+    "check": "node --check bin/dsh-wb-cli.mjs && node --check cli/main.mjs && node --check scripts/init.mjs && node --check project-template/scripts/check-install.mjs && node --check scripts/check-conformance.mjs && node --check scripts/probe-disease-primer.mjs && node --check templates/check-primer-links.mjs && node templates/check-primer-links.mjs --self-test && node templates/check-trial-matching.mjs --self-test && node scripts/check-starter.mjs",
   "probe:primer-links": "node templates/check-primer-links.mjs --self-test",
+    "probe:trial-matching": "node templates/check-trial-matching.mjs --self-test",
     "test": "node --test test/*.test.mjs",
     "audit": "node scripts/check-conformance.mjs",
     "probe:page-view": "node scripts/probe-page-view.mjs",

@@ -240,3 +240,37 @@ profile：`~/Library/Application Support/dsh-desktop/harness/profiles/web`（本
   `s.entry`（官方入口页）那 10 行，而这些仓既没有同源检查闸、数据里也没用到 `entry` —— 批量覆盖只是制造 churn。
   正确顺序：先 grep 该仓 `scripts/build-primer-data.mjs` 有没有把「模式件与源一致」写进 `npm run check`；
   有闸的仓才必须同步（否则 check 恒红），没闸的仓等它下次动 primer 时顺手带上。
+
+## 2026-10-27 · 从小肺宝临床试验模块（0.1.2-rc.19）回收：分数怎么才不骗人
+
+用户对 G2 demo 的原话是「好多了，按照这个开发」，交付后又补了一句「临床查询做的特别好」。
+真正值钱的不是夸，是这中间实测暴露的四个缺陷——它们都**不报错、不崩、看起来很正常**，只是悄悄把结论说错。
+
+- **L44 · 跨侧比较的字符串必须来自同一份词表**：档案侧写 `'晚期转移'`、登记侧写 `'晚期/转移'`，
+  于是 `facts.scope === '晚期转移'` 恒为 false，每一类都落到「待确认」。症状极具欺骗性：分数偏低、
+  待确认项多到像用户资料不全，但代码一个字都没报错。规矩：跨侧比较不许两边各写一份中文字面量，
+  提到常量表（或先 `normalize` 再比）；写完立刻用「两边答案都已知」的样本跑一遍，确认能出 `met` 而不是清一色 `unknown`。
+- **L45 · 反向条件不显式反转，就把阳性档案判成「对得上」**：登记标题写 `EGFR Wildtype`，原实现只要见到 `EGFR`
+  就给 `met`，`EGFR L858R` 被判「位点对得上」——方向正好反了，而这类误判最容易被当成「匹配上了」。
+  规矩：抽条件前先判极性，`wildtype｜野生型｜未突变｜阴性｜negative` 出现时，语义是「不得有该变异」。
+  可断言的测试：同一份阳性档案，对「EGFR 突变入组」与「EGFR 野生型入组」两条登记，必须一案 `met` 一案 `unmet`。
+- **L46 · 「一条判据对上」不能变成 100%**：快照读不出疾病范围时分母只剩病理一条，`1/1 = 100%`，用户看到的是
+  「完全符合」。三条守则：`crit.length < 2` 不给百分数（只给「需补充信息」）；病理未确认时整页不排名；
+  读不出的字段记「待确认」，不要为了凑分母把「不适用」算成「符合」。检查法：只有病理记录的档案
+  + 标题读不出场景的登记，断言页面**不出现任何百分数**。
+- **L47 · 断言整棵虚拟 DOM 的文本会连 `<style>` 一起匹配**：`textOfTree(tree)` 把样式文本也拼了进来，
+  CSS 里有 `width:100%`，于是 `assert.doesNotMatch(text, /\d+%/)` 永远失败，而页面其实没有百分数。
+  反方向同样成立：`assert.match` 可能因为 CSS 里恰好有同名字符串而**假通过**。规矩：比对页面文案前先按类名过滤节点
+  （`flatten(tree).filter(n => /wb-trial-card/.test(n.props?.className))`），或让 `textOfTree` 跳过 `style` / `script`。
+- **L48 · 假 React 测试不执行 effect：写在 effect 里的逻辑等于零覆盖**：自建假 React 只跑 render，
+  `useEffect` 只登记不执行。好处是 effect 里可引用后面才 `const` 定义的函数（真实执行在 render 之后，TDZ 已过），
+  坏处是 effect 里的判定（请求去重 key、`Esc` 关浮窗、焦点回收）一条都没被测到。规矩：把 effect 的业务判定抽成
+  纯函数（`trialRequestKey(caseFile, hist)`）单独测，effect 只留接线。另：hook 顺序按索引钉死，插一个新 `useState`
+  会让后面全部平移——改完先 `grep -c "React.useState"` 数实际个数，再同步 `HOOK` 映射与 `hookCount`。
+- **L49 · 原型增量生成脚本必须断言「唯一命中」并核对 base64 段数**：从冻结基线生成新原型靠字符串替换，
+  某段出现两次就会换错位置；整段水印 `data:image/png;base64` 会在大段替换中被连带删掉 296 KB。
+  规矩：每个 replace 后 `assert s.count(old) == 1`，改完核对 `data:image` 出现次数不变、文件大小变化量在预期内；
+  **生成脚本本身要入仓**——本轮它差点漏提交，就因为没人看未跟踪文件列表。
+- **L50 · 发布资产回验用 `gh release download`，不要 `curl` 直连**：`curl -sL .../releases/download/...`
+  在本机代理环境下拿到的是 9 字节 `Not Found`，sha256 自然不符，会被误判成「资产损坏」。
+  规矩：`gh release download <tag> -D <tmp>` 再 `shasum -a 256`，与本地包逐字节比。

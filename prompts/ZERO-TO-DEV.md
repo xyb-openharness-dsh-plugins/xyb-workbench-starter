@@ -146,7 +146,7 @@ Windows `%APPDATA%\dsh-desktop\harness`、Linux `${XDG_CONFIG_HOME:-~/.config}/d
    `docs/CLINICAL-DATA-<年>.md`（口径、通道覆盖、数据截止日、已知缺口）。  
    一致性断言：manifest 记录数 = jsonl 行数 = sqlite 行数；sha256 与实算一致；关键业务字段按 record_id 在 JSONL 与 SQLite 逐条一致（包括 sponsor/sponsors）。使用生成项目随附的只读 `node scripts/check-trial-snapshot.mjs .`；禁止以采集脚本重跑代替核验或覆盖已有快照。
 
-   > **试验匹配（35 号）**：涉及"个人建档 → 检索/AI 匹配 → 呈现"功能时，按 docs/35-TRIAL-MATCHING.md（v2，参考实现小胆宝 match-0.1.0）执行——粗筛符合度 pct（符合÷已对照、待确认=0 只偏低）+四档分层+逐条证据链；禁止 eligible/suitability 判读列与"适配度/入组概率"命名；断言器 templates/check-trial-matching.mjs 进 check 链。
+   > **试验匹配（35 号）**：涉及"个人建档 → 检索/AI 匹配 → 呈现"功能时，按 docs/35-TRIAL-MATCHING.md（**v3**，参考实现小胆宝 match-0.1.0 与 lung-cancer client-trials）执行——粗筛符合度 pct（符合÷已对照、待确认=0 只偏低）+ 档位词「字段都对得上 / 部分对得上」+ 逐条证据链 + 三子页（匹配/检索/收藏）与右侧浮窗。三条落地硬约束：判据只取快照里真实存在的字段；**药物靶点不进分母**；**可对照项不足 2 条不给百分数**，病理未确认整页不排名。禁止 eligible/suitability 判读列与"适配度/入组概率"命名；断言器 templates/check-trial-matching.mjs（带 `--self-test`）进 check 链。
 
 ### 1.4 演示数据 + HTML demo（G2 闸口）
 

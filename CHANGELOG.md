@@ -1,3 +1,52 @@
+## 2026-10-27 · 1.10.0-rc.3 试验匹配 v3（小肺宝 0.1.2-rc.19 回收）+ 七条经验
+
+来源：小肺宝把「临床试验」从「检索框 + 结果表 + 居中弹窗」重做成「三子页 + 匹配分数 + 右侧浮窗 + 收藏三态」，
+G2 demo 经用户确认（原话「好多了，按照这个开发」），交付后用户又补一句「临床查询做的特别好」。
+真正值钱的不是这个界面，而是过程中**四个不报错、不崩、只把结论说错**的缺陷——它们不留痕迹，只会让用户看错。
+
+### 新增
+
+- `docs/35-TRIAL-MATCHING.md` **v3**：新增 §六 界面形状（三个子页各答一个问题；匹配卡三块——分数方块 / 标题元信息 /
+  硬性标签，分数下固定 `n / m 项对得上 · k 项待确认`；详情用右侧浮窗，遮罩 / ✕ / `Esc` 三关且不改 hash；
+  收藏只落本机 `{nctId, savedOn, state}`）；新增 §七 落地五条（判据只取快照真实字段、药物靶点不进分母、
+  **可对照项不足 2 条不给百分数**、反向条件显式反转 + 两侧词表同源、候选池口径写「已载 N / 总数」）。
+- `docs/LESSONS.md` **L44–L50**：跨侧词表同源 / 反向条件反转 / 一条判据 = 100% 的骗人点 / vdom 断言连 `<style>`
+  一起匹配 / 假 React 不跑 effect 等于零覆盖 / 原型增量生成必须断言唯一命中并核对 base64 段数 /
+  发布资产回验用 `gh release download`。
+
+### 变更
+
+- **档位词**：「高度符合 / 部分符合」→「**字段都对得上 / 部分对得上**」。旧词读起来像医学判断
+  （"这个试验高度符合我"），而实际含义只是"登记字段对上了几项"。检查器 T2b 两套词都认，存量仓不受影响。
+- `templates/check-trial-matching.mjs`：
+  - **扫描面加 `lib/`**。旧版只扫 `dsh/src/public`，而小肺宝的匹配实现全在 `lib/client-trials.js`——
+    实际只看到 `dsh/index.js` 一个无关文件，于是"100% 通过"。**闸门看不见被测代码，比没有闸门更危险。**
+  - **T2 eligible 收窄为结构定义形态**：旧版 `/eligible/ && /schema/` 把无关模块注释
+    「resolving only eligible, full-identity series」判成判读列（因为同文件有 `schemaVersion`），纯误报。
+  - **T1 / T3 认等价写法**：三态可写 `无法自动匹配` / `条目无法结构化` / `待确认` + `需核`；
+    "未核实"可写 `以官方…为准`。契约审的是语义，不是某个字面词。
+  - **T2b 只对有百分数的实现生效**：不显示分数的三态清单（小胰宝那版「匹配分析」）不该被要求写
+    "不是入组资格"——它没有分数可误解。
+  - **新增 T2d**：判据类别 `cat` 里不得出现"靶点"。药物靶点是"药打哪里"，不是患者条件；一旦进分母，
+    所有靶向 / ADC 试验会对所有人显示"符合"。
+  - **新增 `--self-test`（10 条）**：每条规则都要能证明它会报 FAIL，含两条专门防误报的反向对照。
+- `docs/06-VALIDATION-AND-RELEASE.md` 工具表、`prompts/ZERO-TO-DEV.md` 试验匹配段同步 v3；
+  `package.json` 加 `probe:trial-matching` 并挂进 `check` 链。
+
+### 验证
+
+- `node templates/check-trial-matching.mjs --self-test` → **10/10**。
+- 四个真实仓正跑：lung-cancer ✓（11 个 JS，含 `lib/`）、biliary-tract ✓（4）、xyb-workbench ✓（12）、
+  breast-cancer ✓（25）。加 `lib/` 之前 lung 是"扫描 1 个文件通过"，之后是"扫描 11 个文件通过"——
+  同样的绿，含义完全不同。
+
+### 说明
+
+本次提交只含 35 / 06 / LESSONS / CHANGELOG / check-trial-matching / ZERO-TO-DEV / package.json。
+工作区里 `1.10.0-rc.2` 那九处未提交改动（AGENTS.md、assets/manifest.json、patterns/disease-primer.js、
+36 号、38 号、PRIMER-BACKFILL、check-primer-links、check-trial-snapshot、trial-snapshot.test）属另一条改动线，
+**未被纳入本次提交**，以免吞掉在写内容。
+
 ## 2026-10-27 · 1.10.0-rc.2 指南原件闸门（36 号 §2.5 收紧）+ 38 号链接攻略（未发布候选）
 
 来源：小萌宝 AnalPal（肛管癌）0.2.1 被用户当场否掉——evidence 表 4 行全写「未取得原件，据二次来源」，
