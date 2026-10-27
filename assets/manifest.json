@@ -64,8 +64,8 @@
       "path": "patterns/disease-primer.css",
       "source": "authored in this starter",
       "purpose": "36 号疾病概要的结构样式（颜色走项目令牌 + 兜底，不改结构）",
-      "sha256": "a45e6c41b49c5ac22330b44911fe9c167dfab15f84a73d406464702d56942f03",
-      "bytes": 6593
+      "sha256": "7acac71973eac8c311e9b311b00de0ae9d40d2d1150f95b6ece8795b4a264deb",
+      "bytes": 7716
     }
   ]
 }

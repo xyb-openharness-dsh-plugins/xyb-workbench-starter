@@ -1,3 +1,54 @@
+## 2026-10-27 · 1.10.0-rc.2 指南原件闸门（36 号 §2.5 收紧）+ 38 号链接攻略（未发布候选）
+
+来源：小萌宝 AnalPal（肛管癌）0.2.1 被用户当场否掉——evidence 表 4 行全写「未取得原件，据二次来源」，
+各挂一个学会栏目页，而 `check-primer-links.mjs` 报 **17/17 全绿**。用户原话：
+「**未取得链接不对，不能交付，你搜索下完全能找到 nccn 链接的**」。闸门绿了、内容不合格，是闸门的设计缺口。
+
+### 新增
+
+- `templates/check-primer-links.mjs`（由 init 下发为 `scripts/check-primer-links.mjs`）：上一版只验「有没有 https
+  链接」，本版加三件事——① 原件必须声明 `kind`（`pdf`/`fulltext`/`registry`/`dataset`，栏目页记 `hub` 且不得配
+  `original: true`）；② 静态形状校验（`kind: pdf` 必须像 PDF）；③ `--http` 实测 `content-type`
+  （**`kind: pdf` 拿到 `text/html` = 登录页/反爬页冒充 PDF，直接 FAIL**）。403/429/5xx 报 WARN 且不计通过。
+  附带 `--self-test`（8 条反向对照，每条规则都要能报 FAIL）与 `--legacy`（存量仓缺 `kind` 只告警）。
+- `docs/38-GUIDELINE-SOURCES.md`：NCCN / CACA / ESMO / CSCO / AJCC 的原件获取路径与踩坑。
+  核心是 NCCN 两条产品线的 URL 形态差异：**患者版** `patients/guidelines/content/PDF/<slug>-patient.pdf`
+  是真 PDF（肛管癌 43 页 / 1,266,276 B），**临床版** `professionals/physician_gls/pdf/<slug>.pdf` 返回的是
+  79 KB HTML 登录页；患者版 PDF 内页写明它依据的临床版版本号（「Version 2.2026」），是免费查版本的最佳渠道。
+
+### 变更
+
+- `docs/36-DISEASE-PRIMER.md` §2.5：加 `kind` 词表与 L7–L11 断言表；§4.2 数据结构补 `kind`；
+  §5 加 **P10**（数据层闸门与探针分工，两者不可互替）。
+- `AGENTS.md` 疾病概要段：三条不可让步 → **四条**，新增「拿到的那条链接必须是文件本身」。
+- `prompts/PRIMER-BACKFILL.md`：第 2 步改为 `url` + `kind` 双必填、加三步验证（curl 看 content-type / 真下载
+  `file` 认 PDF / `--http` 跑闸门）；第 5 步补「探针必须带 `--url`，不带会开着 starter 的示例页整片误报」。
+- **参考实现自身的缺陷**：`examples/disease-primer-data.js` 的 evidence 表「原件」列原本是纯文字
+  （「已取得」「未取得（据二次来源）」），按 §2.5 本应判 L3 失败——参考实现自己就不合规。
+  已改为带 `kind` 的对象；现在 `check-primer-links --data examples/disease-primer-data.js` 20/20 通过。
+- `scripts/init.mjs`：下发 `scripts/check-primer-links.mjs`，`check` 链末尾追加该检查，新增
+  `check:primer-links` / `check:primer-links:http` 两个 npm 脚本。无 `primer-data.js` 时输出 `SKIP` 并 exit 0
+  （新项目在引入 36 号之前 `check` 必须仍是绿的）。
+- `scripts/check-starter.mjs` 扫描清单 +2；`package.json` 的 `check` 挂上 `--check` 与 `--self-test`。
+
+### 验证
+
+`npm run check` 通过（`check-starter` 扫描 204 项、errors=[]；self-test 8/8）；`examples/disease-primer-data.js`
+真跑闸门 20/20。真实项目侧：小萌宝 AnalPal 0.2.2 已按新规则补齐 5 行 `kind`，`--http` 实测 5 个外链全 200
+（NCCN 患者版为 `application/pdf`）。
+
+本仓源码包版本列 `1.10.0-rc.2`，未打包、未发布。未提交：`templates/check-primer-links.mjs`、
+`docs/38-GUIDELINE-SOURCES.md`、`docs/36-DISEASE-PRIMER.md`、`AGENTS.md`、`prompts/PRIMER-BACKFILL.md`、
+`examples/disease-primer-data.js`、`scripts/init.mjs`、`scripts/check-starter.mjs`、`package.json`、`CHANGELOG.md`。
+
+## 2026-10-26 · 1.10.0-rc.1 临床快照逐字段一致性检查（未发布候选）
+
+来源：多发性骨髓瘤小浆宝 MyeloPal M4 只读核验。257 条 JSONL 和 SQLite 记录、manifest 数量及文件 SHA-256 均一致，SQLite 完整性为 ok，但 49 条 CTV 记录的 sponsor 字段未写入 SQLite。
+
+新增 `templates/check-trial-snapshot.mjs` 并由 init 下发；已有快照逐 record_id 核对共享字段、来源状态数量/重复项、manifest 计数与 SHA-256、SQLite integrity。新项目无快照时 `--if-present` 明确跳过。ZERO-TO-DEV 与 M0–M9 清单已挂接该检查，starter 自检新增一致/漏映射/无快照夹具。验证：`npm test` 66/66 通过，`npm run check` 通过（`check-starter` 扫描 202 项、errors=[]）。自检期间同步修正了疾病概要 CSS 的陈旧 manifest 摘要（按 tracked 文件实测 7,716 bytes 与 SHA-256 更新）。
+
+本仓源码包版本暂列 `1.10.0-rc.1`，未打包、未发布。未提交回流文件清单：`templates/check-trial-snapshot.mjs`、`test/trial-snapshot.test.mjs`、`test/starter.test.mjs`、`scripts/init.mjs`、`scripts/check-starter.mjs`、`assets/manifest.json`、`prompts/ZERO-TO-DEV.md`、`prompts/FULL-CYCLE-KICKOFF.md`、`docs/LESSONS.md`、`CHANGELOG.md`、`package.json`。因当前明确禁止提交，commit 条件待授权。
+
 ## 2026-10-27 · 1.9.0 疾病概要排版对齐（36 号 §4.3 + 探针 P9）
 
 来源：小脉宝 VasPal（ANCA）v0.2.1 用户实指——浮窗里「定义」段换行点与下方表格不一致，

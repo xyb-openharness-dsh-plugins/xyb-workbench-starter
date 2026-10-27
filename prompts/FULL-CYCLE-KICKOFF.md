@@ -35,12 +35,12 @@
 | **M1 调研SPEC** | **三路调研并行**：医学约束（10 主题，指南 PDF 核数、NMPA 官方级核实）/ 用户与照护者研究（证据分层，0 访谈如实）/ 家族结构对比（vs 移植样板+基准）→ DIFF-MATRIX 全量（一级重名率 ≤70% 实测）+ SPEC + USER-RESEARCH + INTERACTION-DESIGN 全量（28 号 IP1） | 重名率实测数；K1–K6 红线落文档；G1 决策点显式列出 | **G1 签认** |
 | **M2 原型** | demo 构建器（双档案×6 月，唯一源）+ prototypes/v0.2 四件套；**治疗线用 32 号折叠卡模版**；**试验线按 35 号四段链路（建档→双通道检索→分层+证据链→候选线索，禁匹配指数/判读列，检查器进 check 链）**；窄宽 30 号第一版执行；HVT X1–X4；**SVG 根带 class="chart"、smoothPath 用 Fritsch–Carlson、AI 按钮走 `xxx:agent-draft` 一键携带提示词+病情上下文** → **独立评审**（P0=0 修复留痕）→ **README 按 33 号放实渲截图 ≥4 张 + 折叠收/展态** | 64 页签走查数字、computed fill=none、窄宽 0 问题、禁词 0 | **G2 签认** |
 | **M3 数据模型** | schema/0001_initial.sql（档案2+指标3+通用7+专属N+导入3）+ freeze-contract（sha256）；判读列断言 | 内存全建 + 无 diagnosis/risk_level 类判定列 | **G3 签认** |
-| **M4 临床库** | `scripts/fetch-<x>-trials-<年>.mjs`（MCP stdio，四在线通道）→ research/<x>-cancer/ 四件套 | manifest=jsonl=sqlite 断言；FAILED 如实记"未查过" | — |
+| **M4 临床库** | `scripts/fetch-<x>-trials-<年>.mjs`（MCP stdio，四在线通道）→ research/<x>-cancer/ 四件套 | manifest=jsonl=sqlite 计数/hash/逐字段映射断言（运行 `node scripts/check-trial-snapshot.mjs .`）；FAILED 如实记"未查过" | — |
 | **M5 开发版** | **七步移植**（六件套+宿主接线件：dsh 块/patch root/真客户端链路 src→build→lib/版本簿记）+ MinerU 六部件（18 号 v2）+ apiBase 定稿契约（交界守卫+双形态回归+禁裸 throw）+ test 五套 + check 全绿 + HVT 一致性 | 版本十处同源；单测全过；audit 全过；tgz 占位=0 | **V1** |
 | **M6 装机** | **改包必升版** → pack → 06 号四要素对照 **tgz 内容** → corepack pnpm 装 profile → bundles 登记 → 重启后**先新建会话**（宿主按会话授权接口）→ 真机走查 → **真机截图刷新 README** | 四要素+五要素全过；V2/V3 用户确认 | **V2/V3** |
 | **M7 发布** | tag + GitHub release（附 tgz+sha256）+ CHANGELOG 发版段 | release 链接；无"未验证"被写成"通过" | — |
 | **M8 回填** | BACKLOG 状态行回填（31 号：只改状态列；`🔵 版本（日期+依据）`；走 PR **先 pull 最新 main**） | PR 链接 + 合并 | — |
-| **M9 经验收敛（默认执行，不等催）** | ① 新坑 → 项目 DEV-REQUIREMENTS 追补（带错误来源）；② 通用坑 → starter `docs/LESSONS.md`；③ 流程规则 → 对应编号文档 + `prompts/`；④ 检查器待实施清单追加（能断言的就断言）；⑤ starter CHANGELOG 记"从 <病种> 回收了什么" | 回流 commit 清单；**下一轮直接受益项 ≥1 条** | — |
+| **M9 经验收敛（默认执行，不等催）** | ① 新坑 → 项目 DEV-REQUIREMENTS 追补（带错误来源）；② 通用坑 → starter `docs/LESSONS.md`；③ 流程规则 → 对应编号文档 + `prompts/`；④ 检查器待实施清单追加（能断言的就断言）；⑤ starter CHANGELOG 记"从 <病种> 回收了什么"；源码包版本升级为 prerelease（如 `1.10.0-rc.1`），未发布不得标 stable | 回流 commit 清单；**下一轮直接受益项 ≥1 条** | — |
 
 ## 硬纪律（违反即返工）
 

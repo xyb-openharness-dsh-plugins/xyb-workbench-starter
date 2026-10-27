@@ -33,18 +33,47 @@
 
 四段缺一段即不合格。段内没有内容时写「本台尚未整理」，**不许删段**——删段会让人以为这个病没有这块。
 
-## 2.5 指南原件必须可点（2026-10-27 用户要求，硬约束）
+## 2.5 指南原件必须可点，且**点的必须是文件本身**（2026-10-27 用户两次加码，硬约束）
+
+> 第一次（上午）：不允许只写文字，必须有可点链接。
+> 第二次（当天下午，用户否掉小萌宝肛管癌 0.2.1）：「**未取得链接不对，不能交付，你搜索下完全能找到 nccn 链接的**」。
+> 根因是闸门只验「有没有 https 链接」——四行各挂一个学会栏目页也能 17/17 全绿。见 [38-GUIDELINE-SOURCES.md](38-GUIDELINE-SOURCES.md)。
 
 §2.1 ②段的「是否取得原件」列**不允许只写文字**：
 
 | 行状态 | 硬性要求 | 违规样例 |
 | --- | --- | --- |
-| 已取得原件 | `url` 字段必须存在且为 `https://` 链接（官方 PDF / DOI / PMC / 官网页），渲染为「原件已取得 · 打开/下载 ↗」可点 | ~~「已取得（全文可读）」纯文字~~ |
-| 未取得原件 | `secondaryUrl` 必须存在（二次来源链接），渲染为「未取得原件，据二次来源 ↗」可点 | ~~「未取得原件，据二次来源」纯文字~~ |
+| 已取得原件 | `url` 必填且为 `https://`，**且必须声明 `kind`**（`pdf` / `fulltext` / `registry` / `dataset`），渲染为「原件已取得 · 打开/下载 ↗」可点 | ~~「已取得（全文可读）」纯文字~~ |
+| 未取得原件 | `secondaryUrl` 必填（二次来源链接），渲染为「未取得原件，据二次来源 ↗」可点 | ~~「未取得原件，据二次来源」纯文字~~ |
+
+**`kind` 词表（2026-10-27 增补）**：`pdf`（官方 PDF 直链）／`fulltext`（期刊全文页·DOI·PMC）／
+`registry`（登记库检索入口）／`dataset`（自采快照）／`hub`（学会栏目页、指南详情页、商品页）。
+**`hub` 不得配 `original: true`**——栏目页上有指南的名字，没有指南的正文，它不是原件。
 
 - 链接由**搜索取得**（官方出版方页 > PMC/DOI > 权威转载），入库前逐条点开验证可达；
 - 模式层（disease-primer.js `sourceLine`）对缺链接的行渲染红色「缺链接，违反 36 号 §2.5」标记——评审一眼可见；
-- `href` 只接受 `https://`（`javascript:` 等一律丢弃）。
+- `href` 只接受 `https://`（`javascript:` 等一律丢弃）；
+- **各机构的链接形态与踩坑**（NCCN 患者版 vs 临床版、CACA 有独立肛管癌而 CSCO 没有、
+  ESMO 全文页 403、AJCC 章节 DOI 已 Deleted）全部记在 [38-GUIDELINE-SOURCES.md](38-GUIDELINE-SOURCES.md)，
+  动手前先读那一份，别重走。
+
+**闸门**（`templates/check-primer-links.mjs` → 项目 `scripts/check-primer-links.mjs`）：
+
+| 断言 | 抓什么 |
+| --- | --- |
+| L1/L2 | `original: true` 缺 `url` / `false` 缺 `secondaryUrl` |
+| L3 | 原件列写成纯文字 |
+| L4 | `nolink` 缺 `note` |
+| L5/L6 | 非 https、只给域名首页 |
+| **L7** | `original: true` 未声明 `kind`，或 `kind` 不在词表 |
+| **L8** | `kind: 'pdf'` 但链接形状不是 `.pdf` |
+| **L9** | `kind: 'hub'` 却标了 `original: true`（栏目页冒充原件） |
+| **L10** | （`--http`）`kind: 'pdf'` 实测拿到 `text/html` —— 登录页/反爬页冒充 PDF |
+| **L11** | （`--http`）404/410 死链；403/429/5xx 报 WARN 要求人工点开，**WARN 不算通过** |
+
+跑法：`node scripts/check-primer-links.mjs` 进 `npm run check`；改数据后另跑一次 `--http`；
+**改这个脚本本身必须同时跑 `--self-test`**（8 条反向对照，每条规则都要能报 FAIL）。
+存量仓迁移：先 `--legacy`（缺 `kind` 只告警），本轮动到的页补齐 `kind` 后去掉该参数。
 
 ## 2.6 看板状态卡（疾病概要的触发器，2026-10-27 用户点名固化）
 
@@ -150,14 +179,23 @@ README 里是**正文**（可读的段落），不是「详见看板」——因
 
 ```js
 window.DISEASE_PRIMER = {
-  brand: '小韧宝 SarcPal',
-  name: '软组织肉瘤',
-  en: 'Soft Tissue Sarcoma（STS）',
-  updated: '2026-10-25',
+  brand: '小萌宝 AnalPal',
+  name: '肛管癌',
+  en: 'Anal Cancer（肛管鳞状细胞癌，ASCC）',
+  updated: '2026-10-27',
   sections: [
     { id: 'definition', title: '定义', intro: '一段话。', points: ['…', '…'], sources: [
-        { org: 'WHO', doc: 'Classification of Tumours, 5th ed.', version: '2020', original: true, page: '页码待核' } ] },
-    { id: 'evidence', title: '医学资料规范和指南情况', intro: '…', table: { head: ['机构','文件','版本 / 年份','原件','本台用途'], rows: [ ['NCCN','Soft Tissue Sarcoma','V3.2026（2026-03-12）','已取得','分期与治疗路径的出处'] ] }, sources: [...] },
+        { org: 'WHO', doc: 'Classification of Tumours, 5th ed.', version: '2020', original: true, kind: 'fulltext', url: 'https://…' } ] },
+    { id: 'evidence', title: '医学资料规范和指南情况', intro: '…', table: {
+        head: ['机构', '文件', '版本 / 年份', '原件', '本台用途'],
+        rows: [
+          ['NCCN', 'NCCN Guidelines for Patients · Anal Cancer', 'V2.2026（患者版据该版改编，43 页）',
+           /* 原件列必须是对象，且带 kind */ { text: '已取得：官方患者版 PDF', kind: 'pdf', url: 'https://www.nccn.org/patients/guidelines/content/PDF/anal-patient.pdf' },
+           '分期检查与随访路径的并列引用'],
+          ['CSCO', 'CSCO 结直肠癌诊疗指南（肛管癌未单独成册）', '2025 版',
+           { text: '未单独成册 · 无官方免费全文', nolink: true, note: '合订本目录无肛管癌独立指南' },
+           '本版暂不作引用依据']
+        ] }, sources: [...] },
     { id: 'landscape', title: '目前治疗全景概要', intro: '…', groups: [ { label: '局限期', points: ['…'] } ], sources: [...] },
     { id: 'trend', title: '发展趋势', intro: '…', points: ['…'], sources: [...] }
   ]
@@ -165,6 +203,9 @@ window.DISEASE_PRIMER = {
 ```
 
 `sections` 少于 4 段、或四个 `id` 不齐，模块照常渲染但控制台报一条 `console.warn`，探针判 FAIL。
+
+`sources[]` 与表格「原件」单元格共用一套字段：`original` / `url` / `secondaryUrl` / `kind` / `page` / `note` / `nolink`。
+`kind` 见 §2.5，`original: true` 时不填会被 L7 判失败。
 
 ### 4.3 排版对齐：正文右边界必须与表格一致（2026-10-27 用户实指，硬约束）
 
@@ -214,6 +255,10 @@ window.DISEASE_PRIMER = {
 
 反向对照：`node scripts/probe-disease-primer.mjs --self-test` 必须至少 3 条 FAIL。
 只报绿不报红的闸门等于没有闸门（LESSONS 第 13 类）。
+
+**P10（数据层闸门，不在探针里）**：`node scripts/check-primer-links.mjs`，静态断言 L1–L9 + `--http` 实测 L10/L11。
+它验的是**链接的语义**（是不是文件本身、kind 对不对），探针验的是**渲染与导航**，两者不能互相替代——
+0.2.1 那次就是探针 9/9、链接断言 15/15 全绿，而四行原件全是栏目页。
 
 ## 6. 两个节点（用户明确要求）
 

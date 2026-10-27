@@ -156,6 +156,17 @@ test('generated project carries the family audit: VERSION, CHANGELOG and a runna
  assert.equal(run(join(root,'scripts/check-workbench-package.mjs'),[f.target]).status,0)
 })
 
+test('generated projects include the optional read-only trial snapshot consistency check',async t=>{
+ const f=await fixture(t);const result=init(f);assert.equal(result.status,0,result.stderr)
+ const script=join(f.target,'scripts/check-trial-snapshot.mjs')
+ await access(script)
+ const pkg=JSON.parse(await readFile(join(f.target,'package.json'),'utf8'))
+ assert.match(pkg.scripts.check,/check-trial-snapshot\.mjs \. --if-present/)
+ const out=run(script,['.','--if-present'],f.target)
+ assert.equal(out.status,0,out.stdout+out.stderr)
+ assert.match(out.stdout,/SKIP no clinical snapshot/)
+})
+
 test('init hands off existing designer documents before product specification, including relocated paths',async t=>{
  const f=await fixture(t);f.target=join(f.dir,'患者 project')
  const dry=init(f,root,['--dry-run']);assert.equal(dry.status,0,dry.stderr)

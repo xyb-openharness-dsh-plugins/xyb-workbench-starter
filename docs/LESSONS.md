@@ -196,6 +196,16 @@ profile：`~/Library/Application Support/dsh-desktop/harness/profiles/web`（本
   `demo=true`），客户端顶栏/看板明示「演示数据，与原型同一份 demo-data 唯一源」；已有真实数据
   （subjects>0）绝不注入。这样 M5 真机界面与原型逐像素同源，v0.2 写入闭环再引入真实数据。
 
+## 2026-10-26 · 从多发性骨髓瘤小浆宝 MyeloPal 回收：临床快照要逐字段比对 JSONL 与 SQLite
+
+症状：manifest 与 JSONL/SQLite 均显示 257 条、摘要 hash 均匹配，SQLite `integrity_check=ok`，但 49 条 CTV 记录的 sponsor 在 JSONL 有值、SQLite 为 NULL。只验总数和文件摘要无法发现映射遗漏。
+
+**L40 · 临床快照核验必须把主键映射字段逐行对齐**：按 `record_id` 比较 JSONL 与 SQLite 所有共享业务字段（含 JSON 序列化列），并同时核对 manifest 计数/hash、SQLite integrity、重复主键和 source_statuses 数量/重复项。检查器只读打开数据库；不得通过重采或重建快照来代替复核。
+
+- 新增 `templates/check-trial-snapshot.mjs`，初始化后下发为 `scripts/check-trial-snapshot.mjs`；新项目 `check` 链对无快照项目显式 SKIP，已有临床快照逐字段核对。
+- 回归夹具分别验证完整映射通过、JSONL sponsor 丢失映射时报错、无快照只有 `--if-present` 可跳过。
+- 本次原项目数据保留未改；检查发现 M4 未通过， sponsor 缺失仍待单独获授权修复或新版本采集。
+
 ## 2026-10-27 · 从神经纤维瘤病 0.1.16 回收：Desktop 侧 UI 的正解是「原型即 iframe」
 
 - **L38 · 手写第二套 React 界面必被用户打回**：Desktop 模式下家族标准是 customFrame 客户端 +

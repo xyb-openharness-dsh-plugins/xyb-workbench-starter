@@ -78,6 +78,11 @@ async function main() {
   plan.set('scripts/check-choice-limit.mjs', await readFile(join(starter,'templates/check-choice-limit.mjs')))
   // 页面版本字面量：UI 显示哪一版必须等于服务端跑的一版（cervical + PF-ILD 两次）。
   plan.set('scripts/check-version-literal.mjs', await readFile(join(starter,'templates/check-version-literal.mjs')))
+  // 临床快照 JSONL/SQLite 映射一致性：新项目没有临床库时明确跳过，有库时只读逐字段核对。
+  plan.set('scripts/check-trial-snapshot.mjs', await readFile(join(starter,'templates/check-trial-snapshot.mjs')))
+  // 36 号 §2.5 指南原件链接闸门：验「链接是不是文件本身」而不是「有没有链接」。
+  // 上一代只验 https 可达，四行栏目页也能全绿（小萌宝 0.2.1 实录）；本版加 kind 词表 + --http 内容类型实测。
+  plan.set('scripts/check-primer-links.mjs', await readFile(join(starter,'templates/check-primer-links.mjs')))
   // VERSION 是版本唯一来源（audit 的 version/file 与 version/pkg 都指着它）。
   plan.set('VERSION', '0.1.0\n')
   const manifest = {
@@ -85,12 +90,14 @@ async function main() {
     main: './dsh/index.js', exports: { '.': './dsh/index.js', './client': './lib/client.js', './package.json': './package.json', './cordis.patch.yml': './cordis.patch.yml' },
     files: ['dsh','lib','assets','cordis.patch.yml','README.md','NOTICE.md'],
     scripts: {
-      check: 'node --check dsh/index.js && node --check lib/client.js && node scripts/check-workbench-package.mjs . && node scripts/check-host-contract.mjs && node scripts/smoke-activate.mjs && node scripts/check-probe-coverage.mjs && node scripts/check-version-literal.mjs && node scripts/check-static-refs.mjs && node scripts/check-choice-limit.mjs && node scripts/check-assertion-strength.mjs && node scripts/check-derivative-leftovers.mjs .',
+      check: 'node --check dsh/index.js && node --check lib/client.js && node scripts/check-workbench-package.mjs . && node scripts/check-host-contract.mjs && node scripts/smoke-activate.mjs && node scripts/check-probe-coverage.mjs && node scripts/check-version-literal.mjs && node scripts/check-static-refs.mjs && node scripts/check-choice-limit.mjs && node scripts/check-assertion-strength.mjs && node scripts/check-derivative-leftovers.mjs . && node scripts/check-trial-snapshot.mjs . --if-present && node scripts/check-primer-links.mjs',
       'check:version-literal': 'node scripts/check-version-literal.mjs',
       'check:host': 'node scripts/check-host-contract.mjs',
       'check:version-literal': 'node scripts/check-version-literal.mjs',
       'check:static-refs': 'node scripts/check-static-refs.mjs',
       'check:choice-limit': 'node scripts/check-choice-limit.mjs && node scripts/check-assertion-strength.mjs',
+      'check:primer-links': 'node scripts/check-primer-links.mjs',
+      'check:primer-links:http': 'node scripts/check-primer-links.mjs --http',
       'smoke:activate': 'node scripts/smoke-activate.mjs',
       'verify:desktop': 'node scripts/verify-desktop-load.mjs',
       // check 保持"从第一天就该是绿的"（语法 + 装包合同）；audit 是交付前的家族一致性闸口，

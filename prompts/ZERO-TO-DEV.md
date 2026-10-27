@@ -144,7 +144,7 @@ Windows `%APPDATA%\dsh-desktop\harness`、Linux `${XDG_CONFIG_HOME:-~/.config}/d
    - Cookie / 会话只放 `cookie.env`（0600），日志永不打印；调用方不许传 URL / 超时 / 路径。
 6. 交付 `research/<癌种>-cancer/{manifest.json, trials-<年>.jsonl, <癌种>_cancer_trials_<年>.sqlite, README.md}` +  
    `docs/CLINICAL-DATA-<年>.md`（口径、通道覆盖、数据截止日、已知缺口）。  
-   一致性断言：manifest 记录数 = jsonl 行数 = sqlite 行数；sha256 与实算一致。
+   一致性断言：manifest 记录数 = jsonl 行数 = sqlite 行数；sha256 与实算一致；关键业务字段按 record_id 在 JSONL 与 SQLite 逐条一致（包括 sponsor/sponsors）。使用生成项目随附的只读 `node scripts/check-trial-snapshot.mjs .`；禁止以采集脚本重跑代替核验或覆盖已有快照。
 
    > **试验匹配（35 号）**：涉及"个人建档 → 检索/AI 匹配 → 呈现"功能时，按 docs/35-TRIAL-MATCHING.md（v2，参考实现小胆宝 match-0.1.0）执行——粗筛符合度 pct（符合÷已对照、待确认=0 只偏低）+四档分层+逐条证据链；禁止 eligible/suitability 判读列与"适配度/入组概率"命名；断言器 templates/check-trial-matching.mjs 进 check 链。
 
