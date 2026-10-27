@@ -61,12 +61,28 @@
   }
 
   /* ---------- 渲染 ---------- */
+  var safeHref = function (u) {
+    if (!u || typeof u !== 'string') return ''
+    var t = u.trim()
+    return /^https:\/\//i.test(t) ? t : ''
+  }
+  /* 2026-10-27：原件列必须是可点链接（36 号 §2.5）——"已取得"三个字不带链接=违规。
+     s.url=原件链接（官方 PDF/DOI/PMC/官网页）；s.secondaryUrl=未取得原件时的二次来源链接。 */
   function sourceLine(s) {
     if (!s) return ''
     var bits = [s.org, s.doc].filter(Boolean).join(' · ')
     var tail = []
     if (s.version) tail.push(s.version)
-    tail.push(s.original ? '原件已取得' : '未取得原件，据二次来源')
+    var url = safeHref(s.url), sec = safeHref(s.secondaryUrl)
+    if (s.original) {
+      tail.push(url
+        ? '原件<a href="' + url + '" target="_blank" rel="noopener noreferrer" class="dp-link">已取得 · 打开/下载 ↗</a>'
+        : '原件已取得<span class="dp-miss">（缺链接，违反 36 号 §2.5）</span>')
+    } else {
+      tail.push(sec
+        ? '<a href="' + sec + '" target="_blank" rel="noopener noreferrer" class="dp-link">未取得原件，据二次来源 ↗</a>'
+        : '未取得原件，据二次来源<span class="dp-miss">（缺二次链接，违反 36 号 §2.5）</span>')
+    }
     if (s.page) tail.push('页码 ' + s.page)
     if (s.note) tail.push(s.note)
     return bits + (tail.length ? '（' + tail.join(' · ') + '）' : '')

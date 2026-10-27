@@ -1,6 +1,6 @@
 {
   "name": "dsh-wb-cli",
-  "version": "1.7.1",
+  "version": "1.8.0",
   "private": true,
   "description": "小胰宝/小x宝社区 DSH Workbench Git 分发与项目初始化工具",
   "type": "module",

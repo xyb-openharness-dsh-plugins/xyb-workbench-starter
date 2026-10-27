@@ -19,7 +19,7 @@ window.DISEASE_PRIMER = {
         '常见首发部位是肢体（大腿最常见），其次躯干与腹膜后、头颈。部位本身不决定分期。'
       ],
       sources: [
-        { org: 'WHO', doc: 'Classification of Tumours: Soft Tissue and Bone Tumours, 5th ed.', version: '2020', original: true, page: '页码待核' }
+        { org: 'WHO', doc: 'Classification of Tumours: Soft Tissue and Bone Tumours, 5th ed.', version: '2020', original: true, url: "https://example.org/guideline.pdf", page: '页码待核' }
       ]
     },
     {
@@ -41,9 +41,9 @@ window.DISEASE_PRIMER = {
         '本台对未取得原件的文件只记「存在」与「大致讲什么」，不引用其具体条文。'
       ],
       sources: [
-        { org: 'NCCN', doc: 'NCCN Guidelines · Soft Tissue Sarcoma', version: 'V3.2026', original: true, page: 'P12–P18' },
-        { org: 'AJCC', doc: 'AJCC Cancer Staging Manual, 8th ed.', version: '2017', original: true, page: '页码待核' },
-        { org: 'CSCO', doc: '骨与软组织肿瘤诊疗指南', version: '2025 版', original: false, note: '未取得原件，据二次来源' }
+        { org: 'NCCN', doc: 'NCCN Guidelines · Soft Tissue Sarcoma', version: 'V3.2026', original: true, url: "https://example.org/guideline.pdf", page: 'P12–P18' },
+        { org: 'AJCC', doc: 'AJCC Cancer Staging Manual, 8th ed.', version: '2017', original: true, url: "https://example.org/guideline.pdf", page: '页码待核' },
+        { org: 'CSCO', doc: '骨与软组织肿瘤诊疗指南', version: '2025 版', original: false, secondaryUrl: "https://example.org/secondary-source", note: '未取得原件，据二次来源' }
       ]
     },
     {
@@ -72,7 +72,7 @@ window.DISEASE_PRIMER = {
         '以上是文献与指南里列出的手段，按病期与线序排列，不代表任何一项适合你。选哪一个，这一句需要问你的医生。'
       ],
       sources: [
-        { org: 'NCCN', doc: 'NCCN Guidelines · Soft Tissue Sarcoma', version: 'V3.2026', original: true, page: 'P22–P34' }
+        { org: 'NCCN', doc: 'NCCN Guidelines · Soft Tissue Sarcoma', version: 'V3.2026', original: true, url: "https://example.org/guideline.pdf", page: 'P22–P34' }
       ]
     },
     {
@@ -86,8 +86,8 @@ window.DISEASE_PRIMER = {
         '截至 2026-10：中国药物临床试验登记与信息公示平台可检索到软组织肉瘤相关登记若干条，其中 I 期与 II 期占多数（数字随检索日期变化，检索条件与结果需一并记录）。'
       ],
       sources: [
-        { org: 'WHO', doc: 'Soft Tissue and Bone Tumours, 5th ed.', version: '2020', original: true, page: '页码待核' },
-        { org: 'NCCN', doc: 'NCCN Guidelines · Soft Tissue Sarcoma', version: 'V3.2026', original: true, page: '更新记录页' }
+        { org: 'WHO', doc: 'Soft Tissue and Bone Tumours, 5th ed.', version: '2020', original: true, url: "https://example.org/guideline.pdf", page: '页码待核' },
+        { org: 'NCCN', doc: 'NCCN Guidelines · Soft Tissue Sarcoma', version: 'V3.2026', original: true, url: "https://example.org/guideline.pdf", page: '更新记录页' }
       ]
     }
   ]

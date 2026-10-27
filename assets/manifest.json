@@ -57,14 +57,14 @@
       "path": "patterns/disease-primer.js",
       "source": "authored in this starter",
       "purpose": "36 号疾病概要（「?」入口）的整页视图实现：无依赖经典脚本，open=pushState / close=history.back()",
-      "sha256": "7cdfc833ab56ee1219d3400c429921f99ee91b2666a6ba5fd48a4bf2ae0904f3",
+      "sha256": "17d033c68d91d1f5601b18a2c2a7e0eff9c89d8bfb394387dfe41097f8688c0f",
       "bytes": 10776
     },
     {
       "path": "patterns/disease-primer.css",
       "source": "authored in this starter",
       "purpose": "36 号疾病概要的结构样式（颜色走项目令牌 + 兜底，不改结构）",
-      "sha256": "31796f1e0ca749394b22e8c1a1fc617c97b488b77698eba3acf97a756fb2ad90",
+      "sha256": "a45e6c41b49c5ac22330b44911fe9c167dfab15f84a73d406464702d56942f03",
       "bytes": 6593
     }
   ]
