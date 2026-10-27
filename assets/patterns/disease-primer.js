@@ -74,11 +74,12 @@
     var tail = []
     if (s.version) tail.push(s.version)
     var url = safeHref(s.url), sec = safeHref(s.secondaryUrl)
-    if (s.original) {
+    if (s.nolink) { /* 说明行/无对应文件：§2.5 不适用（须显式标注 nolink:true 并在 note 说明） */ }
+    else if (s.original) {
       tail.push(url
         ? '原件<a href="' + url + '" target="_blank" rel="noopener noreferrer" class="dp-link">已取得 · 打开/下载 ↗</a>'
         : '原件已取得<span class="dp-miss">（缺链接，违反 36 号 §2.5）</span>')
-    } else {
+    } else if (!s.nolink) {
       tail.push(sec
         ? '<a href="' + sec + '" target="_blank" rel="noopener noreferrer" class="dp-link">未取得原件，据二次来源 ↗</a>'
         : '未取得原件，据二次来源<span class="dp-miss">（缺二次链接，违反 36 号 §2.5）</span>')
@@ -90,11 +91,20 @@
 
   function tableHtml(t) {
     if (!t || !t.rows || !t.rows.length) return ''
+    var cell = function (c) {
+      /* §2.5：单元格支持 {text, url} 对象 → 渲染可点链接；字符串照旧转义 */
+      if (c && typeof c === 'object' && !Array.isArray(c)) {
+        var u = safeHref(c.url)
+        var t = esc(c.text != null ? c.text : '')
+        return u ? '<a class="dp-link" href="' + u + '" target="_blank" rel="noopener noreferrer">' + t + ' ↗</a>' : t + (c.url ? '<span class="dp-miss">（缺 https 链接，违反 36 号 §2.5）</span>' : '')
+      }
+      return esc(c)
+    }
     return '<div class="dp-table-wrap"><table class="dp-table"><thead><tr>' +
       t.head.map(function (h) { return '<th>' + esc(h) + '</th>' }).join('') +
       '</tr></thead><tbody>' +
       t.rows.map(function (r) {
-        return '<tr>' + r.map(function (c) { return '<td>' + esc(c) + '</td>' }).join('') + '</tr>'
+        return '<tr>' + r.map(function (c) { return '<td>' + cell(c) + '</td>' }).join('') + '</tr>'
       }).join('') +
       '</tbody></table></div>'
   }
