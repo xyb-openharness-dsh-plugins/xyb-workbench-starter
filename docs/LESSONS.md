@@ -218,3 +218,25 @@ profile：`~/Library/Application Support/dsh-desktop/harness/profiles/web`（本
   静默失效（本轮 imports 替换漏掉 → ReferenceError → 条目 did not activate → 路由 404）。
   规矩：每个 replace 后 assert 变化确实发生；装机验证用带鉴权 curl 对比 401（存在）/404（未挂载）——
   全站 auth 中间件下 401 恰恰证明路由已注册。
+
+## 2026-10-27 · 从乳腺癌 / 食管癌 / 甲状腺的 36 号回补回收：开发版接入四问
+
+- **L40 · 顶栏「?」必须手写，自动挂载会被看板按钮抢走**：`disease-primer.js` 的 `mount()` 逻辑是
+  「DOM 里已有 `[data-primer-open]` 就接管它，没有才插一颗」。而 §2.6 状态卡的出口按钮排里本来就有一颗同名文字按钮，
+  业务 `app.js` 又先于模块的 `DOMContentLoaded` 把看板渲染完 —— 结果自动挂载接管的是**状态卡里那一颗**，顶栏永远空着。
+  更坏的是 **P1 照样 PASS**（`querySelector('[data-primer-open]')` 拿到的正是状态卡按钮，text / aria-label 都对），
+  只有打开页面肉眼看顶栏才发现少东西。规矩：顶栏触发钮一律手写在 `.top-actions` / `.tb-actions` 里，
+  让它成为 DOM 里第一个触发钮；状态卡那颗继续用文字，两处入口并存是 §2.6 允许的。
+  **交付前必须看一张首屏截图**确认顶栏右侧真有「?」，只跑 P1 会漏。
+- **L41 · 开发版的 `index.html` 要与原型逐字符一致，别自作聪明补 aria**：多数仓的检查链里有一条
+  ui-parity 断言「index.html 与原型只允许差 title / 版本号 / favicon / noindex」。给触发钮补
+  `class="dp-trigger"` + `aria-controls` + `aria-expanded`、或换一版更长的 `aria-label`，都会判红 ——
+  因为 `mount()` 接管时自己会补齐这些属性，页面不该写。要真需要改骨架，就同步改原型，两边一起动。
+- **L42 · §2.6 状态卡与业务首卡冲突时，定「通用骨架首卡在上、业务首卡在下」**：食管癌 `SPEC.md` 原写
+  「吞咽卡为首卡」，体检 / 看板类项目容易都有一张「这就是我这病最要紧的那件事」的业务卡。两卡回答的不是同一个问题
+  （位置感：我在第几天、下一步谁排的 vs 业务重点：今天能吃什么），并列会打架，串行才成立。
+  改 SPEC 时把理由写进去，避免下一个人又改回去。状态卡出口按钮排的**主按钮进当前阶段核心页、副按钮开疾病概要**。
+- **L43 · primer 模式件版本漂移别批量覆盖**：25 个仓里 23 个的 `primer.js` 比 starter 落后，但差距往往就是
+  `s.entry`（官方入口页）那 10 行，而这些仓既没有同源检查闸、数据里也没用到 `entry` —— 批量覆盖只是制造 churn。
+  正确顺序：先 grep 该仓 `scripts/build-primer-data.mjs` 有没有把「模式件与源一致」写进 `npm run check`；
+  有闸的仓才必须同步（否则 check 恒红），没闸的仓等它下次动 primer 时顺手带上。
