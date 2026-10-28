@@ -1,5 +1,10 @@
 # 从需求到可用工作台
 
+> **仅本机开发和使用**：请用 [本地开发完整指令](../prompts/LOCAL-WORKBENCH-DEVELOPMENT.md)。无需认领、上传或投稿，可使用自己的开发流程；本页社区阶段与文档套装不作为本地开发的前置条件。
+>
+> **本地开发与社区贡献共同要求**：每次新建或更新，先读取 [DSH 线上最新工作台规范](https://dshdesktop.com/workbench/docs/development.md)，按当次规范处理包格式、运行与自测。`reference/official/` 仅离线备用；无法访问线上时如实说明未核对最新版本。
+
+
 完整闭环、阶段进入条件、>98% parity 计算和 RC/DSH Desktop 发布核验见[闭环项目流程](17-CLOSED-LOOP-PROJECT-FLOW.md)。本页细化日常做法；医疗/临床试验项目应先研究数据与适用性，不能将搜索结果直接作为医学建议。
 
 ## 1. 先明确边界
