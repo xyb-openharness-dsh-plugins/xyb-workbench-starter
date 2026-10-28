@@ -36,7 +36,8 @@ const app = readFileSync(APP, 'utf8');
 
 /** 从 app.js 提取全部路由名；两种写法都支持，返回 null 表示两种都没找到。 */
 function extractRoutes(src) {
-  const arr = src.match(/(?:var|const|let)\s+ROUTES\s*=\s*\[([\s\S]*?)\];/);
+  /* 单行/多行都要认：数组以第一个 `]` 结束，不要求换行后 `];`。 */
+  const arr = src.match(/(?:var|const|let)\s+ROUTES\s*=\s*\[([^\]]*)\]/);
   if (arr) {
     const routes = [...arr[1].matchAll(/['"]([^'"]+)['"]/g)].map((m) => m[1]);
     if (routes.length) return routes;
