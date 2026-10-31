@@ -12,6 +12,7 @@
 2. **补数据 url（§2.5 硬约束，2026-10-27 收紧）**：打开 `primer-data.js` 的 evidence（指南表）每一行：
    - `original: true` 的行**必须有 `url` + `kind`**。`kind` 词表：`pdf`（官方 PDF 直链）／`fulltext`（期刊全文页·DOI·PMC）／`registry`（登记库）／`dataset`（自采快照）／`hub`（学会栏目页，**不得配 original:true**）。
    - **链接必须是文件本身，不能是栏目页**：`guidelines-detail?id=x`、`esmo.org/.../anal-cancer`、`facs.org/quality-programs/...` 一律记 `hub`。
+   - **要注册才能看的指南也得上（用户 2026-10-27 明确）**：NCCN 这类临床版写第二行 `{ entry: true, kind: 'hub', url: <官方指南页>, note: '需自行注册' }`，与患者版 PDF 并存；不得写成「已取得」。
    - 各机构的链接形态与坑先读 [docs/38-GUIDELINE-SOURCES.md](../docs/38-GUIDELINE-SOURCES.md)：NCCN 只有**患者版**免费用（`/patients/guidelines/content/PDF/<slug>-patient.pdf`），临床版 `physician_gls/pdf/<slug>.pdf` 返回的是 HTML 登录页；CACA 多数病种有独立分册；CSCO 通常没有独立分册；ESMO 全文页对脚本 403。
    - `original: false` 的行**必须有 `secondaryUrl`**（权威二次来源）。
    - 找不到任何可达链接的行：`nolink: true` + `note` 说明（如"无官方免费全文"），**不得编 URL**。

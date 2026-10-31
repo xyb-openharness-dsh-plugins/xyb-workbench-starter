@@ -50,6 +50,20 @@
 `registry`（登记库检索入口）／`dataset`（自采快照）／`hub`（学会栏目页、指南详情页、商品页）。
 **`hub` 不得配 `original: true`**——栏目页上有指南的名字，没有指南的正文，它不是原件。
 
+**第三种状态：官方入口页 `entry: true`**（2026-10-27 用户要求「NCCN 患者版 PDF + 指南页面，患者自己去注册」）。
+有些机构（典型是 NCCN 临床版）全文只给注册用户，但入口固定、谁都能点——这种既不是「已取得原件」，
+也不是「据二次来源」。写法：
+
+```js
+{ org: 'NCCN', doc: 'NCCN Guidelines · Anal Carcinoma', version: 'V2.2026',
+  entry: true, kind: 'hub', url: 'https://www.nccn.org/guidelines/guidelines-detail?category=1&id=1414',
+  note: '临床版全文需在 NCCN 官网注册后取得；本台未取得该版原件' }
+```
+
+渲染为「官方入口 ↗ 需自行注册」，**不得写「已取得」**；必须带 `note` 说明注册这件事。
+同一份指南允许两行并存：患者版标 `kind: 'pdf'`（已取得），临床版标 `entry: true`（自行注册）——
+两行都在，用户才知道「能免费看的」和「要注册才看的」分别是什么。
+
 - 链接由**搜索取得**（官方出版方页 > PMC/DOI > 权威转载），入库前逐条点开验证可达；
 - 模式层（disease-primer.js `sourceLine`）对缺链接的行渲染红色「缺链接，违反 36 号 §2.5」标记——评审一眼可见；
 - `href` 只接受 `https://`（`javascript:` 等一律丢弃）；
@@ -70,6 +84,7 @@
 | **L9** | `kind: 'hub'` 却标了 `original: true`（栏目页冒充原件） |
 | **L10** | （`--http`）`kind: 'pdf'` 实测拿到 `text/html` —— 登录页/反爬页冒充 PDF |
 | **L11** | （`--http`）404/410 死链；403/429/5xx 报 WARN 要求人工点开，**WARN 不算通过** |
+| **L12** | `entry: true` 缺 `note`、缺 https 链接；表格里 `kind: 'hub'` 却写「已取得」→ 入口页冒充原件 |
 
 跑法：`node scripts/check-primer-links.mjs` 进 `npm run check`；改数据后另跑一次 `--http`；
 **改这个脚本本身必须同时跑 `--self-test`**（8 条反向对照，每条规则都要能报 FAIL）。
