@@ -8,6 +8,8 @@
  *   ① 原件必须声明 `kind`（pdf / fulltext / registry / dataset），hub（栏目页）不得配 original:true；
  *   ② 静态形状校验：kind=pdf 的链接必须真像 PDF；
  *   ③ `--http` 实测内容类型：pdf 拿到 text/html = 典型的「登录页/反爬页冒充 PDF」，直接判 FAIL。
+ * 另有第三种状态 `entry: true`（官方入口页，读者须自行注册/订阅）：允许存在，但必须带 note，
+ * 且不得写「已取得」——NCCN 临床版就是这一类。
  *
  * 用法：
  *   node scripts/check-primer-links.mjs                    # 静态断言（默认，不联网）
@@ -79,6 +81,15 @@ function evaluate(primer, { legacy = false } = {}) {
         s.note ? oks.push(`L4 ${at} nolink 有说明`) : fails.push(`L4 ${at} nolink 缺 note`)
         continue
       }
+      if (s.entry) {
+        /* 官方入口页：全文要读者自己注册/付费才能拿到，本台没有该版原件。
+           与"未取得原件"区别在于它有官方固定入口，读者点开可自行注册。 */
+        checked++
+        if (!s.note) fails.push(`L12 ${at} entry 缺 note（必须写清需自行注册/未取得该版原件）`)
+        const err = checkUrl(s.url, null)
+        err ? fails.push(`L12 ${at} ${err}`) : oks.push(`L12 ${at} 官方入口页 ✓`)
+        continue
+      }
       const need = s.original === true ? 'url' : s.original === false ? 'secondaryUrl' : null
       if (!need) continue
       checked++
@@ -107,12 +118,23 @@ function evaluate(primer, { legacy = false } = {}) {
         cell.note ? oks.push(`L4 ${at} nolink 有说明`) : fails.push(`L4 ${at} nolink 缺 note`)
         continue
       }
+      if (cell.kind === 'hub') {
+        /* 官方入口页可以出现在"原件"列，但必须写明"需自行注册"而不能声称已取得。 */
+        checked++
+        if (!cell.note) fails.push(`L12 ${at} 入口页（kind=hub）缺 note（须写清需自行注册/未取得）`)
+        else if (/已取得|原件已取得/.test(String(cell.text || ''))) fails.push(`L9 ${at} 入口页却写「已取得」——入口页不是原件`)
+        else {
+          const err = checkUrl(cell.url, null)
+          err ? fails.push(`L12 ${at} 入口页 ${err}`) : oks.push(`L12 ${at} 官方入口页 ✓`)
+        }
+        continue
+      }
       judgeKind(at, cell.kind, true)
       const err = checkUrl(cell.url, cell.kind)
       err ? fails.push(`L3 ${at} 原件列 ${err}`) : oks.push(`L3 ${at} ✓`)
     }
   }
-  /* L12：治疗全景段末尾必须有一句固定出口（36 号 §2.2），且排列口径必须是登记过的一种。
+  /* L13：治疗全景段末尾必须有一句固定出口（36 号 §2.2），且排列口径必须是登记过的一种。
      2026-11-02 白塞病实测：模板原话只写「按病期与线序排列」，非肿瘤病种照抄即失真
      （慢性复发病人没有病期与线序），改写又违反「原话照抄」——于是口径登记为两种。 */
   const EXIT_CLAUSES = ['按病期与线序排列', '按受累器官与病情轻重排列']
@@ -128,10 +150,10 @@ function evaluate(primer, { legacy = false } = {}) {
     const all = texts.join('\n')
     checked++
     if (!all.includes('不代表任何一项适合你') || !all.includes('需要问你的医生')) {
-      fails.push('L12 landscape 段缺固定出口（36 号 §2.2 原话须含「不代表任何一项适合你」「需要问你的医生」）')
+      fails.push('L13 landscape 段缺固定出口（36 号 §2.2 原话须含「不代表任何一项适合你」「需要问你的医生」）')
     } else if (!EXIT_CLAUSES.some(c => all.includes(c))) {
-      fails.push(`L12 landscape 固定出口的排列口径未登记（只认：${EXIT_CLAUSES.join(' / ')}）——非肿瘤病种用第二种，并在 SPEC 注明`)
-    } else oks.push('L12 landscape 固定出口 ✓')
+      fails.push(`L13 landscape 固定出口的排列口径未登记（只认：${EXIT_CLAUSES.join(' / ')}）——非肿瘤病种用第二种，并在 SPEC 注明`)
+    } else oks.push('L13 landscape 固定出口 ✓')
   }
   return { oks, fails, warns, checked }
 }
@@ -141,7 +163,7 @@ async function probeHttp(primer, res) {
   const targets = []
   for (const sec of primer.sections || []) {
     for (const [i, s] of (sec.sources || []).entries()) {
-      const u = s.original === true ? s.url : s.secondaryUrl
+      const u = (s.entry || s.original === true) ? s.url : s.secondaryUrl
       if (u && isHttps(u)) targets.push({ at: `${sec.id}.sources[${i}]`, url: u, kind: s.kind })
     }
     const head = sec.table?.head || []
@@ -187,8 +209,10 @@ const FIXTURES = [
   { name: 'http 而非 https', data: { sections: [{ id: 'e', sources: [{ org: 'X', original: false, secondaryUrl: 'http://example.com/a' }] }] }, expect: 'L2' },
   { name: '只给域名首页', data: { sections: [{ id: 'e', sources: [{ org: 'X', original: true, kind: 'fulltext', url: 'https://www.esmo.org/' }] }] }, expect: 'L1' },
   { name: 'nolink 缺 note', data: { sections: [{ id: 'e', sources: [{ org: 'X', original: true, nolink: true }] }] }, expect: 'L4' },
-  { name: '治疗全景缺固定出口', data: { sections: [{ id: 'landscape', groups: [{ label: '1', points: ['一般治疗：口腔卫生'] }] }] }, expect: 'L12' },
-  { name: '固定出口口径未登记', data: { sections: [{ id: 'landscape', points: ['以上是文献与指南里列出的手段，按器官排列，不代表任何一项适合你。选哪一个，这一句需要问你的医生。'] }] }, expect: 'L12' }
+  { name: '治疗全景缺固定出口', data: { sections: [{ id: 'landscape', groups: [{ label: '1', points: ['一般治疗：口腔卫生'] }] }] }, expect: 'L13' },
+  { name: '固定出口口径未登记', data: { sections: [{ id: 'landscape', points: ['以上是文献与指南里列出的手段，按器官排列，不代表任何一项适合你。选哪一个，这一句需要问你的医生。'] }] }, expect: 'L13' },
+  { name: '官方入口页缺 note', data: { sections: [{ id: 'e', sources: [{ org: 'NCCN', entry: true, url: 'https://www.nccn.org/guidelines/guidelines-detail?category=1&id=1414' }] }] }, expect: 'L12' },
+  { name: '入口页冒充原件', data: { sections: [{ id: 'e', table: { head: ['机构', '原件'], rows: [['NCCN', { text: '已取得：临床版', kind: 'hub', note: 'x', url: 'https://www.nccn.org/guidelines/guidelines-detail?category=1&id=1414' }]] } }] }, expect: 'L9' }
 ]
 
 function selfTest() {
@@ -200,7 +224,10 @@ function selfTest() {
     if (!hit) { bad++; console.log(`      实得：${r.fails.join(' | ') || '（无 FAIL）'}`) }
   }
   /* 正向对照：一份合规数据必须全过，否则闸门只会乱报红 */
-  const good = { sections: [{ id: 'e', sources: [{ org: 'NCCN', original: true, kind: 'pdf', url: 'https://www.nccn.org/patients/guidelines/content/PDF/anal-patient.pdf' }] }] }
+  const good = { sections: [{ id: 'e', sources: [
+    { org: 'NCCN', original: true, kind: 'pdf', url: 'https://www.nccn.org/patients/guidelines/content/PDF/anal-patient.pdf' },
+    { org: 'NCCN', entry: true, url: 'https://www.nccn.org/guidelines/guidelines-detail?category=1&id=1414', note: '临床版需自行注册' }
+  ] }] }
   const gr = evaluate(good, { legacy: false })
   const okClean = gr.fails.length === 0
   console.log(`${okClean ? 'PASS' : 'FAIL'}  self-test · 合规数据全过`)

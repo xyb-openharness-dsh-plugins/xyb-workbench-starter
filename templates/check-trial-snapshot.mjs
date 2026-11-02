@@ -21,6 +21,14 @@ const parseJson=(value,label)=>{
 }
 const equal=isDeepStrictEqual
 
+async function isSnapshotDirectory(dir) {
+ try{
+  const manifest=JSON.parse(await readFile(join(dir,'manifest.json'),'utf8'))
+  const names=Object.keys(manifest.files||{})
+  return names.some((name)=>name.endsWith('.jsonl'))&&names.some((name)=>name.endsWith('.sqlite')||name.endsWith('.db'))
+ }catch(error){if(error.code==='ENOENT')return false;throw error}
+}
+
 async function findSnapshots(dir) {
  let entries=[]
  try{entries=await readdir(dir,{withFileTypes:true})}catch(error){if(error.code==='ENOENT')return [];throw error}
@@ -29,13 +37,7 @@ async function findSnapshots(dir) {
   if(!entry.isDirectory()||entry.name==='node_modules'||entry.name.startsWith('.'))continue
   const child=join(dir,entry.name)
   if(entry.name==='research') found.push(...await findSnapshots(child))
-  else{
-   try{
-    const manifest=JSON.parse(await readFile(join(child,'manifest.json'),'utf8'))
-    const names=Object.keys(manifest.files||{})
-    if(names.some((name)=>name.endsWith('.jsonl'))&&names.some((name)=>name.endsWith('.sqlite')||name.endsWith('.db')))found.push(child)
-   }catch(error){if(error.code!=='ENOENT')throw error}
-  }
+  else if(await isSnapshotDirectory(child))found.push(child)
  }
  return found
 }
@@ -116,7 +118,7 @@ async function checkSnapshot(dir) {
 let snapshots=[]
 try{
  const stat=await import('node:fs/promises').then(({stat})=>stat(target))
- if(stat.isDirectory()&&target.endsWith('-cancer'))snapshots=[target]
+ if(stat.isDirectory()&&await isSnapshotDirectory(target))snapshots=[target]
  else snapshots=await findSnapshots(target)
 }catch(error){errors.push(`Cannot inspect ${target}: ${error.message}`)}
 if(!snapshots.length){

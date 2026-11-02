@@ -15,8 +15,8 @@ const hash=(value)=>createHash('sha256').update(value).digest('hex')
 async function fixture(t,{sponsorInSqlite=true}={}) {
  const dir=await mkdtemp(join(tmpdir(),'trial-snapshot-'))
  t.after(()=>rm(dir,{recursive:true,force:true}))
- await (await import('node:fs/promises')).mkdir(join(dir,'myeloma-cancer'))
- const dataDir=join(dir,'myeloma-cancer')
+ await (await import('node:fs/promises')).mkdir(join(dir,'myeloma-cancer-20261027-corrected'))
+ const dataDir=join(dir,'myeloma-cancer-20261027-corrected')
  const records=[{recordId:'ctv:UTN0001',mergedSources:['ctv:UTN0001'],sourceId:'ctv',title:'Example',studyType:'Interventional',sponsor:['Sponsor A'],registryNumbers:[{registry:'UTN',value:'UTN0001',primary:true}],dates:{registered:'2026-01-01'},sourceUrl:'https://example.test/trial',retrievedAt:'2026-01-02T00:00:00Z',statusNote:'登记状态，未核实',snapshotDate:'2026-01-03'}]
  const jsonl=records.map(JSON.stringify).join('\n')+'\n'
  const jsonlName='trials.jsonl',dbName='trials.sqlite'
