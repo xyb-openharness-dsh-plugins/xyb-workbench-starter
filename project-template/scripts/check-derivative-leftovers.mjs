@@ -98,6 +98,8 @@ export function scanProject(root = process.cwd()) {
   }
   const hits = []
   for (const f of files) {
+    // The checker's own vocabulary and fixtures are not derivative content.
+    if (resolve(f) === fileURLToPath(import.meta.url)) continue
     let text
     try { text = readFileSync(f, 'utf8') } catch { continue }
     hits.push(...scanText(text, relative(root, f)))
