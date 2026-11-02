@@ -27,6 +27,14 @@ test('dry run writes nothing; generate split/customFrame; refuse overwrite witho
  r=init(f);assert.notEqual(r.status,0);assert.match(r.stderr,/Existing files/);assert.deepEqual(await readFile(path),before)
  const split=await fixture(t,{...config,layoutMode:'split'});r=init(split);assert.equal(r.status,0,r.stderr);assert.match(await readFile(join(split.target,'lib/client.js'),'utf8'),/"businessWidth":0.65/)
 })
+test('generated leftover scanner ignores itself but detects product leftovers',async t=>{
+ const p=await fixture(t);const r=init(p);assert.equal(r.status,0,r.stderr)
+ const checker=join(p.target,'scripts/check-derivative-leftovers.mjs')
+ const clean=run(checker,[],p.target);assert.equal(clean.status,0,clean.stderr)
+ await mkdir(join(p.target,'src'),{recursive:true})
+ await writeFile(join(p.target,'src/fixture.js'),"const title = 'CerviPal'\n")
+ const dirty=run(checker,[],p.target);assert.equal(dirty.status,1,dirty.stderr);assert.match(dirty.stderr,/src\/fixture\.js/)
+})
 test('ships the host-contract gate (businessWidth > 0.7 crashes the target Desktop)',async t=>{
  const p=await fixture(t,config);const r=init(p);assert.equal(r.status,0,r.stderr)
  // 宿主 register() 硬上限 0.7：越界会让插件激活失败、DSH Desktop 起不来，本地 check 必须拦得住
@@ -63,9 +71,10 @@ test('ships the desktop-load verifier (two apps / stale log lines must not be mi
  const script=join(p.target,'scripts/verify-desktop-load.mjs')
  await access(script)
  // 生成的项目还没装进宿主：必须给「未运行/未重启」这类可读结论，而不是抛栈
- const out=run(script,[],p.target)
- assert.match(out.stdout+out.stderr,/界面加载核验/)
- assert.match(out.stdout,/DSH Desktop harness|dshHomePath/)
+ const missingHarness=join(p.dir,'absent-harness')
+ const out=runEnv(script,[],{...process.env,HN_HARNESS:missingHarness})
+ assert.equal(out.status,2,out.stdout+out.stderr)
+ assert.match(out.stderr,/找不到 DSH Desktop 的 harness 目录/)
  // 反例一：DSH Desktop 未运行（日志以 exited 收尾）→ 不许报「激活失败」
  const fake=mkdtempSync(join(tmpdir(),'vd-'))
  const harness=join(fake,'harness'),profile=join(harness,'profiles/web')
