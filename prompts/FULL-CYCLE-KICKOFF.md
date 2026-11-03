@@ -1,6 +1,6 @@
 # 全流程启动提示词 v2.0（M0–M9 · 自动领取 · 可无人值守 · 经验自收敛）
 
-> 用法：整段复制给新会话，填三个空后发出。脚手架规则（CANCER-KICKOFF v2.0 / ZERO-TO-DEV v1.3 / 06 / 28 / 30 / 32 / 33 / 35 号 / LESSONS）默认生效；本文与之冲突时以本文为准，本文未写的按脚手架执行。执行前同时读取 [患者工作台实现标准](PATIENT-WORKBENCH-IMPLEMENTATION-STANDARD.md)；第 5 节阶段强化的细节以该标准为准。
+> 用法：整段复制给新会话，填三个空后发出。脚手架规则（CANCER-KICKOFF v2.0 / ZERO-TO-DEV v1.3 / 06 / 28 / 30 / 32 / 33 / 35 号 / LESSONS）默认生效；本文与之冲突时以本文为准，本文未写的按脚手架执行。执行前同时读取 [患者工作台实现标准](PATIENT-WORKBENCH-IMPLEMENTATION-STANDARD.md) 与 [开发检查点清单](WORKBENCH-DEV-CHECKLIST.md)；第 5 节阶段强化的细节以该标准为准，M2 起每个页面的自检以检查点清单逐条勾。
 > 来源：GBM / MPM / THY / MEL / MM / ENDO 六轮实战，加白塞病一轮（两组合成档案、非肿瘤固定出口、医嘱误路由、隐私历史版本、390px 实测）收敛。
 
 ---
@@ -52,8 +52,9 @@
 ## 3. 开始之前
 
 1. 读当前仓库 README、任务台账、AGENTS、线上宿主规范（`https://dshdesktop.com/workbench/docs/development.md`，读不到就声明未核对最新规范）与相关编号文档；查工作树、已确认事项、宿主可用性。保留用户改动；并行代理不同时改同一文件，合流后检查。
-2. 检索 BACKLOG、开放 issue 与相关仓，按第 4 节领取。
-3. 建私有仓并运行实际可用的 dsh-wb-cli；核对 package 的 dsh 块、repository、patch 与服务端配置。配置了 `config.root` 不等于服务端声明、读取并使用该目录，缺口记未接通。
+2. 读 [开发检查点清单](WORKBENCH-DEV-CHECKLIST.md)，选定两套参考基准并写进文档：小粉宝（乳腺癌 `breast-cancer-workbench/prototypes`，抄首页 hero、五 Tab、分类眉题、卡片与最近报告表）与小橙宝（AML `aml-workbench/prototypes/v0.2/index.html` 的 `#mind/mind-burden`，抄导航分组、生活影响线与事件泳道）。只抄结构与元素体系，不抄病种语义。
+3. 检索 BACKLOG、开放 issue 与相关仓，按第 4 节领取。
+4. 建私有仓并运行实际可用的 dsh-wb-cli；核对 package 的 dsh 块、repository、patch 与服务端配置。配置了 `config.root` 不等于服务端声明、读取并使用该目录，缺口记未接通。
 
 ## 4. 自动领取（先做，别问）
 
@@ -70,7 +71,7 @@
 | --- | --- | --- | --- |
 | M0 骨架 | 领取四步加文档九件（SPEC、DEV-REQUIREMENTS、DIFF-MATRIX、PATIENT-FLOW、SCENARIOS、USER-RESEARCH、INTERACTION-DESIGN、CLINICAL-DATA、DEV-PLAN）加基线 `npm run check` | staticPass=true；文档原创本病种版，禁止跨仓 fork 复制（三次残留教训） | — |
 | M1 调研与 SPEC | 三路并行：医学约束（10 主题，指南 PDF 核数、NMPA 官方级核实）、用户与照护者研究（证据分层，0 访谈如实）、家族结构对比（对移植样板与基准）→ DIFF-MATRIX 全量（一级重名率 ≤70% 实测）、SPEC、USER-RESEARCH、INTERACTION-DESIGN 全量（28 号 IP1） | 重名率实测数；K1–K6 红线落文档；G1 决策点显式列出 | G1 |
-| M2 原型 | 演示数据构建器（双档案，唯一源）加 `prototypes/v0.2` 四件套；治疗线用 32 号折叠卡模版（非肿瘤不套肿瘤分期与治疗线序语义）；试验线按 35 号四段链路（建档、双通道检索、分层加证据链、候选线索；禁匹配指数与判读列，检查器进 check 链），非肿瘤无试验线时如实裁剪并记录；窄宽按 30 号第一版；HVT X1–X4；SVG 根带 `class="chart"`、smoothPath 用 Fritsch–Carlson、AI 按钮走 `xxx:agent-draft` 一键携带提示词加病情上下文；独立评审 P0 清零并留修复痕迹；README 按 33 号放实渲截图至少 4 张含折叠收展态 | 页签走查数字、computed fill=none、窄宽 0 问题、禁词 0 | G2 |
+| M2 原型 | 演示数据构建器（**两套合成档案：A 刚确诊记录少、B 长期随访发作与指标都多**，唯一源，切换整页联动，标注合成示例）加 `prototypes/v0.2` 四件套；结构与小粉宝、小橙宝对齐（见第 3 节第 2 步）；治疗线用 32 号折叠卡模版（非肿瘤不套肿瘤分期与治疗线序语义）；试验线按 35 号四段链路（建档、双通道检索、分层加证据链、候选线索；禁匹配指数与判读列，检查器进 check 链），非肿瘤无试验线时如实裁剪并记录；窄宽按 30 号第一版；HVT X1–X4；SVG 根带 `class="chart"`、smoothPath 用 Fritsch–Carlson、AI 按钮走 `xxx:agent-draft` 一键携带提示词加病情上下文；**逐条过检查点清单的 IP / X / C / MT / A / P / Q 项**；独立评审 P0 清零并留修复痕迹；README 按 33 号放实渲截图至少 4 张含折叠收展态 | 页签走查数字、computed fill=none、窄宽 0 问题、禁词 0、两套档案切换不串档、检查点清单未勾项清单 | G2 |
 | M3 数据模型 | `schema/0001_initial.sql`（档案 2、指标 3、通用 7、专属 N、导入 3）加 freeze-contract（sha256）；判读列断言 | 内存全建；无 diagnosis、risk_level 类判定列 | G3 |
 | M4 临床库 | `scripts/fetch-<x>-trials-<年>.mjs`（MCP stdio，四在线通道）→ `research/<x>/` 四件套 | manifest=jsonl=sqlite 的计数、hash、逐字段映射断言；FAILED 如实记未查过，未查或服务失败不能写零结果 | — |
 | M5 开发版 | 七步移植（六件套加宿主接线件：dsh 块、patch root、真客户端链路 src→build→lib、版本簿记）加 MinerU 六部件（18 号 v2）加 apiBase 定稿契约（交界守卫、双形态回归、禁裸 throw）加 test 五套加 check 全绿加 HVT 一致性 | 版本十处同源；单测全过；audit 全过；tgz 占位=0 | V1 |
@@ -83,7 +84,7 @@
 
 M0–M1：单一证据台账，来源分级、版本、待决与失败 URL 一并留痕；原件、题录、二次来源、未取得分开标；中国适应证只认中国官方来源。指南只定内容边界，不转成自测或选治疗；未过临床审核的阈值与求助短语作待核占位。家族对照读实际导航、截图与交互代码，逐字保留名称并说明口径；场景、功能、页面、数据、交互、验收建双向映射，逐项列孤儿页、空壳、暂缓项，数量算术不等于验收通过。HVT 五层记录真实缺口，用户确认方向不等于 HVT 通过。
 
-M2：按标准的「两组合成档案与一致性」「指标卡、一图秀和治疗线」「隐私、解析和宿主」三节执行，另加两项：X1–X4、C1–C12、MT01–MT15、P 项逐条记证据、缺项与版本哈希；独立评审 P0 清零后以确切版本过 G2。
+M2：按标准的「两组合成档案与一致性」「指标卡、一图秀和治疗线」「隐私、解析和宿主」三节执行，另加两项：X1–X4、C1–C12、MT01–MT15、P 项逐条记证据、缺项与版本哈希；**两套模拟数据缺一套或切换串档即 M2 不成立**（单套数据下"新患者"路径必然空白，评审看到的是空壳）；**AI 入口、3D 卡片翻转、整页视图两入口、疾病概要四段这四类最容易整条漏掉**，开工时先做再回填其余；独立评审 P0 清零后以确切版本过 G2。
 
 M3–M6：G2 后冻结数据合同与迁移，标明字段语境、私密策略、来源、未知值、排序与禁止持久化的派生判断。移植验证版本、产物与 UI parity；真实数据、原生 AI、MinerU 各按接口契约验证成功与失败，桩件注册通过不等于宿主可用，API 跨界与 private 出口要有正反例。装机只向实际 DSH Desktop（`io.dsh.desktop`）加载的 profile 安装，排除被继承 `DSH_HOME` 指向的 CLI profile；真实核验包内容、依赖、bundle、重启后新会话、界面与业务路径。Web GUI、dev server、SSH 成功都不等于 Desktop 装机；不可用时如实写未验证，继续做不依赖装机的工作。
 
