@@ -42,6 +42,10 @@ init后先读取并向用户展示 `docs/DESIGN-PROMPT.md` 的实际路径，以
 
 五层之外查**发布可见性 P**：版本号必须在 HTML 原型首页与装机后的应用首页首屏可见，且与 `package.json`、tag、市场条目一致。只在 README、CHANGELOG 或"关于"弹窗深层出现不算；未接入 DSH 时 P2 写"未验证"，不写通过。判据见 `skills/hvt-requirement-review/references/publish-readiness.md`。
 
+## 开发检查点（每页完成前逐条勾）
+
+开工前读 [检查点主表](prompts/WORKBENCH-DEV-CHECKLIST.md)，按 IP / X / C / MT / A / P / Q 编号逐条自检；主表未覆盖的细节按编号查 [全量索引](prompts/WORKBENCH-DEV-CHECKLIST-FULL.md)（185 条，带 file:line 与现有检查手段）。两条硬要求：**两套合成档案**（A 刚确诊记录少、B 长期随访记录多，切换整页联动不串档；单套数据下新患者路径必然空白，评审看到的是空壳）；**参考基准**用小粉宝（乳腺癌 `breast-cancer-workbench/prototypes`）与小橙宝（AML `aml-workbench/prototypes/v0.2` 的 `#mind/mind-burden`）的结构与元素体系，不抄分期、线序、预后语义。勾选只认证据：有数字、截图或探针输出才写"通过"；文档有判据但脚本不存在（如 33 号点名的 `check-readme-assets.mjs` 仓内并无此文件）只能写"待人工"。
+
 ## 一图秀（多指标时间轴）
 
 多指标趋势页按 [docs/16-ONE-CHART-SPEC.md](docs/16-ONE-CHART-SPEC.md) 做，项目口径填在 `docs/ONE-CHART-SPEC.md`（来自 `templates/ONE-CHART-SPEC.md`）。三条不可让步：每条线按**该指标全期** min/max 归一化并写明不可比；单点不连线、空窗口给空态；治疗条与数据区分层。移动端网格轨道一律 `minmax(0,1fr)`，图表的横向滚动只能发生在图表容器内。指标卡翻转为固定高度 + `preserve-3d`，不是展开插入内容。C1–C12 断言属 G2 签认范围，不做"开发自测"了事。

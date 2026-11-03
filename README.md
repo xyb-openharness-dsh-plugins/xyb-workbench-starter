@@ -7,6 +7,10 @@
 下面的社区流程面向社区协作与贡献；仅本机使用按上述入口执行。
 
 
+## Git开发快照 · 2026-11-03（十）开发检查点清单：把散落判据收成一张可勾的表
+
+白塞病工作台跑完 M2 回头复盘，最贵的返工不是「没写文档」，而是**判据都在文档里、开发时没人逐条对照**：3D 卡片做成了上下展开而不是固定高度翻面、AI 一键发送入口整条漏掉、一图秀只画了一套合成档案导致新患者路径全空。所以把 36 份文档里的可断言项收成两张表：[检查点主表](prompts/WORKBENCH-DEV-CHECKLIST.md)（IP / X / C / MT / A / P / Q 七类编号，每条给「怎么做对」+「怎么验」+「现有检查手段」）与 [185 条全量索引](prompts/WORKBENCH-DEV-CHECKLIST-FULL.md)（带 `file:line` 原文，供主表指不到的细节回查）。两条硬要求写进 `AGENTS.md` 的 `## 开发检查点`：**两套合成档案**（A 刚确诊记录少 / B 长期随访记录多，切换整页联动不串档），**参考基准明确到仓**——小粉宝=乳腺癌 `breast-cancer-workbench/prototypes`，小橙宝=AML `aml-workbench` 的 `#mind/mind-burden`，只抄结构与元素体系，不抄分期/线序/预后语义。索引同时暴露了一个真问题：33 号点名的 `templates/check-readme-assets.mjs` **仓内并不存在**，白塞病台按 README 要求做的截图墙没有闸门可跑，只能记「待人工」——已在主表 §10 Q27 按事实改写，没写成检查器通过。包版本 `1.10.0-rc.6`。
+
 ## Git开发快照 · 2026-10-27（九）35 号 v3：分数不许骗人
 
 小肺宝（肺癌）把「临床试验」从「检索框 + 结果表 + 居中弹窗」重做成「匹配 / 检索 / 收藏与跟踪」三个子页 + 匹配分数 + 右侧浮窗 + 收藏三态，用户确认后交付。回流的不是界面，是四个**不报错、不崩、只把结论说错**的缺陷：[35 号](docs/35-TRIAL-MATCHING.md) 升 **v3**——档位词改「字段都对得上 / 部分对得上」，新增 §六 界面形状与 §七 落地五条（判据只取快照真实字段、**药物靶点不进分母**、**可对照项不足 2 条不给百分数**、反向条件显式反转 + 两侧词表同源、候选池写「已载 N / 总数」）；`check-trial-matching.mjs` **扫描面加 `lib/`**（旧版看不见 `lib/client-trials.js`，"扫描 1 个文件通过"）、eligible 收窄为结构定义形态、T1/T3 认等价写法、T2b 只对有百分数的实现生效、新增 T2d（靶点不得作判据类别）与 `--self-test` 10 条；[LESSONS](docs/LESSONS.md) 补 **L44–L50**。包版本 `1.10.0-rc.3`。
@@ -174,6 +178,7 @@ python3 skills/hvt-requirement-review/scripts/hvt_scan.py --project . --profile 
 
 | 要做的事 | 文档 |
 | --- | --- |
+| **开工前逐条勾的开发检查点（IP/X/C/MT/A/P/Q 编号、两套合成档案、小粉宝/小橙宝基准）** | [WORKBENCH-DEV-CHECKLIST](prompts/WORKBENCH-DEV-CHECKLIST.md) + [185 条全量索引](prompts/WORKBENCH-DEV-CHECKLIST-FULL.md) |
 | **需求到人工反馈的闭环项目流程（含 HTML 确认、临床试验 SQLite、>98% parity、DSH Desktop RC发布）** | [17-CLOSED-LOOP-PROJECT-FLOW](docs/17-CLOSED-LOOP-PROJECT-FLOW.md) |
 | Git 克隆/命令激活/同步/初始化 | [CLI-GIT](docs/CLI-GIT.md) |
 | 从想法到上线的顺序、如何省 token | [01-WORKFLOW](docs/01-WORKFLOW.md) |
