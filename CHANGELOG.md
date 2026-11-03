@@ -1,3 +1,19 @@
+## 2026-10-28 · 1.10.0-rc.4 小炎宝（aosd-workbench）回收：单行 ROUTES + toggletip 模式
+
+来源：成人斯蒂尔病工作台 M5 真踩——`const ROUTES = ['dashboard', ...]` 写成**单行**时，
+`check-probe-coverage.mjs` 的正则要求 `\];` 换行结尾，解析为「没有 ROUTES」，新项目第一次接入就红。
+同轮 G2 反馈「文字堆积」，项目内落地 toggletip 后按用户要求沉淀为通用模式。
+
+### 新增
+
+- `docs/39-TOGGLETIP.md`：说明浮窗（toggletip / rich tooltip）的适用边界、交互合同、参考实现与 T1–T5 验收；
+  红线：安全/隐私/急症/未核对信息禁止藏进浮窗。
+
+### 修复
+
+- `project-template/scripts/check-probe-coverage.mjs` 数组式 ROUTES 支持单行写法
+  （`/[^\]]*/` 到第一个 `]` 为止），不再因换行格式误判。
+
 ## 2026-10-27 · 1.10.0-rc.3 试验匹配 v3（小肺宝 0.1.2-rc.19 回收）+ 七条经验
 
 来源：小肺宝把「临床试验」从「检索框 + 结果表 + 居中弹窗」重做成「三子页 + 匹配分数 + 右侧浮窗 + 收藏三态」，

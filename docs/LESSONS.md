@@ -274,3 +274,11 @@ profile：`~/Library/Application Support/dsh-desktop/harness/profiles/web`（本
 - **L50 · 发布资产回验用 `gh release download`，不要 `curl` 直连**：`curl -sL .../releases/download/...`
   在本机代理环境下拿到的是 9 字节 `Not Found`，sha256 自然不符，会被误判成「资产损坏」。
   规矩：`gh release download <tag> -D <tmp>` 再 `shasum -a 256`，与本地包逐字节比。
+
+- **L51 · 检查器只认一种排版，会把合法代码判成缺失**：`check-probe-coverage` 的 ROUTES 正则要求
+  `];` 前有换行，单行数组直接报「找不到 ROUTES」。凡是「结构检查」，都要用**能表达结构的最小匹配**
+  （数组到第一个 `]`、对象到配对花括号），并在 starter 测试里放单行/多行两种样本；
+  否则新项目第一次 `npm run check` 就红，而代码本身没错。
+- **L52 · 长解释留在正文会压垮主任务；但安全信息不能进浮窗**：小炎宝 G2 用户原话「文字堆积感很重」。
+  处置：字段口径/规范出处/为什么这样画 → toggletip；私密排除、云外发告知、急症退出、未核对、
+  登记未核实 → 必须正文常显。模式见 `docs/39-TOGGLETIP.md`。
