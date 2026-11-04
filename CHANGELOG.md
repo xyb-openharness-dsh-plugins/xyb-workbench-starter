@@ -1,3 +1,8 @@
+## 1.10.0-rc.12（2026-11-05，从小弓宝大动脉炎 takayasu-workbench 首夜回收）
+
+- 新增 `templates/check-schema.mjs`：判读列 0 命中断言 + schema freeze-contract sha256 同源检查（L59 模板化，接入 = 复制进项目 scripts/ 并挂 check 链）。
+- `docs/LESSONS.md` 增 L57–L60：canonical JSON parity 口径、metrics 数组序 = def 序、事实列命名预判判读词正则、smooth 滚动/异步 history 的探针假红与隔离法。
+- 回收来源：takayasu-workbench v0.2.0 首夜（M0–M6，探针 32/32、audit 44/44、装机产物层四要素过）。
 ## 2026-11-05 · 1.10.0-rc.11 从小宁宝 v0.2.8 Inspector 轮回收 LESSONS L54–L56
 
 ### 新增

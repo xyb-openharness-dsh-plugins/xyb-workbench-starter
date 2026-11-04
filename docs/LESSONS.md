@@ -318,3 +318,24 @@ profile：`~/Library/Application Support/dsh-desktop/harness/profiles/web`（本
 回流落点：ttp 仓 `scripts/check-trial-matching.mjs` 增加试验线触发与扫描面（prototypes 也扫）、
 `scripts/build-trial-demo-data.mjs` 的严格筛选口径与文件头声明；L54 的「UI 文案 ↔ 状态表」对账断言
 列入检查器待实施清单（当前靠 Inspector C4/E10 人工对账）。
+
+## 2026-11-05 · 从小弓宝大动脉炎工作台（takayasu-workbench v0.2.0 首夜 M0–M6）回收：parity 与探针四课
+
+- **L57 · 手写 demo 数据的可选键 null 两态并存，parity 必须走 canonical JSON**：demo-data.js 里
+  同一结构有的行写 note: null、有的行直接省键——读模型固定键集输出后逐字节比对必炸。
+  规矩：parity 测试用 canonical（递归删 null/undefined 键）比对 + 读模型输出固定键集；
+  「形状一致」以语义等价定义，写进测试头注释。检查法：test/demo-parity.test.mjs（takayasu 仓可抄）。
+- **L58 · profile 指标数组顺序 = metric_def ord**：readBootstrap 按 def 顺序聚合、demo 手写顺序
+  随意 → 数组顺序逐字节不一致。规矩：唯一源 demo-data.js 的 metrics 数组按 metric_def 顺序写；
+  readBootstrap 跳过零点数组。来源：takayasu demo-parity 三轮返工。
+- **L59 · 事实列命名要预判判读词钝正则**：diagnosis_date（确诊日期，事实）撞上 /diagnosis/i
+  判读列断言。规矩：日期/原文类事实列命名避开判读词根（diagnosis/risk/severity/grade/verdict…），
+  确诊日期用 first_confirmed_date。检查法已模板化：templates/check-schema.mjs（判读列 0 命中 +
+  freeze-contract sha256 同源），首夜即断言。
+- **L60 · 视口锁定 + scroll-behavior:smooth 让程序化滚动异步化**：#main smooth 滚动下
+  scrollTop = 140 赋值立刻读回是 0，A5「滚动恢复」假红。规矩：探针滚动用
+  scrollTo({top, behavior:'instant'}) 或等待 ≥250ms；同族教训——异步 history.back() 会污染
+  后续 history.length 断言，history 类验收用「hash+state 进出」行为学证明或 fresh goto 隔离。
+
+回流落点：starter templates/check-schema.mjs（L59 检查器模板化，首例来自 takayasu）；
+demo-shape 0002 迁移模式（冻结后 ALTER TABLE ADD COLUMN 可空补列）写入 14 号数据合同待办。
