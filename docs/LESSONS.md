@@ -274,3 +274,25 @@ profile：`~/Library/Application Support/dsh-desktop/harness/profiles/web`（本
 - **L50 · 发布资产回验用 `gh release download`，不要 `curl` 直连**：`curl -sL .../releases/download/...`
   在本机代理环境下拿到的是 9 字节 `Not Found`，sha256 自然不符，会被误判成「资产损坏」。
   规矩：`gh release download <tag> -D <tmp>` 再 `shasum -a 256`，与本地包逐字节比。
+
+## 2026-11-04 · 从小宁宝 TTP 工作台（ttp-workbench v0.2.1 装机迭代）回收：三处「不报错、只坏一半」
+
+一轮无人值守夜班跑完 M0–M9，装机闸口抓到三个**检查链全绿但装机即坏**的坑，全部可断言化：
+
+- **L51 · 生成代码里的注入令牌禁止挂在 `window` 上**：`migrate-public` 生成 `window.__API_BASE__`，
+  宿主把令牌替换成挂载前缀后变成 `window./api/ttp` → 业务帧**整帧脚本语法错误**，界面只剩外壳、
+  主区空白，且 harness.log 没有任何指向本包的报错行（四个激活失败全是别的仓）。独立启动 API_BASE=''
+  时同样看不出。规矩：令牌只以字符串字面量 `"__API_BASE__"` 形态出现在生成物里；断言器
+  `check-public-tokens.mjs`（ttp 仓首例）扫 `window.__API_BASE__` / `window.__VERSION*`。
+- **L52 · 双形态字段名必须同源取自一行代码**：fetch 脚本 jsonl 写 `sponsor`、SQLite 插入读 `r.sponsors`，
+  库内全 null，`check-trial-snapshot` 一口气报 179 处 field mismatch——检查器红得很对，
+  但 AML 底本带着同款 bug 存活至今，说明**这条检查没进底本的 check 链**。规矩：采集脚本的
+  jsonl 行与 insert 行从同一个变量取值；snapshot 一致性检查进每仓 check 链。
+- **L53 · pack 白名单缺目录 = 装机激活四连挂**：`dsh/demo.js` import `../demo/build-demo-data.mjs` 而
+  `files` 缺 `demo/`，同一晚 esophageal / gastric / gist / colorectal 四个仓在宿主里集体
+  `ERR_MODULE_NOT_FOUND` 激活失败（ATTR 0.2.1 踩过的同款坑，第五、六、七、八次）。
+  规矩：dsh 内相对 import 的每个目录都必须出现在 `files`；装机后 `harness.log` 本次运行段
+  grep 本包 id 必须 0 报错（`verify-desktop-load` 已脚本化，装机后必跑）。
+
+回流落点：ttp 仓 `scripts/check-public-tokens.mjs`（建议升进 starter templates）；`check-trial-snapshot.mjs`
+已在 starter check 链，补「每仓必须含」断言；L53 建议在 `check-conformance` 加「dsh/*.js 相对 import 目录 ⊆ files 白名单」断言（待实施清单）。

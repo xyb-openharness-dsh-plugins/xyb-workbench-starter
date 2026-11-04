@@ -369,6 +369,7 @@ lib/{client,layout,version}.js
 public/{index.html,style.css,shell.css,app.js}
 scripts/{dev-server,build-version,fetch-<癌种>-trials-<年>,check-*}.mjs
 test/{store,server,ui-parity,ctcae,guideline,cadence}.test.mjs
+prompts/FAMILY-INSPECTOR.md（家族 Inspector 审查提示词：每轮用户验收前整仓自检 A 视觉对齐/B 菜单完整性/C 设置三 tab/D 一图秀 rail/E 录入窗口/F 数据层/G 红线/H 回归交付，出处 ttp-workbench 2026-11-05）
 docs/{SPEC,DEV-REQUIREMENTS-<日期>,DIFF-MATRIX,PATIENT-FLOW,SCHEMA,CLINICAL-DATA-<年>,DEV-PLAN,METRIC-GRADING,GUIDELINE-BRIDGE?}.md + docs/screenshots/（README 截图 ≥4 张 + 折叠展开态，规则见 starter docs/33）
 README.md / CHANGELOG.md / VERSION / package.json
 ```
