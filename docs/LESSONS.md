@@ -369,6 +369,6 @@ demo-shape 0002 迁移模式（冻结后 ALTER TABLE ADD COLUMN 可空补列）�
 - **L58 · 「本次运行有 N 个插件失败」不等于「本包失败」**：装机校验脚本只按 `did not activate`
   一刀切时，profile 里 4 个兄弟仓缺 `demo/` 打包的失败会把本包判成激活失败（2026-11-05 实测，
   `verify-desktop-load` 直接给出 ✗ 结论）。规矩：按包名/插件 id 归属失败行；只有别人的失败 → 警告并列出 id；
-  只有不带包名的计数行 → 记「待人工」，不能证明与本包无关、也不许写成通过。
+  只有不带包名的计数行 → 按失败处理（保守），不许放行成通过。
   `templates/verify-desktop-load.mjs` 已按此规则更新（归属正则同时认 `(pkg): failed to import` 与
   `id-main: Error`，并过滤 `web-server`/`llm-*` 这类非插件错误）。
