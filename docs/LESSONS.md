@@ -357,3 +357,18 @@ demo-shape 0002 迁移模式（冻结后 ALTER TABLE ADD COLUMN 可空补列）�
 - **L65 · 探针操作 render 后的 DOM 必须重查节点**：innerHTML 替换后旧引用是脱节点，
   对它 click() 不会冒泡到 document 委托器，动作静默无效且探针会误报「功能失效」。
   规矩：每次 render 后重新 querySelector 再交互；探针内连续两步操作同一容器时尤其注意。
+
+## 2026-11-05 · 从小宁宝 v0.2.9 回收：路由与装机验证的两处「归属错误」
+
+- **L57 · UI 路由禁止写死字面量，必须从 API_PREFIX 派生——否则多仓互撞**：takayasu-workbench（大动脉炎）
+  从 ttp-workbench 复制模板后，`dsh/index.js` 仍写死 `path: '/ttp'`（客户端 iframe 却加载 `/takayasu/`）：
+  ① 与 ttp-workbench 的 `/ttp` 相撞 → 宿主 `duplicate prefix route`，一个插件激活失败；
+  ② 即使不撞，客户端请求自己的路由也 404（SPA 兜底把 index.html 当 JS）。
+  规矩：`path: '/' + API_PREFIX`；断言器 `templates/check-route-prefix.mjs`（API_PREFIX ↔ 包名 slug ↔
+  客户端 UI_ENTRY ↔ dsh 注册路由 四者同源，禁写死前缀字面量）进每仓 check 链。
+- **L58 · 「本次运行有 N 个插件失败」不等于「本包失败」**：装机校验脚本只按 `did not activate`
+  一刀切时，profile 里 4 个兄弟仓缺 `demo/` 打包的失败会把本包判成激活失败（2026-11-05 实测，
+  `verify-desktop-load` 直接给出 ✗ 结论）。规矩：按包名/插件 id 归属失败行；只有别人的失败 → 警告并列出 id；
+  只有不带包名的计数行 → 记「待人工」，不能证明与本包无关、也不许写成通过。
+  `templates/verify-desktop-load.mjs` 已按此规则更新（归属正则同时认 `(pkg): failed to import` 与
+  `id-main: Error`，并过滤 `web-server`/`llm-*` 这类非插件错误）。

@@ -1,3 +1,13 @@
+## 2026-11-05 · 1.10.0-rc.12 路由同源检查器 + 装机失败归属（ttp v0.2.9 回收 LESSONS L57–L58）
+
+### 新增
+
+- `templates/check-route-prefix.mjs`：断言 API_PREFIX ↔ 包名 slug ↔ 客户端 UI_ENTRY ↔ dsh 注册路由四者同源，禁止写死路由字面量（L57 可断言化；出处：takayasu-workbench 复制残留学 `path:'/ttp'` 与 ttp-workbench 相撞，宿主 duplicate prefix 导致激活失败）。
+- `templates/verify-desktop-load.mjs` 更新：失败行按包名/插件 id 归属——兄弟仓失败只列 id 警告、不带包名的计数行记「待人工」，不再把环境问题判成本包激活失败（L58）。
+
+### 版本
+
+- `1.10.0-rc.11` → `1.10.0-rc.12`（未发布）。
 ## 1.10.0-rc.13（2026-11-05，从小筛宝 AATD aatd-workbench 首夜回收）
 
 - 修复 `scripts/check-derivative-leftovers.mjs` 自扫自爆：scanProject 现自排除自身文件
