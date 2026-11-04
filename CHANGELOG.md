@@ -1,3 +1,16 @@
+## 2026-11-05 · 1.10.0-rc.11 从小宁宝 v0.2.8 Inspector 轮回收 LESSONS L54–L56
+
+### 新增
+
+- `docs/LESSONS.md` **L54–L56**：①界面通道终态必须从 `source_statuses` 生成，不许手写 FAILED 次数（Inspector C4/E10 抓到「ictrp 两次 FAILED」与真表 SUCCESS×3+NO_RESULTS×3 不符）；②病种快照检索只认全称/病名，缩写 TTP 会命中「transversus thoracic plane block」把无关试验推给患者；③掩码方向与文案同源（`****8f2c` 不露前缀）、设置 tab 切换不丢表单草稿。
+
+### 待实施（检查器清单追加）
+
+- 「UI 通道终态文案 ↔ source_statuses 表」对账断言（L54 可断言化；当前靠 Inspector C4/E10 人工对账）。
+
+### 版本
+
+- `1.10.0-rc.10` → `1.10.0-rc.11`（未发布）。
 ## 2026-11-05 · 1.10.0-rc.10 FAMILY-INSPECTOR 条目编号随节顺延修正
 
 - 上一版只顺延了节标题（E→F/G/H/I），小节内条目前缀未动：F 节（录入窗口）仍挂 E1–E8、G 节（数据层）挂 F1–F5、H 节（红线）挂 G1–G5——映射表引用与实际条目对不上。本版统一改为 节字母+序号（F1–F8 / G1–G5 / H1–H5 / I1–I4），E 节 E1–E10 不变。

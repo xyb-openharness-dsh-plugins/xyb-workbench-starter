@@ -296,3 +296,25 @@ profile：`~/Library/Application Support/dsh-desktop/harness/profiles/web`（本
 
 回流落点：ttp 仓 `scripts/check-public-tokens.mjs`（建议升进 starter templates）；`check-trial-snapshot.mjs`
 已在 starter check 链，补「每仓必须含」断言；L53 建议在 `check-conformance` 加「dsh/*.js 相对 import 目录 ⊆ files 白名单」断言（待实施清单）。
+
+## 2026-11-05 · 从小宁宝 TTP 工作台（ttp-workbench v0.2.8 Inspector 轮）回收：三处「界面说了假话」
+
+独立 Inspector 按 A–I 清单审出 16 项失败，其中三类是**界面自述与数据层不一致**，都可断言化：
+
+- **L54 · 界面里的通道终态必须从状态表生成，不许手写**：设置页写「ictrp 两次 FAILED」，而快照
+  `source_statuses` 实为 `SUCCESS ×3 + NO_RESULTS ×3`、0 FAILED——用户看到的是「外部服务坏了」，
+  实际是「查过、没有命中」。规矩：任何「哪个通道成功/失败/无结果」的文案必须由
+  `SELECT source_id, state, COUNT(*) FROM source_statuses GROUP BY 1,2` 的结果渲染（或构建期生成常量），
+  禁止在 UI 文案里凭记忆写 FAILED/成功次数。检查法：设置页文案与 sqlite 查询结果逐来源对账。
+- **L55 · 检索关键词的医学缩写歧义会直接把无关试验推给患者**：`\bTTP\b` 同时命中
+  「thrombotic thrombocytopenic purpura」与「transversus thoracic plane (TTP) block」——检索页第一条
+  推的是乳腺手术麻醉研究。规矩：病种快照过滤只认**全称/病名/罕见病目录名**（如
+  thrombotic thrombocytopenic purpura、血栓性血小板减少性紫癜、Upshaw-Schulman），缩写只在标题同时
+  含病名语境时才算；生成脚本把筛选口径写进文件头注释，并保留「全部载入 N 条」的卡头口径。
+- **L56 · 掩码方向与文案必须同源，表单草稿跨 tab 不得丢**：Token 掩码显示 `sk-8f2c****`（露前缀）却写
+  「只显示后 4 位」；且切换设置 tab 后已输入的 Token 草稿被清空。规矩：掩码由真实值派生（`****` + 末 4 位），
+  文案与实现同一处生成；设置页 tab 切换只换内容区，表单草稿存 state（或切 tab 前落草稿），不许重建整个表单。
+
+回流落点：ttp 仓 `scripts/check-trial-matching.mjs` 增加试验线触发与扫描面（prototypes 也扫）、
+`scripts/build-trial-demo-data.mjs` 的严格筛选口径与文件头声明；L54 的「UI 文案 ↔ 状态表」对账断言
+列入检查器待实施清单（当前靠 Inspector C4/E10 人工对账）。
