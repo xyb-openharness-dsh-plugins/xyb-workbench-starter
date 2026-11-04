@@ -57,7 +57,7 @@ test('字面量约定：与 VERSION 一致通过（存量项目兼容）', () =>
   assert.equal(r.code, 0)
 })
 
-test('字面量约定：版本不一致失败（cervical check-version 的形态）', () => {
+test('字面量约定：版本不一致失败（底本仓 check-version 的形态）  leftover-allow：测试名沿革引用', () => {
   const r = run(fixture({ html: '<span>v0.1.0</span>' }))
   assert.equal(r.code, 1)
   assert.match(r.out, /v0\.1\.0 ≠ VERSION v0\.2\.0/)

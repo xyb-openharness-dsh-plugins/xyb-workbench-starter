@@ -339,3 +339,21 @@ profile：`~/Library/Application Support/dsh-desktop/harness/profiles/web`（本
 
 回流落点：starter templates/check-schema.mjs（L59 检查器模板化，首例来自 takayasu）；
 demo-shape 0002 迁移模式（冻结后 ALTER TABLE ADD COLUMN 可空补列）写入 14 号数据合同待办。
+- **L61 · 残留检查器自扫自爆**：check-derivative-leftovers.mjs 的词表、doc 示例与自测脏样本
+  （小莲宝/CerviPal 字样）会被它自己的 SCAN_DIRS 扫到，新项目首夜 check 必假红 37+ 处。
+  规矩：scanProject 自排除 `resolve(f) === fileURLToPath(import.meta.url)`；错误来源 aatd-workbench
+  2026-11-05 首夜（M0 起 EXIT 读取被管道截断掩盖了三天假红）。检查法：starter scripts/ 与
+  project-template/scripts/ 双份都已修，`node scripts/check-derivative-leftovers.mjs .` 应 0 命中。
+- **L62 · 事件委托分支与 data-* 缺一对，点击静默无效**：按钮只写 data-range 不写
+  data-action，委托处理器 `closest('[data-action]')` 永远不命中，UI 不报错但功能死的。
+  规矩：新增委托动作时 data-action 与取值属性成对出现；探针必须「真点击后断言 DOM 变化」
+  而不是查控件存在（aatd C8 探针先红后修的真实案例）。
+- **L63 · 窄时间窗空序列把 render 炸断，UI 静默不更新**：lastPos 对 pts=[] 取
+  `last.x` 抛 TypeError → render 中断 → innerHTML 不替换 → 界面停留在旧状态，无任何报错。
+  规矩：读模型/视图层对「窗口内 0 点」显式分支（跳过该序列或整图空态），空态必须带下一步按钮。
+- **L64 · 私密改写链口径**：私密记录被更正为公开后，旧私密原文仍不得出现在看板/导出/AI
+  三出口。过滤函数按 corrected_by 链溯源：链上任一版本 is_private=1，则该链旧原文一律不出口；
+  最新公开版本可出口。演示数据要有「旧私密→新公开」改写链示例供断言（aatd 独立评审 P1④）。
+- **L65 · 探针操作 render 后的 DOM 必须重查节点**：innerHTML 替换后旧引用是脱节点，
+  对它 click() 不会冒泡到 document 委托器，动作静默无效且探针会误报「功能失效」。
+  规矩：每次 render 后重新 querySelector 再交互；探针内连续两步操作同一容器时尤其注意。

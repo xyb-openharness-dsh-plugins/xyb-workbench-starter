@@ -76,12 +76,12 @@ async function main() {
   // 选择上限一致性：toast 说"超了"但 checkbox 已勾上，界面 N+1、数据 N（PF-ILD 实测）。
   // 19 号早写了"回弹 checkbox"，缺的是自动检查——设计覆盖 ≠ 检查覆盖。
   plan.set('scripts/check-choice-limit.mjs', await readFile(join(starter,'templates/check-choice-limit.mjs')))
-  // 页面版本字面量：UI 显示哪一版必须等于服务端跑的一版（cervical + PF-ILD 两次）。
+  // 页面版本字面量：UI 显示哪一版必须等于服务端跑的一版（底本仓两次实录）  leftover-allow：家族沿革引用
   plan.set('scripts/check-version-literal.mjs', await readFile(join(starter,'templates/check-version-literal.mjs')))
   // 临床快照 JSONL/SQLite 映射一致性：新项目没有临床库时明确跳过，有库时只读逐字段核对。
   plan.set('scripts/check-trial-snapshot.mjs', await readFile(join(starter,'templates/check-trial-snapshot.mjs')))
   // 36 号 §2.5 指南原件链接闸门：验「链接是不是文件本身」而不是「有没有链接」。
-  // 上一代只验 https 可达，四行栏目页也能全绿（小萌宝 0.2.1 实录）；本版加 kind 词表 + --http 内容类型实测。
+  // 上一代只验 https 可达，四行栏目页也能全绿（家族仓实录）；本版加 kind 词表 + --http 内容类型实测。  leftover-allow：家族沿革引用
   plan.set('scripts/check-primer-links.mjs', await readFile(join(starter,'templates/check-primer-links.mjs')))
   // VERSION 是版本唯一来源（audit 的 version/file 与 version/pkg 都指着它）。
   plan.set('VERSION', '0.1.0\n')

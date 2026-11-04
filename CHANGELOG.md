@@ -1,3 +1,13 @@
+## 1.10.0-rc.13（2026-11-05，从小筛宝 AATD aatd-workbench 首夜回收）
+
+- 修复 `scripts/check-derivative-leftovers.mjs` 自扫自爆：scanProject 现自排除自身文件
+  （L61，错误来源 aatd-workbench 首夜 37 处假残留）；project-template 份原本已用
+  fileURLToPath 自排除，本次对齐双份一致。
+- `docs/LESSONS.md` 增 L61–L65：残留检查器自排除、data-action/data-* 成对（真点击断言）、
+  空序列炸断 render 的空态分支、私密改写链三出口口径、render 后 DOM 重查再交互。
+- 回收来源：aatd-workbench（α1-抗胰蛋白酶缺乏症，R2 非肿瘤形态首例自带「肺/肝双分组 +
+  每周输注按次」随访语义；_issue #58）。
+
 ## 1.10.0-rc.12（2026-11-05，从小弓宝大动脉炎 takayasu-workbench 首夜回收）
 
 - 新增 `templates/check-schema.mjs`：判读列 0 命中断言 + schema freeze-contract sha256 同源检查（L59 模板化，接入 = 复制进项目 scripts/ 并挂 check 链）。

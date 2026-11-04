@@ -32,7 +32,7 @@ test('generated leftover scanner ignores itself but detects product leftovers',a
  const checker=join(p.target,'scripts/check-derivative-leftovers.mjs')
  const clean=run(checker,[],p.target);assert.equal(clean.status,0,clean.stderr)
  await mkdir(join(p.target,'src'),{recursive:true})
- await writeFile(join(p.target,'src/fixture.js'),"const title = 'CerviPal'\n")
+ await writeFile(join(p.target,'src/fixture.js'),"const title = 'CerviPal'\n") /* leftover-allow：脏样本自测数据 */
  const dirty=run(checker,[],p.target);assert.equal(dirty.status,1,dirty.stderr);assert.match(dirty.stderr,/src\/fixture\.js/)
 })
 test('ships the host-contract gate (businessWidth > 0.7 crashes the target Desktop)',async t=>{

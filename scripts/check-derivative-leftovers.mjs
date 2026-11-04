@@ -97,7 +97,9 @@ export function scanProject(root = process.cwd()) {
     if (existsSync(p)) files.push(p)
   }
   const hits = []
+  /* 自排除：本文件含词表与自测脏样本，扫自己必然自爆（aatd-workbench 首夜实测 37/39 处假残留） */
   for (const f of files) {
+    if (resolve(f) === fileURLToPath(import.meta.url)) continue
     let text
     try { text = readFileSync(f, 'utf8') } catch { continue }
     hits.push(...scanText(text, relative(root, f)))
