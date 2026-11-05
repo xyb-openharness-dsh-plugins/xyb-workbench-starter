@@ -424,3 +424,12 @@ computed style 全对：backface-visibility:hidden、preserve-3d、matrix3d(-1,.
 **修法**：内层不加 overflow（圆角由 `.mface` 双面各自的 border-radius 承担）；
 检查器加固方向：对翻转后的卡截图/像素采样，或断言 `.mcard-inner` 无分组属性
 （overflow/clip-path/filter/mask 均会拍平）——见 templates 待实施清单。
+
+### L65 · 用默认参数「重置状态」的弹窗：`openSettings(tab = 'ws')` 每次无参调用都把 tab 拍回首页
+
+设置三 Tab（C1：切换互不丢状态）改用模块级 `cfgState` 后，把无参调用写成了
+`openSettings(tab = 'ws')`——`case 'cfg-tab'` 里 `openSettings()` 一调，默认参数又把
+tab 拍回「工作区」，勾选看似丢失。computed style 与 DOM 都"对"，纯逻辑回归。
+**出处**：2026-11-06 小苗宝 GrowPal AI 按钮/设置轮，浏览器实测抓到。
+**修法**：默认参数用 `null`（=保持现状态），只有显式传参才切换；
+tab 切换时同步 `cfgState.tab` 再重渲。**规则：有状态容器的弹窗，无参调用语义必须是"保持"，不是"重置"。**
