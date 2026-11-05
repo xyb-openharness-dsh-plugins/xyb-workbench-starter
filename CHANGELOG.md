@@ -8,6 +8,14 @@
 ### 版本
 
 - `1.10.0-rc.11` → `1.10.0-rc.12`（未发布）。
+## 1.10.0-rc.14（2026-11-06，从小筛宝 AATD aatd-workbench 第二轮回收）
+
+- `templates/check-trial-matching.mjs`：T2 类命名禁词改「去注释后扫描」（L68，aatd 实测
+  doc 注释误报）；自测加 11 条「注释提及不算命名」回归例（现 11/11）。
+- `docs/LESSONS.md` 增 L66–L69：升版重装先 remove 旧 tgz、迁移加列同步唯一源 + 迁移账本
+  断言、检查器词表去注释、批处理绝对路径防 cwd 漂移。
+- 回收来源：aatd-workbench v0.6.0（INSPECTOR 修复轮 + E8 收藏落库 + 0.6.0 重装实测）。
+
 ## 1.10.0-rc.13（2026-11-05，从小筛宝 AATD aatd-workbench 首夜回收）
 
 - 修复 `scripts/check-derivative-leftovers.mjs` 自扫自爆：scanProject 现自排除自身文件

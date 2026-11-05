@@ -36,15 +36,25 @@ const UNVERIFIED = (s) => s.includes('未核实') || /以官方[^。\n]{0,8}为�
 /* eligible 只认结构定义形态：字段声明、类型声明、建表语句里的列。 */
 const ELIGIBLE_COLUMN = /(?:CREATE|ALTER)\s+TABLE[^;]{0,600}\beligible\b|\beligible\s*:\s*(?:true|false|1|0|'|\")|\beligible\s+(?:TINYINT|INTEGER|INT|TEXT|BOOLEAN|VARCHAR)\b/
 
+/** 去注释再扫（aatd 实测：doc 注释里写"不设 eligible / suitability 字段"被 T2 误报）。 */
+function stripComments(src) {
+  return src
+    .replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, ' '))
+    .replace(/^\s*\/\/.*$/gm, (m) => m.replace(/[^\n]/g, ' '))
+}
+
 export function audit(texts) {
   const problems = []
+  const scanned = texts.map(({ f, s }) => ({ f, s: stripComments(s) }))
+  const stripped = new Map(scanned.map(({ f, s }) => [f, s]))
   const hasMatch = texts.filter(({ s }) => TRIGGER.test(s))
   if (!hasMatch.length) return problems
 
   if (!hasMatch.some(({ s }) => THREE_STATE(s))) {
     problems.push('T1 有匹配输出但读不出第三态（或写 "无法自动匹配" / "条目无法结构化"，或写 "待确认" 并说明"需核"）')
   }
-  for (const { f, s } of texts) {
+  for (const { f } of texts) {
+    const s = stripped.get(f)
     if (/suitability|适配度|入组概率/i.test(s)) problems.push(`T2 ${f} 出现误导命名（suitability/适配度/入组概率）`)
     if (/match_score|matchScore/i.test(s)) problems.push(`T2 ${f} 出现 match_score 综合分字面量（pct=符合÷已对照 才合规）`)
     if (ELIGIBLE_COLUMN.test(s)) problems.push(`T2 ${f} 出现 eligible 判读列（只允许三态字符串，不允许落库判定列）`)
@@ -77,6 +87,7 @@ const SELFTEST = [
     const trialMatch = () => ({ pct: 60, label: '登记字段符合度', band: '部分对得上', note: '不是入组资格', unknown: '待确认，需核方案原文', at: '快照 2026-10-18 · 未核实' })`, null],
   ['没有百分数的三态清单不查档位词', `const trialMatchPanel = () => h('p', null, '没有匹配结果，可调整关键词后重试；待确认项需核方案原文；快照 2026-10-18 · 未核实')`, null],
   ['eligible: true 是判读列', `${GOOD}\nconst row = { id: 1, eligible: true }`, 'T2'],
+  ['注释里提 suitability 不算命名（aatd 实测误报回归）', `${GOOD}\n// 参考：不设 suitability 字段，判读只在展示层`, null],
   ['suitability 命名', `${GOOD}\nconst suitability = 1`, 'T2'],
   ['matchScore 综合分', `${GOOD}\nconst matchScore = 88`, 'T2'],
   ['靶点进判据类别', `${GOOD}\nconst c = { key: 'g', cat: '研究靶点', state: 'met' }`, 'T2d'],

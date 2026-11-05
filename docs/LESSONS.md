@@ -372,3 +372,18 @@ demo-shape 0002 迁移模式（冻结后 ALTER TABLE ADD COLUMN 可空补列）�
   只有不带包名的计数行 → 按失败处理（保守），不许放行成通过。
   `templates/verify-desktop-load.mjs` 已按此规则更新（归属正则同时认 `(pkg): failed to import` 与
   `id-main: Error`，并过滤 `web-server`/`llm-*` 这类非插件错误）。
+- **L66 · 升版重装必须先 remove 旧 tgz**：Desktop profile 的依赖是
+  `file:…/<包名>-<旧版>.tgz`，重打包删了旧文件后直接 `pnpm add` 新 tgz 会报
+  ENOENT（pnpm 先按旧 file: 引用校验）。规矩：`pnpm remove <pkg>` → `pnpm add -w <新tgz>`。
+  错误来源：aatd-workbench 0.6.0 重装实测。
+- **L67 · 迁移加可空列，`SELECT *` 的 deepStrictEqual parity 立刻红**：bootstrap 用
+  `SELECT *`，新列（值为 NULL）会出现在读模型行里，而唯一源 demo-data 的旧行没有这些键。
+  规矩：迁移加列时同一提交里给唯一源补同名字段（值可为 null），并把 migrate 测试的
+  `executed` 断言更新到新账本。错误来源：aatd 0002 visits.hospital。
+- **L68 · 检查器词表也会误伤注释**：T2 类「命名禁词」与 eligible 不同，最初直接扫原文，
+  doc 注释里写「不设 suitability 字段」即假红。规矩：与 eligible 的「只认结构形态」同思路，
+  扫前 stripComments；自测加「注释提及不算命名」回归例。错误来源：aatd 实测误报 + 修复。
+- **L69 · 批处理脚本用相对路径 + 持久 shell cwd 漂移 = 补丁打到别的副本**：同仓两份
+  同名文件（templates/ 与 scripts/）时，`python3 - <<EOF` 里的相对路径按当前 cwd 解析，
+  上一条命令的 `cd` 会让补丁落错文件还不报错。规矩：Agent 批处理一律绝对路径或先显式
+  `cd` 并在同一条命令里完成；改完 diff 校验两份副本一致。
