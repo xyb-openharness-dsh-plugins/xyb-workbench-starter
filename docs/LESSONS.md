@@ -413,3 +413,14 @@ build 头注释「面板 customFrame=true · 业务 left 0.65」被当成代码�
 "不是 true/false 字面量：true · 业务 left 0.65"。本次已在
 `templates/check-host-contract.mjs` 落 `stripLineComments` 修复并随 init 下发。
 **通用规则：任何"从源码里抠值"的断言，先剥 `//`、`*`、`/*` 行再匹配。**
+
+### L64 · `overflow:hidden` 在 3D 翻转内层会把 preserve-3d 拍平（镜像前脸，探针却不红）
+
+指标卡 `.mcard-inner` 上为了裁圆角加了 `overflow:hidden`——它是分组属性，
+强制 `transform-style` 按平坦处理：180° 后浏览器画的是**前脸的镜像**（背面元素都在、
+computed style 全对：backface-visibility:hidden、preserve-3d、matrix3d(-1,...)），
+肉眼看到"翻过去了但内容是反的"。探针只断言 transform 字符串与 aria-pressed，抓不到。
+**出处**：2026-11-06 小苗宝 GrowPal 看板对齐轮，重摄截图时肉眼发现。
+**修法**：内层不加 overflow（圆角由 `.mface` 双面各自的 border-radius 承担）；
+检查器加固方向：对翻转后的卡截图/像素采样，或断言 `.mcard-inner` 无分组属性
+（overflow/clip-path/filter/mask 均会拍平）——见 templates 待实施清单。

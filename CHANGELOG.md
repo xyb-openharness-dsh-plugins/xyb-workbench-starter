@@ -633,3 +633,8 @@ LESSONS 追加 2 条：`ctx.<any> = …` 必须 provide（否则插件不激活�
 - templates/check-host-contract.mjs：customFrame 断言前剥注释行（LESSONS L63）
 - docs/LESSONS.md：L61/L62/L63（见 2026-11-06 节）
 - check-starter 与自带 tests 全过
+
+## 1.10.0-rc.16（2026-11-06，从软骨发育不全小苗宝 GrowPal 看板对齐轮回收）
+
+- docs/LESSONS.md L64：`.mcard-inner` 加 `overflow:hidden` 会拍平 preserve-3d（180° 见镜像前脸，探针字符串断言抓不到）；内层不得加分组属性，圆角由双面各自承担。
+- 待实施：翻转卡像素采样/分组属性断言（谁补谁写进 CHANGELOG）。
