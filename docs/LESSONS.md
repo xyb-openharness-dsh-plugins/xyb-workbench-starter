@@ -387,3 +387,29 @@ demo-shape 0002 迁移模式（冻结后 ALTER TABLE ADD COLUMN 可空补列）�
   同名文件（templates/ 与 scripts/）时，`python3 - <<EOF` 里的相对路径按当前 cwd 解析，
   上一条命令的 `cd` 会让补丁落错文件还不报错。规矩：Agent 批处理一律绝对路径或先显式
   `cd` 并在同一条命令里完成；改完 diff 校验两份副本一致。
+
+## 2026-11-06 · 从软骨发育不全小苗宝 GrowPal（achondroplasia-workbench v0.2.0）回收
+
+### L61 · 演示数据的业务 id 在**档案内**唯一，不是全库唯一
+
+demo-data 里 documents/candidates/surgeries 的 id（doc1/c1/s1）在两个演示档案里重复出现
+（A、B 档案都有自己的 doc1）。schema 若把它们当全库主键（INTEGER 或 TEXT PK），
+播种第二步就撞 UNIQUE / datatype mismatch（`test/demo-parity.test.mjs` 当场抓到）。
+修法：表用代理主键 `id INTEGER` + 业务列 `doc_id/cand_id/surg_id TEXT`（`UNIQUE(profile_key, 业务id)`），
+读模型对外形状还原业务 id。0 修正两次 schema 才落对——**先数一遍演示数据的 id 语义再写 PK**。
+
+### L62 · 数据层的可变绑定：`const DATA` 会让 api 态静默退回演示态
+
+原型与开发版共用的渲染代码里，`loadBootstrap()` 成功后 `DATA = data`。
+`DATA` 若是 `const`，赋值抛 TypeError，被 loadBootstrap 的 catch 吞掉返回 'demo'——
+界面不报错、横幅写「离线演示数据」，看起来像"没连上服务"，实际是代码 bug。
+修法：`let DATA`；且 loadBootstrap 的 catch 里 console.warn 真实错误（别静默）。
+浏览器双形态实测（dev-server /ui/ vs file://）是唯一能抓住它的闸口。
+
+### L63 · 检查器的正则要先剥注释（L28 的延伸，已模板化）
+
+`check-host-contract.mjs` 的 customFrame 正则不剥注释时：
+build 头注释「面板 customFrame=true · 业务 left 0.65」被当成代码值，报
+"不是 true/false 字面量：true · 业务 left 0.65"。本次已在
+`templates/check-host-contract.mjs` 落 `stripLineComments` 修复并随 init 下发。
+**通用规则：任何"从源码里抠值"的断言，先剥 `//`、`*`、`/*` 行再匹配。**
