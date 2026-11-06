@@ -648,3 +648,8 @@ LESSONS 追加 2 条：`ctx.<any> = …` 必须 provide（否则插件不激活�
 ## 1.10.0-rc.17（2026-11-06，从软骨发育不全小苗宝 GrowPal AI/设置轮回收）
 
 - docs/LESSONS.md L65：弹窗默认参数会把无参调用变成「重置状态」（设置三 Tab C1 回归；有状态容器的弹窗无参语义必须是保持）。
+
+## 1.10.0-rc.18（2026-11-07，从血栓性血小板减少性紫癜小宁宝 ttp-workbench 0.2.10 回收）
+
+- docs/LESSONS.md L66：越级相对路径（../assets）在装机态 /api/<slug>/ui/ 下必 404 → primer 入口全哑（静默）；资源同目录化。
+- templates/check-static-refs.mjs：新增断言「本地引用不得含 `..` 段」，可断言化 L66（随 init 下发）。

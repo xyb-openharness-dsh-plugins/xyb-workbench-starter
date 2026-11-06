@@ -439,3 +439,13 @@ tab 切换时同步 `cfgState.tab` 再重渲。**规则：有状态容器的弹�
   规矩：每个 P/A/X 组探针除了参考页，必须至少一条「在项目原型上点真按钮」的断言
   （aatd 已把 primer 接线断言固化进 probe-m2-extra 的 P-home 条目）。
   错误来源：aatd-workbench 2026-11-07 用户实测「? 打不开」。
+
+### L66 · 越级相对路径（`../assets/...`）在装机态必 404：UI 挂在 `/api/<slug>/ui/`
+
+小宁宝（ttp-workbench 0.2.9）用户实拍：装机后顶栏「?」与状态卡「疾病概要」两处点击无效。
+根因不是点击逻辑：`primer.js` 用 `../assets/patterns/disease-primer.js`（原型 `../../assets/...`）引用，
+装机态 UI 由 `/api/ttp/ui/` 提供，`../` 解析成 `/api/ttp/assets/...` → 静态层不服务 → 脚本 404 →
+`window.DiseasePrimer` 未定义 → 所有 primer 入口哑掉（页面无报错，纯静默）。
+**修法**：primer.css/primer.js（及一切共享资源）**同目录化**——原型目录与 public/ 各放一份、
+引用写 `primer.css`，file:// 与 /ui/ 两种形态同一路径（aml/小苗宝同款）。
+**可断言**：`check-static-refs.mjs` 增加规则——本地引用不得含 `..` 段（0.2.10 起 ttp 已进链，模板同步）。
