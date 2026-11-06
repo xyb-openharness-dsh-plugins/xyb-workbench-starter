@@ -433,3 +433,9 @@ tab 拍回「工作区」，勾选看似丢失。computed style 与 DOM 都"对"
 **出处**：2026-11-06 小苗宝 GrowPal AI 按钮/设置轮，浏览器实测抓到。
 **修法**：默认参数用 `null`（=保持现状态），只有显式传参才切换；
 tab 切换时同步 `cfgState.tab` 再重渲。**规则：有状态容器的弹窗，无参调用语义必须是"保持"，不是"重置"。**
+- **L70 · 检查器跑在参考页上 ≠ 跑在你的页面上**：probe-disease-primer 10/10 全绿，
+  但它打的是 starter 的 examples/disease-primer.html 参考实现——项目原型里 ? 按钮
+  从未接线（dpOpen 无任何调用方），面板模块写了却永远打不开，闸口看不见。
+  规矩：每个 P/A/X 组探针除了参考页，必须至少一条「在项目原型上点真按钮」的断言
+  （aatd 已把 primer 接线断言固化进 probe-m2-extra 的 P-home 条目）。
+  错误来源：aatd-workbench 2026-11-07 用户实测「? 打不开」。
