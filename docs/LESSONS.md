@@ -449,3 +449,50 @@ tab 切换时同步 `cfgState.tab` 再重渲。**规则：有状态容器的弹�
 **修法**：primer.css/primer.js（及一切共享资源）**同目录化**——原型目录与 public/ 各放一份、
 引用写 `primer.css`，file:// 与 /ui/ 两种形态同一路径（aml/小苗宝同款）。
 **可断言**：`check-static-refs.mjs` 增加规则——本地引用不得含 `..` 段（0.2.10 起 ttp 已进链，模板同步）。
+
+### L67 · 聚合数字也是隐私出口：sharedOnly 必须喂进派生计算源，不能只过滤明细列表
+
+**现象**：明细列表（最近报告、化验表）都走了 sharedOnly，但「近 90 天发作 N 次 / 当前状态 /
+起始日期」这类聚合与派生数字直接用了未过滤数组——私密发作的时间与次数从状态卡、导出预览、
+AI 上下文三处泄漏。探针全绿（demo 数据里没有私密发作，路径没被触发）。
+**出处**：2026-11-07 复发性心包炎工作台首夜，独立 Inspector 静态审查抓到（探针未覆盖）。
+**修法**：派生函数（derivedStatus 等）一律以 sharedOnly(原始数组) 为输入；页内标注「私密 N 条未计入」。
+**检查器方向**：探针 demo 数据固定含 1 条私密事件，断言聚合数字与共享计数一致、页面含「未计入」
+标注（pericarditis-workbench probe-pericarditis-m2.mjs 的 Q35c 可直接模板化）。
+
+### L68 · 整页视图关闭后焦点回不到触发元素：history 导航会重置焦点 + 重渲染会拆掉触发元素
+
+**现象**：applyPvClose 里同步 trigger.focus() 无效——history.back() 之后浏览器把焦点重置回 body；
+且关闭触发 hashchange → 全页重渲染，原触发元素已脱离 DOM（isConnected=false，focus() 无声失效）。
+**出处**：2026-11-07 复发性心包炎工作台首夜，probe-page-view A4b 实测。
+**修法**：① 关闭时按 data-open 特征重定位触发元素再 focus；② 导航落定后（≈60–250ms）补一次 focus；
+③ 探针在读焦点前等稳态（pericarditis 仓 probe-page-view A4b 加了 250ms settle，判据未弱化）。
+
+### L69 · 一图秀只拼 svg 子元素、忘包 `<svg class="chart">` 根：页面「看着有内容」，fill=none 探针全空
+
+**现象**：chartPanel 的字符串拼了 rect/path/text 但没有 `<svg>` 根标签，浏览器把子元素当未知标签
+丢弃；IP2 非空断言仍绿（页面文字多），只有 C1a 的 path 断言红。
+**出处**：2026-11-07 复发性心包炎工作台首夜。
+**规则**：任何手写 SVG 的渲染函数，第一行开根标签、最后一行闭根标签；探针必须先断言 path 数 > 0。
+
+### L70 · 窄宽断点里 `grid-template-columns: 1fr`（无 minmax(0,1fr)）是 390 横向溢出的头号根因
+
+**现象**：900 断点把 workspace 改单列用了 `1fr`，grid item 的 min-width:auto 被 673px 的导航撑破，
+documentElement.scrollWidth=701；逐元素排查时溢出源在 grid 容器不在内容。
+**出处**：2026-11-07 复发性心包炎工作台首夜（30 号规则第二次实锤）。
+**修法**：所有断点改列的 grid 一律 `minmax(0, 1fr)`；flex 侧栏加 `min-width: 0`。
+
+### L71 · check-probe-coverage 的 ROUTES 对象式解析要求值必须是 `pageXxx` 函数名
+
+**现象**：顶层 `const ROUTES = { 'dash': true, ... }` 正则能匹配但 0 条路由被解析（值不匹配
+`page[A-Za-z0-9]+`），报「找不到 ROUTES」。检查器故意只认 page 函数值，防把其它字面量当路由。
+**出处**：2026-11-07 复发性心包炎工作台首夜。
+**修法**：渲染函数挂 window 后按名引用（`'dash': pageDash`）；模板项目第一天就要这样写，不是检查器 bug。
+
+### 待实施⑧（下轮进检查器）
+
+- `probe-m2-aggregate-privacy.mjs`（模板化 pericarditis Q35c）：demo 数据固定含 ≥1 条私密事件 +
+  ≥1 条私密发作，断言：状态卡聚合数 == 共享计数、导出预览与 AI prompt 不含私密原文、页含「未计入」。
+- `check-ui-parity.mjs` 上收为家族模板（pericarditis-workbench 已实现：public 与 prototypes 同名文件
+  逐字符 diff + 白名单替换点还原断言），进 ZERO-TO-DEV 交付清单挂钩。
+- probe-page-view 契约的「触发元素重定位 + 焦点 settle」写进 32 号文档附录。
