@@ -1,3 +1,11 @@
+## 1.10.0-rc.25（2026-11-08，从胸腺癌 thymic-workbench 首夜回收）
+
+- docs/LESSONS.md L70：脚手架生成的 check-probe-coverage 把全量探针名写死成上一仓名（probe-aml-m2.mjs）——新仓改名+写真探针，探针默认对象必须是本仓原型；thymic 给出可抄的 ROUTES 叶子覆盖 + COVERED 清单比对 + self-test 注入缺陷三件套（scripts/probe-thymic-m2.mjs，35 叶子 15 断言）。
+- docs/LESSONS.md L71：构建注入布尔参数带引号（'__X__' === 'true'）骗过 check-host-contract 字面量判据——布尔占位符直注布尔字面量。
+- docs/LESSONS.md L72：check-trial-snapshot 家族快照合同（manifest.files/recordCount/dbCount/sourceStatusRows + JSONL recordId/sponsor 单数 + SQLite trials/source_statuses 表）——fetch 脚本先抄字段表再写实现，thymic 两轮返工的教训。
+- docs/LESSONS.md L73：夜间 /claim 机器人不在线——限时 2 分钟→按权限自查补标签→留痕待追认。
+- 待实施（谁补谁写进 CHANGELOG）：probe-thymic-m2 的「ROUTES 叶子覆盖 + COVERED 一致 + self-test」三件套模板化为 templates/probe-prototype-full.mjs；check-pack 四要素（health/bootstrap/静态七件+? 入口/MinerU token 600）模板化为 templates/check-pack-skeleton.mjs（thymic scripts/ 里已有可抽象实现）。
+
 # CHANGELOG
 
 ## 1.10.0-rc.24（2026-11-08，short-bowel 晨间复核回收）

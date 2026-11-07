@@ -594,3 +594,26 @@ L1/L3 会拦 clinicaltrials.gov/ 这种裸域名）；③验收必须「双探�
 四段非空）+ 家族探针 `--url http://127.0.0.1:<port>/prototypes/v0.2/index.html` 显式指本仓，
 汇报必须带实际 URL；④短肠仓探针新增 L81-DP模块挂载 断言（DOM 级 .dp-overlay#disease-primer
 + 数据四段 id 逐字），回归 `scripts/probe-prototype.mjs`。
+
+### L70 · 脚手架生成的探针覆盖检查器把全量探针名写死成上一仓的名字（`probe-aml-m2.mjs`）
+
+- **来源**：2026-11-08 夜班 thymic-workbench（胸腺癌小橡宝）首夜，M2 起跑 `check-probe-coverage` 直接红：`全量探针 scripts/probe-aml-m2.mjs 不存在`。
+- **现场**：starter 生成的 `scripts/check-probe-coverage.mjs` 里 `ALL_ROUTE_PROBES = ['scripts/probe-aml-m2.mjs']` 是模板残名；新病种仓必须 ①改成本仓名 ②真的写这份探针。删掉检查器"让它别响"等于把孤儿页保护拆了。
+- **修法**：探针默认目标=**本仓原型**（`prototypes/v0.2/index.html`，不得回退 starter examples——L81 同款教训）；探针内嵌 `COVERED` 叶子清单并与 app.js `ROUTES` 逐项比对（新增路由漏改探针 → R0 直接红）；`--self-test` 注入空页证明探针能 FAIL。参照实现：thymic `scripts/probe-thymic-m2.mjs`（35 叶子 15 断言 + self-test 反向）。
+
+### L71 · 构建注入布尔参数带引号会骗过宿主合同检查（`'__X__' === 'true'`）
+
+- **来源**：2026-11-08 夜班 thymic-workbench M5，`check-host-contract` 报 `customFrame 不是 true/false 字面量：'true' === 'true'`。
+- **现场**：`build-client.mjs` 用 `String(...)` 注入 + 模板写 `const CUSTOM_FRAME = '__CUSTOM_FRAME__' === 'true'`，运行时语义没错，但**检查器读的是源码字面量**——字符串比较表达式在它的判据里不是 boolean。
+- **修法**：布尔占位符直注布尔字面量：占位符表 `__CUSTOM_FRAME__: PANEL.customFrame === true`，模板 `const CUSTOM_FRAME = __CUSTOM_FRAME__`。判据类检查器看源码不跑运行时，生成物必须让"看"与"跑"同真。
+
+### L72 · 临床库四件套必须按 `check-trial-snapshot` 的家族合同出，别自造 manifest 形状
+
+- **来源**：2026-11-08 夜班 thymic-workbench M4，自造 manifest 两轮返工后才对齐。
+- **现场**：家族快照合同是：manifest={files:{<jsonl/sqlite>:sha256+bytes}, recordCount, dbCount, sourceStatusRows}；JSONL 行键 recordId/mergedSources/sponsor(键名单数)/registryNumbers/dates…；SQLite 表名 `trials`（列 merged_sources/sponsors/registry_numbers/dates…）+ `source_statuses(query,source_id,state)`。
+- **修法**：新仓 fetch 脚本第一步先 `sed -n '8,15p' scripts/check-trial-snapshot.mjs` 抄字段表；jsonl↔sqlite 逐字段深度相等由检查器兜底。参照实现：thymic `scripts/fetch-thymic-trials-2026.mjs`（53 条 CT.gov，PASS）。
+
+### L73 · 夜间 `/claim` 机器人可能不在线：限时等待→按权限自查补标签→留痕待追认
+
+- **来源**：2026-11-08 夜班 thymic-workbench 领取 issue#50，评论 /claim 后 2 分钟无回执（对照同夜其他 issue 亦无）。
+- **修法**：等待上限 2 分钟→有 admin 权限则自查补 `claim,claimed` 标签→在 DEV-PLAN 与晨审报告记录时间、原因、补标签动作，表述为"自查补签（待追认）"，不写"维护者已确认"。白天有人在时仍以机器人回执为准。
