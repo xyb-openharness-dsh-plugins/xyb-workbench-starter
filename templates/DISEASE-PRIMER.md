@@ -97,3 +97,13 @@
 ## 7 本项目教训
 
 <填：写这段时被纠正过什么、哪句话差点滑成判断、哪份文件其实没拿到原件。>
+
+## 唯一源约定（2026-11-08 短肠综合征轮回流，L79）
+
+- 疾病概要内容唯一源 = `primer-data.js` 自持四段，id 固定 `definition / evidence / landscape / trend`
+  （audit 与 check-primer-links 按此静态解析；委托 `window.DEMO.primer` 的写法过不了审计）。
+- `landscape` 段用 `points` 数组承载条目，末条必须是登记过的固定出口句
+  （肿瘤「按病期与线序排列」/ 非肿瘤「按受累器官与病情轻重排列」），且含
+  「不代表任何一项适合你」「需要问你的医生」（36 号 §2.2 原话，L13 断言）。
+- `demo-data.js` 不复制 primer 内容；服务端读模型经 `loadDemoData()` 顺带求值 primer-data 挂载。
+- 渲染端同时支持 `body`（段落）与 `points`（列表）两种形态。

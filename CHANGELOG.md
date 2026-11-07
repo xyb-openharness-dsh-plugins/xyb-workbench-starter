@@ -1,5 +1,18 @@
 # CHANGELOG
 
+## 1.10.0-rc.23（2026-11-08，自 short-bowel-workbench 首夜回收）
+
+### 变更
+
+- `docs/LESSONS.md` 新增 L77–L80：私密过滤函数返回类型分叉 = P0 泄露温床（含回归断言写法）；public/app.js 禁止从原型直拷（差异必须住 DEV-BRIDGE 对）；primer 唯一源自持四段才过审计；升版十处同源固定顺序。
+- `templates/DISEASE-PRIMER.md` 补「唯一源约定」：四段 id 固定、landscape 用 points 数组承载固定出口句（36 号 §2.2 / L13 断言口径）、demo-data 不复制、渲染端双形态。
+
+### 下一轮直接受益项
+
+- 新病种开工直接照 templates/DISEASE-PRIMER.md 新节写 primer-data.js，可省一轮 audit 返工（short-bowel 首夜为此多花一轮升版）。
+- 探针回归断言「看板无私密正文」可直接复制 short-bowel probe Q35-看板私密 实现。
+
+
 ## 1.10.0-rc.22（2026-11-08，自 egid-workbench 首夜回收）
 
 ### 变更

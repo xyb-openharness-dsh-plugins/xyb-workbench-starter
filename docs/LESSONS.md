@@ -546,3 +546,35 @@ http-server，服务的是 pericarditis 装机副本——绿的是别人的页�
 banner（无 --url 打参考页时醒目提醒，probe-disease-primer/probe-page-view 两处）；
 ③汇报「探针通过」必须带实际 --url，机审不了的写明目标 URL；④长期解法（待实施）：
 探针启动时输出 `TARGET: <url>` 并在报告汇总行回显，防复制粘贴错行。
+
+### L77 · 私密过滤函数返回类型分叉 = P0 泄露温床
+
+**现象**：filterPrivate 带 `withNote` 时返回字符串、不带时返回对象。看板「最近一条」直接取
+`slice(-1)[0]` 不走过滤 → 「改为私密」后回看板即泄露私密正文（短肠综合征首夜独立评审 P0-1）。
+**出处**：2026-11-08 short-bowel-workbench 首夜（评审 docs/PROTOTYPE-REVIEW.md P0-1）。
+**修法**：三出口过滤函数签名固定返回 `{kept, note}`，禁止按调用点分叉返回类型；
+回归断言：「看板 textContent 不得含私密记录正文子串」进探针（short-bowel probe Q35-看板私密）。
+
+### L78 · public/ 不是覆盖目标：从原型直拷 app.js 会炸掉整条开发版链路
+
+**现象**：M5 移植完成后，主线把 prototypes/v0.2/app.js 直接 cp 到 public/app.js「同步版本号」，
+结果 apiBase 契约、agent-draft postMessage、MinerU 六部件全部消失，8 个用例红。
+**出处**：2026-11-08 short-bowel-workbench 首夜。
+**修法**：public/app.js 的全部差异必须住在 `DEV-BRIDGE-BEGIN/END` 注释对里（ui-parity 测试
+逐字节保护其余 6 文件）；同步原型改动用补丁不是覆盖。ui-parity 测试本身就是这个坑的检查器。
+
+### L79 · primer 唯一源放 demo-data 里过不了审计
+
+**现象**：primer-data.js 委托 `window.DEMO.primer` 单行；audit 要求四段 id
+（definition/evidence/landscape/trend）可静态解析 → 1 失败 + 1 待人工。
+**出处**：2026-11-08 short-bowel-workbench 首夜。
+**修法**：疾病概要内容唯一源直接放 primer-data.js（自持四段 + landscape 用 points 数组
+承载固定出口句）；demo-data 不复制。模板已回写 starter（见 templates/primer-data 模式）。
+
+### L80 · 升版必须一次走完十处同源，半途状态会连环红
+
+**现象**：VERSION 单独 bump 到 0.2.1 → check-version-literal 4 处红、audit version/pkg 红。
+**出处**：2026-11-08 short-bowel-workbench 首夜。
+**修法**：升版固定顺序：VERSION → npm run build:version → npm run build:client →
+public/index.html 与原型 index.html（两份逐字）→ public/app.js 回退值 → 原型 APP_INFO/demo
+标签 → README 徽章 → CHANGELOG → 截图改名重拍 → check-version-literal 收口。
