@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## 1.10.0-rc.22（2026-11-08，自 egid-workbench 首夜回收）
+
+### 变更
+
+- `scripts/probe-disease-primer.mjs`：无 `--url` 时打「默认目标是 starter 参考页，不是病种仓原型」醒目横幅（L75/L76 防呆落地，不阻断 examples 自检）；同款防呆随 egid-workbench 回灌其仓内探针（probe-page-view 同步）。
+- `docs/LESSONS.md` 新增 L76（陈旧端口服务别的仓副本——探针绿在别人的页面上；对策含 TARGET 回显待实施项）。
+
+### 版本
+
+- `1.10.0-rc.21` → `1.10.0-rc.22`（未发布）。
+
 ## 1.10.0-rc.21（2026-11-07，自 pericarditis-workbench 三轮验收实测回收）
 
 ### 新增

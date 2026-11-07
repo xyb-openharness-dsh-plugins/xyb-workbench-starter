@@ -88,6 +88,12 @@ async function main() {
   }
 
   const server = await serve()
+  /* 家族防呆（2026-11-08 夜班从 egid-workbench 回收）：默认目标是 starter 参考页，
+     对本仓原型的检查必须显式 --url；无 --url 时打横幅提醒（不阻断 examples 自检）。 */
+  if (!argOf('--url')) {
+    console.log('⚠⚠⚠ 默认目标是 starter 参考页 examples/disease-primer.html —— 不是任何病种仓的原型！')
+    console.log('⚠⚠⚠ 检查本仓原型必须：node scripts/probe-disease-primer.mjs --url http://127.0.0.1:<port>/prototypes/v0.2/index.html（家族连续两夜踩坑）')
+  }
   const base = argOf('--url') || `http://127.0.0.1:${PORT}/examples/disease-primer.html`
   const browser = await puppeteer.launch({
     executablePath: chrome,

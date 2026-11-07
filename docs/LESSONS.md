@@ -536,3 +536,13 @@ check-probe-coverage 可追加断言：探针文件里必须出现 `prototypes/v
 - check-probe-coverage 追加：全量探针文件必须包含 `prototypes/v0.2` 路径字样（防探针打空气）。
 - `check-primer-links` 现只查 prototypes/*/primer-data.js；M5 后应同时查 `public/primer-data.js`
   与原型逐字符（ui-parity 已测，双保险可并入）。
+
+### L76 · 陈旧端口服务别的仓副本（探针绿在别人的页面上）
+
+**现象**：egid 夜班对 8151 端口跑 primer 探针 10/10「全绿」，随后发现 8151 是上一夜遗留的
+http-server，服务的是 pericarditis 装机副本——绿的是别人的页面。同夜还叠加 L75（默认 URL 打 examples）。
+**出处**：2026-11-08 egid-workbench 首夜。
+**修法**：①起服务的命令与探针 --url 必须同一条 shell 里写死同一端口；②探针已加身份防呆
+banner（无 --url 打参考页时醒目提醒，probe-disease-primer/probe-page-view 两处）；
+③汇报「探针通过」必须带实际 --url，机审不了的写明目标 URL；④长期解法（待实施）：
+探针启动时输出 `TARGET: <url>` 并在报告汇总行回显，防复制粘贴错行。
