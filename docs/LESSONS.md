@@ -496,3 +496,43 @@ documentElement.scrollWidth=701；逐元素排查时溢出源在 grid 容器不�
 - `check-ui-parity.mjs` 上收为家族模板（pericarditis-workbench 已实现：public 与 prototypes 同名文件
   逐字符 diff + 白名单替换点还原断言），进 ZERO-TO-DEV 交付清单挂钩。
 - probe-page-view 契约的「触发元素重定位 + 焦点 settle」写进 32 号文档附录。
+
+### L72 · 构建注入的布尔常量要「裸占位直注」，检查器捕获要 trim 尾分号
+
+**现象**：mds-workbench 首夜，`build-client.mjs` 注入后生成物里是
+`const CUSTOM_FRAME = 'true' === 'true'`（表达式形态，检查器判"非常量字面量"）；
+改成裸占位后捕获又带出 `true;`（行尾分号被 `[^,}\n]+` 一起吃掉）。
+**出处**：2026-11-07 骨髓增生异常综合征（MDS）工作台首夜（L28 的续集）。
+**修法**：src 里写 `const X = __X__;`（不加引号），构建注入纯字面量 `true/false`；
+检查器提取后 `.replace(/;+$/, '')` 再判。mds-workbench 的 scripts/check-host-contract.mjs
+已带 trim，可上收进模板。
+
+### L73 · 生成器写演示 sqlite 必须先删后建
+
+**现象**：`demo/build-demo-data.mjs` 第二次运行报 `table profiles already exists`——
+`DatabaseSync` 打开已存在文件后再跑一遍 `CREATE TABLE` 直接炸。
+**出处**：2026-11-07 MDS 工作台首夜。
+**修法**：写库前 `rmSync(path, { force: true })`；sqlite 产物永远全量重建，不做增量。
+
+### L74 · check-version 的 FROZEN_PROTOTYPE 是「每仓自己的原型签认版本」
+
+**现象**：模板默认 `0.1.0`，MDS 原型签认在 v0.2.0，8 处版本核对全红在快照。
+**出处**：2026-11-07 MDS 工作台首夜。
+**修法**：init 之后第一步就把 FROZEN_PROTOTYPE 改成本仓原型实际签认版本；
+它是「快照冻结点」不是通则常量。
+
+### L75 · probe-disease-primer 不带 --url 打的是 examples 参考页（假绿）
+
+**现象**：探针 10/10 全绿，但页面是脚手架的 `examples/disease-primer.html`，
+本仓原型 primer 是否真实现完全没被测到（无 #disease-primer、无 DP 模块也绿）。
+用户在任务里实指过一次的坑，模板化成本条。
+**出处**：2026-11-07 MDS 工作台首夜（用户预警 + scripts/probe-disease-primer.mjs L91 默认值）。
+**修法**：验收命令固定写 `--url http://127.0.0.1:<port>/prototypes/v0.2/index.html`；
+check-probe-coverage 可追加断言：探针文件里必须出现 `prototypes/v0.2` 字样。
+
+### 待实施⑨（下轮进检查器，来自 MDS 首夜）
+
+- check-host-contract 上收「裸布尔直注 + 尾分号 trim」规则（mds-workbench 副本已验证）。
+- check-probe-coverage 追加：全量探针文件必须包含 `prototypes/v0.2` 路径字样（防探针打空气）。
+- `check-primer-links` 现只查 prototypes/*/primer-data.js；M5 后应同时查 `public/primer-data.js`
+  与原型逐字符（ui-parity 已测，双保险可并入）。

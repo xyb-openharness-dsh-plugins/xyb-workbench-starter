@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## 1.10.0-rc.20（2026-11-07，自骨髓增生异常综合征 mds-workbench 首夜回收）
+
+### 新增
+
+- LESSONS L72–L75：构建注入布尔常量裸占位直注 + 检查器尾分号 trim（L28 续集）、演示 sqlite 先删后建、FROZEN_PROTOTYPE 按仓改、probe-disease-primer 必须显式 --url 指原型（假绿坑模板化）。
+- 待实施⑨：host-contract 裸布尔规则上收、probe-coverage 断言探针指向原型、primer-links 扩 public 副本。
+
+### 版本
+
+- `1.10.0-rc.19` → `1.10.0-rc.20`（未发布）。
+
 ## 1.10.0-rc.19（2026-11-07，自复发性心包炎工作台首夜回收）
 
 ### 新增
