@@ -578,3 +578,19 @@ banner（无 --url 打参考页时醒目提醒，probe-disease-primer/probe-page
 **修法**：升版固定顺序：VERSION → npm run build:version → npm run build:client →
 public/index.html 与原型 index.html（两份逐字）→ public/app.js 回退值 → 原型 APP_INFO/demo
 标签 → README 徽章 → CHANGELOG → 截图改名重拍 → check-version-literal 收口。
+
+### L81 · 「?」按钮在 ≠ DP 模块在：家族探针合同必须逐字对齐
+
+**现象**：原型顶栏有 `data-primer-open`、点击也能开一个自造的 `.primer-overlay` 面板——但家族
+探针 probe-disease-primer.mjs 的合同是 `.dp-overlay#disease-primer` + `.dp-panel` +
+`.dp-section[data-dp-section]` + `[data-dp="back"]`/`[data-dp="close"]` + `[hidden]` 语义 +
+window.DISEASE_PRIMER 的 brand/name/sections[{id,title,intro,points,groups,table,sources}]。
+自造面板打家族探针 = 9/10 全挂 P1–P9。此前家族两夜「探针跑的是 examples 参考页不是原型」
+掩盖了这类合同漂移（L75/L76）。
+**出处**：2026-11-08 short-bowel-workbench（用户晨审点名复核「首页病情介绍与 ? 号」）。
+**修法**：①原型直接复制 starter `assets/patterns/disease-primer.{js,css}` 为 primer.js/primer.css，
+不自己实现浮层；②primer-data 按 DP 数据合同重写（sources 带 https 深链，禁域名首页——
+L1/L3 会拦 clinicaltrials.gov/ 这种裸域名）；③验收必须「双探针」：仓内探针（断言面板真开、
+四段非空）+ 家族探针 `--url http://127.0.0.1:<port>/prototypes/v0.2/index.html` 显式指本仓，
+汇报必须带实际 URL；④短肠仓探针新增 L81-DP模块挂载 断言（DOM 级 .dp-overlay#disease-primer
++ 数据四段 id 逐字），回归 `scripts/probe-prototype.mjs`。

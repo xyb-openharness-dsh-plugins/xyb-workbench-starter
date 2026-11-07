@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 1.10.0-rc.24（2026-11-08，short-bowel 晨间复核回收）
+
+### 变更
+
+- `docs/LESSONS.md` 新增 L81：「?」按钮在 ≠ DP 模块在——家族探针合同（.dp-overlay 系 + DP 数据形状）必须逐字对齐；验收双探针（仓内真开断言 + 家族探针显式 --url 指本仓）；sources 禁裸域名首页（L1/L3 已拦截）。
+
+
 ## 1.10.0-rc.23（2026-11-08，自 short-bowel-workbench 首夜回收）
 
 ### 变更
