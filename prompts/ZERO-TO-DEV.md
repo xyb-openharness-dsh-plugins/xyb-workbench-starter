@@ -370,6 +370,7 @@ public/{index.html,style.css,shell.css,app.js}
 scripts/{dev-server,build-version,fetch-<癌种>-trials-<年>,check-*}.mjs
 test/{store,server,ui-parity,ctcae,guideline,cadence}.test.mjs
 prompts/FAMILY-INSPECTOR.md（家族 Inspector 审查提示词：每轮用户验收前整仓自检 A 视觉对齐/B 菜单完整性/C 设置三 tab/D 一图秀 rail/E 录入窗口/F 数据层/G 红线/H 回归交付，出处 ttp-workbench 2026-11-05）
+prompts/USER-ACCEPTANCE-AUTOFIX.md（验收问题自动检查与修复提示词：DP 疾病概要？号/A 设置弹层/B 功能线完整/C 试验匹配红线/D 指标卡与体系/E 录入窗口/F 修复铁律——**M5 移植节自带探针与 migrate-public 三件套移植**，每轮用户验收反馈后与交付前各跑一遍，出处 pericarditis-workbench 0.1.0–0.1.2 三轮实测 2026-11-07）
 docs/{SPEC,DEV-REQUIREMENTS-<日期>,DIFF-MATRIX,PATIENT-FLOW,SCHEMA,CLINICAL-DATA-<年>,DEV-PLAN,METRIC-GRADING,GUIDELINE-BRIDGE?}.md + docs/screenshots/（README 截图 ≥4 张 + 折叠展开态，规则见 starter docs/33）
 README.md / CHANGELOG.md / VERSION / package.json
 ```

@@ -1,5 +1,17 @@
 # CHANGELOG
 
+## 1.10.0-rc.21（2026-11-07，自 pericarditis-workbench 三轮验收实测回收）
+
+### 新增
+
+- `prompts/USER-ACCEPTANCE-AUTOFIX.md`：验收问题自动检查与修复提示词（DP 疾病概要？号/A 设置弹层/B 功能线完整/C 试验匹配红线/D 指标卡与体系/E 录入窗口/F 修复铁律）——每轮用户验收反馈后与交付前各跑一遍；M5 移植节自带探针三件套移植要求。参考实现：pericarditis-workbench（probe-<slug>-m2 36 断言、migrate-public + ui-parity 双闸、trial-match 纯函数）。
+- `prompts/ZERO-TO-DEV.md` §2.4 交付清单挂钩该提示词。
+
+### 版本
+
+- `1.10.0-rc.20` → `1.10.0-rc.21`（未发布）。
+
+
 ## 1.10.0-rc.20（2026-11-07，自骨髓增生异常综合征 mds-workbench 首夜回收）
 
 ### 新增
