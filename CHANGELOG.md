@@ -1,3 +1,10 @@
+## 1.10.0-rc.26 — 2026-11-09（自 cold-agglutinin-workbench 首夜回收）
+
+- LESSONS L74：整页视图焦点回归三件套（显式触发元素 + 多轮补焦 + 探针先滚到再点/等落定）——macOS 无头环境 A4b 假红两轮的根因。
+- LESSONS L75：migrate-public 版本基准段是第二处版本真源（原型日期改动三处同步）。
+- LESSONS L76：裁剪试验线也要实跑 M4 采集，快照量级是裁剪理由的唯一证据。
+- check-probe-coverage：SAMPLE_PROBES 默认空（MIME 字符串会误入路由匹配）；ALL_ROUTE_PROBES 改名指引保留。
+
 ## 1.10.0-rc.25（2026-11-08，从胸腺癌 thymic-workbench 首夜回收）
 
 - docs/LESSONS.md L70：脚手架生成的 check-probe-coverage 把全量探针名写死成上一仓名（probe-aml-m2.mjs）——新仓改名+写真探针，探针默认对象必须是本仓原型；thymic 给出可抄的 ROUTES 叶子覆盖 + COVERED 清单比对 + self-test 注入缺陷三件套（scripts/probe-thymic-m2.mjs，35 叶子 15 断言）。

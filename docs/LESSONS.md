@@ -617,3 +617,21 @@ L1/L3 会拦 clinicaltrials.gov/ 这种裸域名）；③验收必须「双探�
 
 - **来源**：2026-11-08 夜班 thymic-workbench 领取 issue#50，评论 /claim 后 2 分钟无回执（对照同夜其他 issue 亦无）。
 - **修法**：等待上限 2 分钟→有 admin 权限则自查补 `claim,claimed` 标签→在 DEV-PLAN 与晨审报告记录时间、原因、补标签动作，表述为"自查补签（待追认）"，不写"维护者已确认"。白天有人在时仍以机器人回执为准。
+
+### L74 · 整页视图焦点回归三件套：显式触发元素 + 多轮补焦 + 探针先滚到再点
+
+- **来源**：2026-11-09 夜班 cold-agglutinin-workbench M2，probe-page-view A4b 两轮假红。
+- **现场**：①macOS/无头 Chrome 鼠标点击不聚焦按钮 → `pvState.trigger = document.activeElement` 捕到 body，关闭后「焦点回触发元素」必失败；②mini 图按钮在首屏折叠线下（y>视口高），探针 `mouse.click` 点在空处，`waitForSelector` 传了 `.catch` 静默吞掉，后续断言全在测空气；③Chrome 的 history 导航焦点恢复时点不定（实测 >60ms），单次补焦竞态。
+- **修法**：①`openPvLayer(title, html, isDeep, triggerEl)` 显式收触发元素，`closest('button,[role=button],a,input,select,textarea')` 兜底；②`applyPvClose` 补焦改 `[60,200,500,1000].forEach` 多轮重试（判据 `activeElement===body` 才补）；③探针 A4b 先 `scrollIntoView` + `waitForFunction` 等按钮入视口再量坐标点，检查焦点用 `waitForFunction` 轮询落定而非 t=0 抢跑。判据类断言等"落定"不等"时刻"。
+
+### L75 · migrate-public 的版本基准段是第二处版本真源：原型改日期必须两处同改
+
+- **来源**：2026-11-09 夜班 cold-agglutinin-workbench M5，ui-parity 测试「原型缺基准段」红。
+- **现场**：`migrate-public.mjs` 的 `FOOT_OLD/APPINFO_OLD` 等常量写死原型当前版本字面量；原型 `index.html` 页脚 build 日期与 `app.js` APP_INFO 不同步时，migrate 生成物与 ui-parity 基准两头红。
+- **修法**：版本构建日期改动时同步三处：`prototypes/v0.2/index.html` 页脚、`app.js APP_INFO`、`migrate-public.mjs` 的 `*_OLD` 常量（+ui-parity 测试基准段）。能断言的写进 ui-parity：它已经在断言「原型含基准段」，别删断言，改齐事实。
+
+### L76 · 裁剪试验线也要实跑一次 M4 采集：快照量级是裁剪理由的唯一证据
+
+- **来源**：2026-11-09 夜班 cold-agglutinin-workbench M4。
+- **现场**：罕见病种（CAD）候选池小，试验线按 35 号裁剪；若只写「池小」不实跑，裁剪理由不可核验，也不满足「未查或服务失败不能写零结果」。
+- **修法**：照常跑 fetch 脚本（四在线通道终态如实入库），在 research/<slug>/README 写「与试验线关系」一节：43 条量级 → 支持裁剪、快照留存备未来版本启用 35 号链路；设置·临床数据库 tab 与 DEV-REQUIREMENTS §三 同口径声明。若实跑结果量级大，改为保留试验线而不是硬裁。
