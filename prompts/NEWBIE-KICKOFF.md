@@ -88,6 +88,7 @@ B 首页第一屏
 · 判断有没有会话：不要用 Boolean(conversation) —— customFrame 下宿主即使没有会话也会传一个隐藏的 conversation 容器。
 · 没有会话时创建：service.newSession(workspaceId)；workspaceId 优先取 service.defaultWorkspace?.()?.workspaceId；没有可用工作区时让宿主按自身流程提示选择目录。
 · 不要调用 ensureSession({})。
+· **会话创建成功后：显示宿主提供的原生 conversation 面板，并把这个会话绑定到当前工作台**——只创建不挂载，用户看到的还是空白。
 · 已有会话时：只打开/收起原生面板，不要重复创建。
 · 订阅会话变化并触发重渲染，否则新建或切换后界面不刷新。
 · 用户取消目录选择：不要留下空会话，在界面提示可以再点一次"AI 对话"重试。
@@ -96,6 +97,16 @@ B 首页第一屏
 · 改完必须重新生成 lib/client.js、升版本、更新 CHANGELOG，并重跑静态校验与打包；安装与实机验证状态如实记录。
 另：不要装到 ~/.dsh 或 DeepSeek Harness（只装本机 DSH Desktop）；服务缺失时才禁用按钮并写降级原因，不许自建聊天框兜底。
 
+这 10 条怎么验（前一半可脚本，后一半只能装机人工，别混）：
+· 脚本：node scripts/check-agent-pane-contract.mjs <项目目录>（跑 --self-test 必须能红；它只判源码反模式）
+· 人工（装机后逐条走，每条留截图或录屏）：
+  1 新建会话 → 原生面板出现且能输入
+  2 再点一次「AI 对话」→ 只是收起/打开，会话没有被重建（会话 id 不变）
+  3 点「AI 对话」后取消选目录 → 不留下空会话，界面提示可以再点一次
+  4 断开服务或制造创建失败 → 工作台内显示失败原因，不是点了没反应
+  5 点「和 AI 讨论」→ 输入框有内容、消息没有自动发出
+  6 拖分隔线 → 宽度变化且刷新后保持
+
 ========== 第 6 步 · 交付前两道验收 + 命令口径 ==========
 1) prompts/FAMILY-INSPECTOR.md —— 全量体检，独立评审 P0 必须清零，修复痕迹留档。
 2) prompts/USER-ACCEPTANCE-AUTOFIX.md —— 按它跑验收并自动修复，修完重跑同一套。
@@ -103,6 +114,8 @@ B 首页第一屏
   npm run check 全绿 ｜ npm test 全过 ｜ npm run audit 照抄"xx/xx · N 失败 · M 待人工"
   dsh-wb-cli audit <项目目录> 有 fail 不交付 ｜ 打出来的 tgz 占位符必须为 0
   版本号四处同源（VERSION、package.json、页面版本徽标、README）
+  疾病概要：node scripts/probe-disease-primer.mjs --url <本仓原型>（裸跑会直接退出 2，防止再拿 examples 当证据）
+  AI 面板：node scripts/check-agent-pane-contract.mjs <项目目录>（--self-test 必须能红）
 汇报三态分开写，不许混：实测通过 / 骨架 / 未实现；装机、真实数据、原生 AI、外部服务各自单独说明；不可用就写"未验证"。
 
 ========== 第 7 步 · 收尾：留痕、冻结、回流 ==========

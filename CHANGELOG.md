@@ -1,3 +1,20 @@
+## 1.10.0-rc.29（2026-11-10，primer 探针失败关闭 + AI 面板契约检查器）
+
+用户点名"这些错误能 100% 覆盖吗"，实测答案是不能——补了两处可断言化：
+
+- `scripts/probe-disease-primer.mjs` **改为失败关闭**：裸跑或 `--url` 指向 `/examples/` 时直接 `exit 2`，
+  不再输出一份"全绿"让人误当本仓原型证据；只验参考实现须显式 `--allow-examples`（`npm run probe:primer` 已带）。
+  `AGENTS.md` 的裸跑口径同步改写。
+- 新增 `scripts/check-agent-pane-contract.mjs`（含 `--self-test`，反例 7 条全抓、正例零误报）：静态判 7 条——
+  禁 `Boolean(conversation)`、禁 `ensureSession({})`、必须有 `newSession(`、必须取 `defaultWorkspace`、
+  必须订阅会话变化、必须有 agent-draft 草稿桥、生成物无裸占位符。已进 `npm run check`。
+- `prompts/NEWBIE-KICKOFF.md` 第 5 步补第 10 条「创建成功后显示原生 conversation 面板并绑定当前工作台」，
+  并新增「这 10 条怎么验」：前段脚本、后段装机人工逐条（含取消选目录/失败提示/草稿不自动发/拖宽保持）。
+  第 6 步命令口径补两条探针命令。
+- 实测产出：该检查器**在 11-08 建的 thymic-workbench 里抓到同一个 bug**（`src/client.js:266` 用
+  `Boolean(conversation)` 且缺 `newSession`/`defaultWorkspace`）——证明这类错误单靠提示词挡不住，必须进检查链。
+- 仍未自动覆盖（如实记录）：面板是否真出现、取消选目录是否留空会话、失败是否有提示、宽度是否保持，
+  只能在装机后人工走查；静态检查器不替代 V3。
 ## 1.10.0-rc.28（2026-11-10，NEWBIE-KICKOFF 重排为 0–7 步完整骨架）
 
 - 按要求把保姆版重排成与专家版同构的 **第 0–7 步**：语气保留保姆级，判据一条不减。

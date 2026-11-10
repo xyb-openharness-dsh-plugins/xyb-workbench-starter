@@ -90,11 +90,23 @@ async function main() {
   const server = await serve()
   /* 家族防呆（2026-11-08 夜班从 egid-workbench 回收）：默认目标是 starter 参考页，
      对本仓原型的检查必须显式 --url；无 --url 时打横幅提醒（不阻断 examples 自检）。 */
-  if (!argOf('--url')) {
-    console.log('⚠⚠⚠ 默认目标是 starter 参考页 examples/disease-primer.html —— 不是任何病种仓的原型！')
-    console.log('⚠⚠⚠ 检查本仓原型必须：node scripts/probe-disease-primer.mjs --url http://127.0.0.1:<port>/prototypes/v0.2/index.html（家族连续两夜踩坑）')
+  /* 2026-11-10 升级为「失败关闭」（LESSONS L70/L75 连续两夜踩坑）：
+     裸跑 = 只验 starter 参考实现，**不能**作为本仓原型的证据，所以退出码 2，任何汇报/CI 都不能把它当绿。
+     真要只验参考实现，显式加 --allow-examples。 */
+  const ALLOW_EXAMPLES = args.includes('--allow-examples')
+  const explicitUrl = argOf('--url')
+  if (!explicitUrl && !ALLOW_EXAMPLES) {
+    console.error('✗ 未指定 --url：默认对象是 starter 参考页 examples/disease-primer.html，不是任何病种仓的原型。')
+    console.error('  验本仓原型：node scripts/probe-disease-primer.mjs --url http://127.0.0.1:<port>/prototypes/v0.2/index.html')
+    console.error('  只验参考实现：加 --allow-examples（此时结果不得写进本仓原型验收记录）')
+    process.exit(2)
   }
-  const base = argOf('--url') || `http://127.0.0.1:${PORT}/examples/disease-primer.html`
+  if (explicitUrl && /\/examples\//.test(explicitUrl) && !ALLOW_EXAMPLES) {
+    console.error(`✗ --url 指向参考页（${explicitUrl}）而不是本仓原型：结果不能当原型证据。`)
+    console.error('  确要验参考实现请加 --allow-examples；否则改成 .../prototypes/<版本>/index.html')
+    process.exit(2)
+  }
+  const base = explicitUrl || `http://127.0.0.1:${PORT}/examples/disease-primer.html`
   const browser = await puppeteer.launch({
     executablePath: chrome,
     headless: 'new',
