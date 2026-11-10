@@ -658,3 +658,20 @@ L1/L3 会拦 clinicaltrials.gov/ 这种裸域名）；③验收必须「双探�
 - **判据**:先看目标 profile 的 package.json dependencies 里有没有 `@xyb-community/*` 的 file: 条目;没有的就是错的对象。verify-desktop-load.mjs 的「宿主工作台清单」一行是权威信号。
 - **附带坑**:对含 github tarball 依赖的 profile 直接 `pnpm add <tgz>` 会 ERR_PNPM_TARBALL_INTEGRITY(codeload 的 gz 字节不稳定,与你的包无关)。现行可行路径:解包进 `node_modules/@xyb-community/<pkg>/` + package.json 写 `file:<本仓>/release/<tgz>` + bundles 追加,不重写 pnpm-lock(代价:下次全量 `pnpm install` 会剪掉,需重跑本路径)。
 - **可断言化**:待实施——probe-profile-target.mjs 断言「目标 profile deps 含 ≥1 个 @xyb-community file: 条目,且 bundles 含本包」;verify-desktop-load 已断言「宿主工作台清单含本包」。
+
+### L84 · 整页视图 A4b 是竞态不是缺陷：探针要等「焦点已回位」事件，不要等固定毫秒
+
+- **来源**：2026-11-11 pemphigus-workbench probe-page-view 首跑 A4b 失败（pericarditis 同代码同天通过）。
+- **现场**：app.js 关闭整页视图后有 60ms 补偿定时器做焦点回位（hashchange 重渲染会顶掉第一次 focus）。探针在 `overlay hidden` 后立刻读 activeElement，实测 +50ms 还是 BODY、+120ms 已回位——跟定时器赛跑，结果随机器快慢漂。
+- **修法**：探针加 `waitForFunction(() => document.activeElement?.dataset?.open === 'chart', { timeout: 1000 })` 等「焦点已回位」这个真实事件就绪（家族纪律「测试等实际加载与事件就绪」的又一实例）。修的是探针时机，不是 app.js 行为。
+
+### L85 · Desktop profile 的 file: 依赖会随姊妹仓清理而失效：装机前先盘 stale tgz，修复走「同版本重打包」
+
+- **来源**：2026-11-11 pemphigus M6 装机：profiles/web/package.json 51 个 file: 依赖中 24 个指向已被清理/升版的姊妹仓 release/*.tgz，pnpm add 对**未改动的依赖**也重解析 → ENOENT 整次安装失败。
+- **修法**：①装机前脚本盘一遍 file: 引用的存在性；②失效项从 Desktop node_modules 已装副本 `npm pack` 出**同版本** tgz（放到本仓 release/rebuilt/，不写姊妹仓），再把 profile 依赖路径改指新位置——零版本升级副作用，Desktop 当前行为不变；③装完跑 check-install.mjs 复核登记。
+- **教训**：profile 是机器本机状态，修复它属于装机恢复操作，不是业务变更；但要在签认表里如实记录动了哪些路径。
+
+### L86 · init 生成的检查链是 M0 精简版：probe 探针名硬编码 aml + 缺 M5 脚本，第一晚必踩两坑
+
+- **来源**：2026-11-11 pemphigus M2/M5：check-probe-coverage 硬编码 `probe-aml-m2.mjs` 直接红；check 链缺 build:public/check-ui-parity/check-wording/check-schema-words 等，需从上一仓手工搬 7 个脚本。
+- **修法（已回流进 starter）**：①project-template/scripts/check-probe-coverage.mjs 改为按目标仓 slug 自动探测 `probe-<slug>-m2.mjs`（读 package.json name 去 -workbench），回退 aml，两者皆缺报红并给应建文件名；②init.mjs 计划补发 7 个脚本（check-schema-words/check-wording/check-ui-parity/check-public-tokens/migrate-public/build-client/build-version）并把 M0 安全项（schema-words、wording）接入检查链，build 系脚本随包待 M5 使用；③test 脚本统一加 `--disable-warning=ExperimentalWarning --test-concurrency=1`。

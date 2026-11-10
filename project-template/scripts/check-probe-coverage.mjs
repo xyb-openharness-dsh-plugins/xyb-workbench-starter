@@ -53,10 +53,21 @@ function extractRoutes(src) {
   return null;
 }
 
-/* 全量渲染探针：必须覆盖每一条叶子路由。新项目改名/新增探针时改这里。 */
-const ALL_ROUTE_PROBES = [
-  'scripts/probe-aml-m2.mjs',
-];
+/* 全量渲染探针：必须覆盖每一条叶子路由。
+ * 2026-11-11 pemphigus 回流：不再硬编码 aml 探针名——按目标仓 slug 自动探测
+ * probe-<slug>-m2.mjs（slug = package.json name 去掉 -workbench 后缀），
+ * 探测不到回退 probe-aml-m2.mjs；两者皆缺报红并给出应建文件名。 */
+function detectRouteProbes(root) {
+  const candidates = [];
+  try {
+    const pkg = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'));
+    const slug = String(pkg.name || '').replace(/^@[^/]+\//, '').replace(/-workbench$/, '');
+    if (slug) candidates.push(`scripts/probe-${slug}-m2.mjs`);
+  } catch { /* 读不到 package.json 时只回退默认名 */ }
+  candidates.push('scripts/probe-aml-m2.mjs');
+  return candidates.filter((c) => existsSync(join(root, c)));
+}
+const ALL_ROUTE_PROBES = detectRouteProbes(ROOT);
 /* 抽样探针：只要求它列出的路由在 ROUTES 里真实存在（防止页面改名后探针扫空气仍全绿）。 */
 const SAMPLE_PROBES = [
   'scripts/probe-responsive.mjs',
@@ -96,7 +107,7 @@ if (!routes) {
   }
 
   if (ALL_ROUTE_PROBES.length === 0)
-    fails.push('coverage: 没有配置全量探针——此时没有任何东西在扫全部页面');
+    fails.push('coverage: 没有配置全量探针——此时没有任何东西在扫全部页面。init 后请创建 scripts/probe-<slug>-m2.mjs（探针必须显式 --url 打本仓原型，禁 examples 假绿）');
 }
 console.log(JSON.stringify({ pass: fails.length === 0, fails, oks }, null, 2));
 process.exit(fails.length === 0 ? 0 : 1);

@@ -66,11 +66,23 @@ export function inspect(source, { hasGenerated = true, generatedSource = null } 
     [/newSession\s*\(/, '3 必须通过 service.newSession(workspaceId) 创建会话'],
     [/defaultWorkspace/, '4 必须优先取 service.defaultWorkspace?.()?.workspaceId'],
     [/subscribe|onSession|useEffect\s*\(/, '5 必须订阅会话变化并触发重渲染'],
-    [/agent-draft/, '6 必须有 agent-draft 草稿桥（只填不发）'],
   ]
   for (const [re, msg] of need) {
-    if (re.test(code)) o.push(msg.replace(/^[3-6]\s*/, '').split('（')[0] + '：存在 ✓')
+    if (re.test(code)) o.push(msg.replace(/^[3-5]\s*/, '').split('（')[0] + '：存在 ✓')
     else f.push(msg)
+  }
+  /* 6 草稿桥：契约是「保留只填不发」。仓里本来没有草稿入口时这条**不适用**，
+     但必须明确记 n/a（不能静默算通过），且一旦出现草稿通道就不允许自动发送。 */
+  if (/agent-draft/.test(code)) {
+    if (/send\s*:\s*true[^}]*agent-draft|agent-draft[^}]*send\s*:\s*true/.test(code)) {
+      f.push('6 草稿桥出现 send:true —— 草稿必须只填不发')
+    } else o.push('6 agent-draft 草稿桥：存在且只填不发 ✓')
+  } else if (/setDraft\s*\(/.test(code)) {
+    o.push('6 本仓用自有 setDraft 机制填充草稿（未走 agent-draft 协议）：记 WARN，待架构统一')
+  } else if (/和 ?AI ?讨论|讨论这个|discuss/i.test(code)) {
+    f.push('6 有「和 AI 讨论」入口但找不到草稿填充通道（会点不动或直接发送）')
+  } else {
+    o.push('6 本仓未提供草稿入口：agent-draft 一项不适用（n/a，非通过）')
   }
 
   /* 7 生成物同步（只在有 lib/client.js 时判；自测用参数注入）
@@ -80,10 +92,12 @@ export function inspect(source, { hasGenerated = true, generatedSource = null } 
   if (hasGenerated) {
     const gen = generatedSource ?? ''
     const declared = new Set()
-    for (const m of gen.matchAll(/\b(?:const|let|var)\s+(__[A-Z][A-Z0-9_]+__)\s*=/g)) declared.add(m[1])
-    let unresolved = gen
+    /* window.__X__ = 是宿主页写入的运行时全局（lymphoma 实测），也算声明，不算漏注入。 */
+    for (const m of gen.matchAll(/\b(?:const|let|var)\s+(__[A-Z][A-Z0-9_]+__)\s*=|\bwindow\.(__[A-Z][A-Z0-9_]+__)\s*=/g)) declared.add(m[1] || m[2])
+    const genNoComments = gen.replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, ''))
+    let unresolved = genNoComments
     for (const name of declared) unresolved = unresolved.split(name).join('DECLARED')
-    if (/__[A-Z][A-Z0-9_]+__/.test(unresolved)) f.push('7 lib/client.js 残留裸占位符（构建注入未执行，装进去就是字面量）')
+    if (/__[A-Z][A-Z0-9_]+__/.test(unresolved)) f.push('7 lib/client.js 残留注入占位符（构建注入未执行，装进去就是字面量）')
     else o.push('7 生成物无未替换占位符 ✓')
   }
 

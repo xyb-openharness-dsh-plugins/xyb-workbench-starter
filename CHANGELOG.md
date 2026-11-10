@@ -802,3 +802,9 @@ LESSONS 追加 2 条：`ctx.<any> = …` 必须 provide（否则插件不激活�
 
 - docs/LESSONS.md L66：越级相对路径（../assets）在装机态 /api/<slug>/ui/ 下必 404 → primer 入口全哑（静默）；资源同目录化。
 - templates/check-static-refs.mjs：新增断言「本地引用不得含 `..` 段」，可断言化 L66（随 init 下发）。
+## 1.10.0-rc.32 — 2026-11-11（自 pemphigus-workbench 夜班回收）
+
+- check-probe-coverage 模板：全量探针名按目标仓 slug 自动探测（probe-<slug>-m2.mjs），不再硬编码 aml；两者皆缺报红并给出应建文件名（L86）。
+- init 计划补发 7 个脚本（check-schema-words / check-wording / check-ui-parity / check-public-tokens / migrate-public / build-client / build-version）；检查链接入 M0 安全项 schema-words + wording；test 脚本统一 --disable-warning + --test-concurrency=1。
+- docs/LESSONS.md 新增 L84（A4b 焦点回位竞态——探针等事件就绪）、L85（Desktop profile file: 依赖 stale tgz 的同版本重打包修复法）、L86（init 检查链两坑与回流）。
+- 回收自：pemphigus-workbench M2（探针竞态）、M5（检查链补全）、M6（装机 stale 依赖修复）。

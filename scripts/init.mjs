@@ -85,6 +85,12 @@ async function main() {
   plan.set('scripts/check-primer-links.mjs', await readFile(join(starter,'templates/check-primer-links.mjs')))
   // DSH 原生 AI 面板静态契约（禁 Boolean(conversation) / ensureSession({})，要求 newSession + defaultWorkspace）。
   plan.set('scripts/check-agent-pane-contract.mjs', await readFile(join(starter,'templates/check-agent-pane-contract.mjs')))
+  // 2026-11-11 pemphigus 回流：补 M5 起需要的脚本与两条 M0 安全检查。
+  // check-schema-words 无 schema 目录时 SKIP；check-wording 对缺失目录逐个容错——
+  // 两者在 M0（无原型/无库）就是绿的，进 check 链不破坏「第一天全绿」。
+  for (const f of ['check-schema-words.mjs','check-wording.mjs','check-ui-parity.mjs','check-public-tokens.mjs','migrate-public.mjs','build-client.mjs','build-version.mjs']) {
+    plan.set(`scripts/${f}`, await readFile(join(starter, `templates/${f}`)))
+  }
   // VERSION 是版本唯一来源（audit 的 version/file 与 version/pkg 都指着它）。
   plan.set('VERSION', '0.1.0\n')
   const manifest = {
@@ -92,7 +98,7 @@ async function main() {
     main: './dsh/index.js', exports: { '.': './dsh/index.js', './client': './lib/client.js', './package.json': './package.json', './cordis.patch.yml': './cordis.patch.yml' },
     files: ['dsh','lib','assets','cordis.patch.yml','README.md','NOTICE.md'],
     scripts: {
-      check: 'node --check dsh/index.js && node --check lib/client.js && node scripts/check-workbench-package.mjs . && node scripts/check-host-contract.mjs && node scripts/smoke-activate.mjs && node scripts/check-probe-coverage.mjs && node scripts/check-version-literal.mjs && node scripts/check-static-refs.mjs && node scripts/check-choice-limit.mjs && node scripts/check-assertion-strength.mjs && node scripts/check-derivative-leftovers.mjs . && node scripts/check-trial-snapshot.mjs . --if-present && node scripts/check-primer-links.mjs && node scripts/check-agent-pane-contract.mjs .',
+      check: 'node --check dsh/index.js && node --check lib/client.js && node scripts/check-workbench-package.mjs . && node scripts/check-host-contract.mjs && node scripts/smoke-activate.mjs && node scripts/check-probe-coverage.mjs && node scripts/check-version-literal.mjs && node scripts/check-static-refs.mjs && node scripts/check-choice-limit.mjs && node scripts/check-assertion-strength.mjs && node scripts/check-derivative-leftovers.mjs . && node scripts/check-trial-snapshot.mjs . --if-present && node scripts/check-primer-links.mjs && node scripts/check-agent-pane-contract.mjs . && node scripts/check-schema-words.mjs . && node scripts/check-wording.mjs .',
       'check:version-literal': 'node scripts/check-version-literal.mjs',
       'check:host': 'node scripts/check-host-contract.mjs',
       'check:version-literal': 'node scripts/check-version-literal.mjs',
@@ -104,7 +110,10 @@ async function main() {
       'verify:desktop': 'node scripts/verify-desktop-load.mjs',
       // check 保持"从第一天就该是绿的"（语法 + 装包合同）；audit 是交付前的家族一致性闸口，
       // 新项目在做出 VERSION/lib/layout.js/测试之前必然有 fail，那是待办清单不是故障。
-      test: 'node --test test/*.test.mjs',
+      test: 'node --disable-warning=ExperimentalWarning --test --test-concurrency=1 test/*.test.mjs',
+      'build:public': 'node scripts/migrate-public.mjs',
+      'build:version': 'node scripts/build-version.mjs',
+      build: 'node scripts/build-client.mjs && node scripts/migrate-public.mjs',
       audit: 'node scripts/check-conformance.mjs .',
       'release:check': 'npm run check && npm run test && npm run audit',
       'pack:check': 'npm pack --dry-run',
