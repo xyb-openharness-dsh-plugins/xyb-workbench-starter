@@ -785,6 +785,11 @@ LESSONS 追加 2 条：`ctx.<any> = …` 必须 provide（否则插件不激活�
 
 - docs/LESSONS.md L65：弹窗默认参数会把无参调用变成「重置状态」（设置三 Tab C1 回归；有状态容器的弹窗无参语义必须是保持）。
 
+## 1.10.0-rc.31(2026-11-11,从骨癌小骨宝 bone-cancer-workbench 0.2.0 回收)
+
+- docs/LESSONS.md L84:Desktop 真实装机 profile = harness/profiles/web(~/.dsh/profiles/desktop 是 DeepSeek Harness.app,0 工作台);含 github tarball 依赖的 profile 禁直接 pnpm add(完整性必炸),现行路径=解包+file: 依赖+bundles 登记。
+- 兄弟仓 bone-cancer-workbench 回收:32 号整页视图完整实现(历史栈/Esc 逐层/焦点归还,probe-page-view 13/13)可作 templates 参考;probe-m2 全量路由×双档案走查模式(56 路由 0 errors)模板化候选。
+
 ## 1.10.0-rc.18（2026-11-07，从血栓性血小板减少性紫癜小宁宝 ttp-workbench 0.2.10 回收）
 
 - docs/LESSONS.md L66：越级相对路径（../assets）在装机态 /api/<slug>/ui/ 下必 404 → primer 入口全哑（静默）；资源同目录化。

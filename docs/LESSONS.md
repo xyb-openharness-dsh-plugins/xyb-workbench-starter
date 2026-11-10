@@ -650,3 +650,11 @@ L1/L3 会拦 clinicaltrials.gov/ 这种裸域名）；③验收必须「双探�
 - **现场**：顶栏 `?` 在 `#main` 外，关闭后 focus 正常；首页文字入口在 `#main` 内，primer 关闭走 `history.back() → hashchange → app.render()`，旧按钮节点被替换，primer.js 对已脱离 DOM 的 `state.trigger` 调 `focus()` 等于没调，焦点掉回 body。
 - **修法**：①每个入口加稳定 `data-primer-entry`（顶栏 `top` / 首页 `home`）；②primer.js 关闭时按 key 重定位（旧节点在 DOM 就用旧节点，否则 `querySelector('[data-primer-open][data-primer-entry="…"]')`），并做 `[0,60,200,500]ms` 多轮补焦；③只在 `activeElement` 仍是 body 时接管，避免抢走用户新点的位置；④探针 P1b 必须验「可见入口 ≥2 + 第二个能开四段 + Esc 后焦点回该入口」，不能只验顶栏 P1。
 - **可断言化**：cold-agglutinin `scripts/probe-cold-agglutinin-m2.mjs` P1b（双形态 35/35）；starter `assets/patterns/disease-primer.js` 已带重定位实现，`docs/36-DISEASE-PRIMER.md` §4.1b 写明合同。
+
+### L84 · Desktop 真实装机 profile 是 harness/profiles/web,不是 ~/.dsh/profiles/desktop
+
+- **来源**:2026-11-11 bone-cancer-workbench 0.2.0 M6 装机实测(verify-desktop-load.mjs 头部注释 L14)。
+- **现场**:本机有两个「profile」——`~/.dsh/profiles/desktop` 属 DeepSeek Harness.app(0 个工作台),真实 DSH Desktop(io.dsh.desktop)加载的是 `~/Library/Application Support/dsh-desktop/harness/profiles/web`(50+ 兄弟工作台,file: tgz 形态依赖 + dsh.profile.bundles 登记)。装错前者后 verify-desktop-load 报「装机目录:未安装」,重启十次也不会加载。
+- **判据**:先看目标 profile 的 package.json dependencies 里有没有 `@xyb-community/*` 的 file: 条目;没有的就是错的对象。verify-desktop-load.mjs 的「宿主工作台清单」一行是权威信号。
+- **附带坑**:对含 github tarball 依赖的 profile 直接 `pnpm add <tgz>` 会 ERR_PNPM_TARBALL_INTEGRITY(codeload 的 gz 字节不稳定,与你的包无关)。现行可行路径:解包进 `node_modules/@xyb-community/<pkg>/` + package.json 写 `file:<本仓>/release/<tgz>` + bundles 追加,不重写 pnpm-lock(代价:下次全量 `pnpm install` 会剪掉,需重跑本路径)。
+- **可断言化**:待实施——probe-profile-target.mjs 断言「目标 profile deps 含 ≥1 个 @xyb-community file: 条目,且 bundles 含本包」;verify-desktop-load 已断言「宿主工作台清单含本包」。
