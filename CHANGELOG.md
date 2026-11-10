@@ -1,3 +1,14 @@
+## 1.10.0-rc.27（2026-11-10，NEWBIE-KICKOFF 与 7 步版逐条对齐）
+
+- 对齐审查发现保姆版漏了 6 类硬判据 + AI 面板少 2 条，已补齐（不改判据本身，只补入口）：
+  ① 认领留痕（BACKLOG → issue `/claim` → 2 分钟无回执自查补标签并写"待追认"）；
+  ② 原型基准只用公开件（`examples/disease-primer*` + `templates/` + 编号文档；私有病种仓只能本地对照、不可当公开依据）；
+  ③ 模型与额度（只用免费模型；额度/鉴权/套餐错误同一处最多重试 2 次）；
+  ④ 交付命令口径（check/test/audit 数字照抄、`dsh-wb-cli audit` 有 fail 不交付、tgz 占位=0、版本四处同源）；
+  ⑤ 阶段留痕（每里程碑 commit + `docs/PROGRESS.md`，收尾 `MORNING-REVIEW.md` 六节）；
+  ⑥ 发布冻结（tag/Release/BACKLOG PR 只备 `docs/release-draft/` 草稿）。
+- AI 面板补两条：会话变化要订阅并触发重渲染；改完必须重新生成 `lib/client.js`、升版本、更新 CHANGELOG 并重跑校验打包。
+- 仍保留的刻意简化：只问 1 个问题（而非 4 个填空）、不展开阶段 1–5 细节（指向 ZERO-TO-DEV/FULL-CYCLE）。
 ## 1.10.0-rc.26（2026-11-10，新增新手保姆级启动提示词）
 
 - `prompts/NEWBIE-KICKOFF.md`：给第一次接触家族流程的人用的"扫码即复制"起步卡。只改一个病种名，其余全部自动：

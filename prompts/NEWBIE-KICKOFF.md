@@ -65,7 +65,18 @@ A 首页疾病介绍：顶栏"?"点开必须是整页（不是小弹窗），四
 B 首页第一屏：什么都不输入就有内容；两套示例档案能切换（一套刚确诊记录少、一套长期随访记录多），切换后数据不串档。
 C AI 对话：点"AI 对话"能开、能关、能拖宽。没有会话时创建一个：service.newSession(workspaceId)，工作区取 service.defaultWorkspace?.()?.workspaceId；
   不要用 Boolean(conversation) 判断有没有会话（宿主即使没会话也会给一个隐藏容器），也不要调 ensureSession({})；
-  我取消选目录后不要留下空会话；创建失败要在界面上告诉我原因，不能点了没反应；草稿只填进输入框，不许自动发送。
+  我取消选目录后不要留下空会话；创建失败要在界面上告诉我原因，不能点了没反应；草稿只填进输入框，不许自动发送；
+  会话变化要订阅并触发重渲染（否则新建/切换后界面不刷新）；改完必须重新生成 lib/client.js、升版本、更新 CHANGELOG，并重跑静态校验与打包（生成物不同步是家族已知坑）。
+
+【别忘这 6 条（漏一条这轮就白做）】
+1 认领留痕：在 BACKLOG 选未认领病种 → 用对应 issue 评论 /claim → 等 claimed 回执；2 分钟没回执且你们有仓库权限，就自己补 claim,claimed 标签，并在报告里写"自查补签，待追认"，不许写成"维护者已确认"。
+2 原型基准只用公开件：脚手架 examples/disease-primer.html（疾病概要唯一参考实现）、examples/disease-primer-data.js、templates/，以及 docs/16、24、28、30、32、33、35 号。家族病种仓（breast-cancer-workbench、cervical-workbench 等）都是私有：你有权限可以对照，但不能写进交付说明当公开依据，也不能把链接发给别人（会 404）。
+3 模型与额度：只用免费模型；额度 / 鉴权 / 套餐类错误同一处最多重试 2 次，仍失败立即停跑并写报告。
+4 交付命令口径（数字照抄，不许"大体通过"）：
+  npm run check 全绿 ｜ npm test 全过 ｜ npm run audit 照抄"xx/xx · N 失败 · M 待人工"
+  dsh-wb-cli audit <项目目录> 有 fail 不交付 ｜ 打出来的 tgz 占位符必须为 0 ｜ 版本号四处同源（VERSION、package.json、页面版本徽标、README）
+5 阶段留痕：每完成一个里程碑就本地 commit 并更新 docs/PROGRESS.md（当前里程碑 / 已完成 / 下一步 / 阻塞 / 各闸口结论）；收尾写 MORNING-REVIEW.md 六节。
+6 发布冻结：tag 与 GitHub Release、BACKLOG 回填 PR 只备草稿到 docs/release-draft/ 并列进报告；没有明确授权不许真的发。
 
 【不要做的事】
 不要装到 ~/.dsh 或 DeepSeek Harness（只装本机 DSH Desktop）；不要发布到 GitHub Release 或市场；不要把真实病历与照片放进演示数据；不要把"没测"写成"通过"。
