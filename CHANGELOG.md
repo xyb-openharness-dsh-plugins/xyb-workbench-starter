@@ -1,3 +1,11 @@
+## 1.10.0-rc.30（2026-11-10/11，AI 面板契约检查器修正并随 init 下发）
+
+- `templates/check-agent-pane-contract.mjs`：从 `scripts/` 移到 `templates/`，由 `init` 复制进新项目 `scripts/`，
+  并加进新项目生成的 `npm run check` 链——否则每个仓都要重新踩一遍"点了没反应"。
+- 修一个真实假阳性：原来逐行剥注释，**多行块注释里的示例代码**（如注释里写 `Boolean(conversation)`）会被当成真代码报红。
+  改为先整体剥块注释（保留换行数以对齐行号）再逐行剥行注释。连带修掉自身注释里嵌套 `*/` 引发的语法错误。
+- 实测：修正后 thymic-workbench 的 `src/client.js` 7/7 通过（该仓 11-08 版本确实有 `Boolean(conversation)` + `ensureSession({})`，
+  已按契约改为 `ownedSession()` 判定 + `defaultWorkspace` → `newSession(workspaceId)`，见该仓 0.2.1）。
 ## 1.10.0-rc.30（2026-11-10，AI 面板契约接真实宿主 + 检查器假阳性修正）
 
 - 修正 `scripts/check-agent-pane-contract.mjs` 的生成物判据：先收集已声明的注入常量（`const __VERSION__ = ...`）再查剩余 `__XXX__`，不再把每份正常构建产物判红；`--self-test` 增加「已声明注入常量不误报」正例。

@@ -83,6 +83,8 @@ async function main() {
   // 36 号 §2.5 指南原件链接闸门：验「链接是不是文件本身」而不是「有没有链接」。
   // 上一代只验 https 可达，四行栏目页也能全绿（家族仓实录）；本版加 kind 词表 + --http 内容类型实测。  leftover-allow：家族沿革引用
   plan.set('scripts/check-primer-links.mjs', await readFile(join(starter,'templates/check-primer-links.mjs')))
+  // DSH 原生 AI 面板静态契约（禁 Boolean(conversation) / ensureSession({})，要求 newSession + defaultWorkspace）。
+  plan.set('scripts/check-agent-pane-contract.mjs', await readFile(join(starter,'templates/check-agent-pane-contract.mjs')))
   // VERSION 是版本唯一来源（audit 的 version/file 与 version/pkg 都指着它）。
   plan.set('VERSION', '0.1.0\n')
   const manifest = {
@@ -90,7 +92,7 @@ async function main() {
     main: './dsh/index.js', exports: { '.': './dsh/index.js', './client': './lib/client.js', './package.json': './package.json', './cordis.patch.yml': './cordis.patch.yml' },
     files: ['dsh','lib','assets','cordis.patch.yml','README.md','NOTICE.md'],
     scripts: {
-      check: 'node --check dsh/index.js && node --check lib/client.js && node scripts/check-workbench-package.mjs . && node scripts/check-host-contract.mjs && node scripts/smoke-activate.mjs && node scripts/check-probe-coverage.mjs && node scripts/check-version-literal.mjs && node scripts/check-static-refs.mjs && node scripts/check-choice-limit.mjs && node scripts/check-assertion-strength.mjs && node scripts/check-derivative-leftovers.mjs . && node scripts/check-trial-snapshot.mjs . --if-present && node scripts/check-primer-links.mjs',
+      check: 'node --check dsh/index.js && node --check lib/client.js && node scripts/check-workbench-package.mjs . && node scripts/check-host-contract.mjs && node scripts/smoke-activate.mjs && node scripts/check-probe-coverage.mjs && node scripts/check-version-literal.mjs && node scripts/check-static-refs.mjs && node scripts/check-choice-limit.mjs && node scripts/check-assertion-strength.mjs && node scripts/check-derivative-leftovers.mjs . && node scripts/check-trial-snapshot.mjs . --if-present && node scripts/check-primer-links.mjs && node scripts/check-agent-pane-contract.mjs .',
       'check:version-literal': 'node scripts/check-version-literal.mjs',
       'check:host': 'node scripts/check-host-contract.mjs',
       'check:version-literal': 'node scripts/check-version-literal.mjs',

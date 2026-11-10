@@ -38,23 +38,26 @@ const ALLOW = /pane-contract-allow/
 const fails = []
 const oks = []
 
-function strip(line) {
-  if (ALLOW.test(line)) return ''
-  return line.replace(/\/\/.*$/, '').replace(/\/\*[\s\S]*?\*\//g, '')
+/** 先整体剥块注释（保留换行数以对齐行号），再逐行剥行注释并处理 allow 豁免。
+ *  为什么不能逐行剥：多行块注释里的示例代码会被当成真实代码误报（2026-11-11 实测踩到）。 */
+function stripSource(source) {
+  const noBlock = source.replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, ''))
+  return noBlock.split('\n').map((line) => (ALLOW.test(line) ? '' : line.replace(/\/\/.*$/, '')))
 }
 
 /** 对一段源码跑全部 7 条判据；返回 {fails, oks}。自测复用同一函数。 */
 export function inspect(source, { hasGenerated = true, generatedSource = null } = {}) {
   const f = [], o = []
   const lines = source.split('\n')
-  const code = lines.map(strip).join('\n')
+  const codeLines = stripSource(source)
+  const code = codeLines.join('\n')
 
   const banned = [
     [/Boolean\s*\(\s*conversation\s*\)/, '1 禁止用 Boolean(conversation) 判断是否有会话（customFrame 下宿主恒传隐藏容器）'],
     [/ensureSession\s*\(\s*\{\s*\}\s*\)/, '2 禁止调用 ensureSession({})（会留下无归属会话/无面板）'],
   ]
   for (const [re, msg] of banned) {
-    const hit = lines.findIndex((l, i) => re.test(code.split('\n')[i]) && re.test(l))
+    const hit = codeLines.findIndex((l) => re.test(l))
     if (hit >= 0) f.push(`L${hit + 1} ${msg}`)
     else o.push(msg.replace(/^[12]\s*/, '').replace(/（.*$/, '') + '：未出现 ✓')
   }
