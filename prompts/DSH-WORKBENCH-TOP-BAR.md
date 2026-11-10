@@ -78,7 +78,7 @@ const header = h('header', { style: headerStyle },
 
 | 状态 | 文案 | 点击行为 |
 | --- | --- | --- |
-| 无会话 | `AI 对话` | `ensureSession({ folder })` 调起原生会话 |
+| 无会话 | `AI 对话` | `defaultWorkspace()?.workspaceId` + `newSession(workspaceId)` 调起原生会话 |
 | 连接中 | `正在连接…` | 禁用，防重复创建 |
 | 已连接且展开 | `收起 AI 对话` | 只隐藏面板，**不结束会话** |
 | 已连接且收起 | `打开 AI 对话` | 重新显示同一会话 |

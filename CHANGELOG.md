@@ -1,3 +1,11 @@
+## 1.10.0-rc.30（2026-11-10，AI 面板契约接真实宿主 + 检查器假阳性修正）
+
+- 修正 `scripts/check-agent-pane-contract.mjs` 的生成物判据：先收集已声明的注入常量（`const __VERSION__ = ...`）再查剩余 `__XXX__`，不再把每份正常构建产物判红；`--self-test` 增加「已声明注入常量不误报」正例。
+- `docs/40-A-FAMILY-PANEL-STANDARD.md` §2.2 从 `ensureSession({folder})` 改写为当前宿主合同：`defaultWorkspace()?.workspaceId` + `newSession(workspaceId)`，补取消/失败/防重复创建的判据；§6 坑表同步。
+- `docs/20-AGENT-PANE-DESIGN.md`、`docs/34-AGENT-DRAFT-SEND.md`、`prompts/DSH-WORKBENCH-TOP-BAR.md`、`prompts/WORKBENCH-DEV-CHECKLIST.md`、`prompts/ZERO-TO-DEV.md`、`prompts/NEWBIE-KICKOFF.md` 统一 `newSession` 口径；`templates/smoke-activate.mjs` 桩件补 `newSession`/`defaultWorkspace`。
+- `assets/patterns/disease-primer.js` 关闭时按 `data-primer-entry` 重定位触发入口并多轮补焦（L83）：首页第二个入口在 `#main` 内，`history.back() → hashchange → render()` 会换掉节点，单次 focus 会掉回 body。`docs/36-DISEASE-PRIMER.md` §4.1b 写明「两个入口 + P1b 断言」。
+- 回流来源：cold-agglutinin-workbench 0.2.1（L82）。静态只挡反模式；面板真出现、取消留空、失败提示仍须装机人工（V3）。
+
 ## 1.10.0-rc.29（2026-11-10，primer 探针失败关闭 + AI 面板契约检查器）
 
 用户点名"这些错误能 100% 覆盖吗"，实测答案是不能——补了两处可断言化：

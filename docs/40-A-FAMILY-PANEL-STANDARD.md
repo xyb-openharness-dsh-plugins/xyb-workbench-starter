@@ -144,7 +144,7 @@ h('aside', {
 
 ### 2.1 `conversation` prop 与「有没有会话」的判据
 
-customFrame 下 `conversation` **恒非空**：宿主即使没有会话，也会交进来一个 `display:none` 的容器。拿 `Boolean(conversation)` 当"已有会话"，会出现三连坏：按钮永远是「收起 AI 对话」、`ensureSession` 永不触发、空白 aside 常驻（breast-cancer 2026-10-24 实机教训）。
+customFrame 下 `conversation` **恒非空**：宿主即使没有会话，也会交进来一个 `display:none` 的容器。拿 `Boolean(conversation)` 当"已有会话"，会出现三连坏：按钮永远是「收起 AI 对话」、创建入口永不触发、空白 aside 常驻（breast-cancer 2026-10-24 实机教训）。
 
 正确判据：问服务，不问 prop。
 
@@ -171,36 +171,45 @@ function ownedSession() {
 - 挂载后再补算一次：从左侧列表进来时已经有会话，不会触发 subscribe 回调。
 - 所有权不通过 → **不发送、不猜会话**。
 
-### 2.2 `ensureSession`：只在用户显式点击时调一次
+### 2.2 `newSession`：只在用户显式点击时调一次
+
+当前 Desktop（2026-11-10 实测 io.dsh.desktop 工作台服务）从工作台内部创建会话走 `newSession(workspaceId)`：
+
+- `workspaceId` 优先取 `service.defaultWorkspace()?.workspaceId`（当前会话所在、或该工作台第一个可见工作区）；
+- 没有可用工作区时传 `undefined`，宿主自己弹目录选择器（`newWorkspaceSession → pickDirectory`）；
+- 用户取消选择器时返回 `undefined`，宿主不留目录、空项目、工作区、会话或绑定；
+- **不要再用 `ensureSession({})`**：它要求 `folder` 是非空字符串，空参数直接 reject；`ensureSession({ folder: null })` 同样点不动。`ensureSession` 只保留给“已有业务目录、需要恢复旧会话”的旧接入形态。
 
 ```js
 async function openAgent(prompt = null) {
   setNote('')
   if (!canOpenSession) { setNote('当前 Desktop 版本不支持从面板调起会话；请从左侧会话列表新建会话'); return }
+  if (creatingRef.current) return
+  creatingRef.current = true
   setConnecting(true)
   try {
-    let dir = null
-    try { const res = await fetch(`${API_PREFIX}/health`); dir = (await res.json())?.dir || null } catch { /* 拿不到目录也照样调起 */ }
-    // 空 folder 会让 ensureSession 直接失败，比"没传"更糟：只在拿到真实目录时传。
-    const id = await bridge.desktopWorkbenches.ensureSession(dir ? { folder: dir } : {})
-    rememberDraft({ sessionId: id, prompt: prompt || onboardingPrompt(dir) })
-    flushDraft()
+    let workspaceId
+    try { workspaceId = service.defaultWorkspace?.()?.workspaceId } catch { workspaceId = undefined }
+    const id = await service.newSession(workspaceId)
+    if (!id) { setNote('已取消资料目录选择，没有创建会话。可以再次点击「AI 对话」重试。'); return }
     setPaneOpen(true)
+    rememberDraft({ sessionId: id, prompt: prompt || onboardingPrompt() })
+    flushDraft()
     setNote('会话已就绪：草稿已填入右侧输入框，按回车发送')
   } catch (error) {
-    setNote(`没能调起会话：${error?.message ?? error}`)
-  } finally { setConnecting(false) }
+    setNote(`没能调起会话：${error?.message ?? error}。可以再次点击「AI 对话」重试。`)
+  } finally { creatingRef.current = false; setConnecting(false) }
 }
 ```
 
 四条不可让步：
 
 1. 首次**显式**点击才创建；加载时不静默新建。
-2. `connecting` 期间按钮 `disabled`，文案「正在连接…」，重复点击与慢返回不重复创建。
-3. 失败保留工作台状态，`note` 写可读原因，用户可再点重试。
-4. 能力缺失（`ensureSession` 不是函数）→ 按钮禁用 + 文案「AI 对话暂不可用」+ note 说明降级路径；**绝不自建聊天框兜底**。
+2. `connecting` 期间按钮 `disabled`，文案「正在连接…」；再用 `creatingRef` 兜住快速连点与 iframe 连发消息，重复点击与慢返回不重复创建。
+3. 取消返回假值 → 明说「没有创建会话，可再点重试」；失败保留工作台状态，`note` 写可读原因。
+4. 能力缺失（`newSession` 不是函数）→ 按钮禁用 + 文案「AI 对话暂不可用」+ note 说明降级路径；**绝不自建聊天框兜底**。
 
-### 2.3 `ensureSession` / `appendDraft`：只填草稿，不自动发送
+### 2.3 `newSession` / `appendDraft`：只填草稿，不自动发送
 
 原生输入面（实测 API）：
 
@@ -246,7 +255,7 @@ function appendDraft(sessionId, prompt) {
 
 | 状态 | 文案 | 点击行为 |
 | --- | --- | --- |
-| 无会话 | `AI 对话` | `ensureSession({ folder })` |
+| 无会话 | `AI 对话` | `newSession(workspaceId)` |
 | 连接中 | `正在连接…` | 禁用 |
 | 已连接且展开 | `收起 AI 对话` | 只隐藏，不结束会话 |
 | 已连接且收起 | `打开 AI 对话` | 重新显示同一会话 |
@@ -528,10 +537,10 @@ grep -q "window.innerWidth" src/client.js && echo "警告：拖动用了 window.
 | 3 | **无拖动遮罩** | 指针移到业务 iframe 上就断拖，松手后还停不下来/卡住 | `dragging && !narrow` 渲染 `inset: 0, zIndex: 4` 的透明遮罩 |
 | 4 | **版本字面量漂移** | 页面显示旧版、`check-version-literal` 红、用户拿旧版本号提问 | 版本唯一写 `VERSION`，`build:version` + 构建注入；页面用占位符或同值字面量 |
 | 5 | **README 截图版本过期** | 文档写着 v0.1.1，装的是 v0.2.x | 升版重跑 `shots:readme` 并删旧图；无脚本就标注截图版本 |
-| 6 | **用 `Boolean(conversation)` 判"有会话"** | 按钮永远「收起 AI 对话」、`ensureSession` 永不触发、空白 aside 常驻 | `currentSession()` + `ownsSession()` + subscribe 重算 |
+| 6 | **用 `Boolean(conversation)` 判"有会话"** | 按钮永远「收起 AI 对话」、创建入口永不触发、空白 aside 常驻 | `currentSession()` + `ownsSession()` + subscribe 重算 |
 | 7 | **收起时卸载 `conversation`** | 再打开草稿没了、输入框状态丢失 | 恒定挂载，只切 `display`/`paneOpen` |
 | 8 | **拖动按 `window.innerWidth` 算** | 有侧栏/窗口按钮避让时比例整体偏移，拖到边界跳一格 | 用 body 的 `getBoundingClientRect()` |
-| 9 | **`ensureSession({ folder: null })`** | 点击"没反应"（宿主直接失败） | 只在拿到真实目录时传 `folder`，否则传 `{}` |
+| 9 | **`ensureSession({})` / `ensureSession({ folder: null })`** | 点击"没反应"（宿主要求非空 folder，直接 reject；空对象同样） | 工作台内新建会话改用 `defaultWorkspace()?.workspaceId` + `newSession(workspaceId)`；没有工作区时传 `undefined` 让宿主弹目录选择器 |
 | 10 | **窄屏仍渲染 splitter** | 覆盖抽屉形态下还能 Tab 到一条看不见的分隔线 | 窄屏不渲染 splitter / 遮罩，用 `ResizeObserver` 判容器宽 |
 | 11 | **颜色写死蓝色** | 与仓库品牌色不符，换品牌要改多处 | `SPLITTER_BRAND` 单点 + `rgba()` 派生；其余走 `var(--…)` |
 | 12 | **`right` 与 aside 宽度不同源** | 分隔线与面板边缘差 1–2px，出现双线或缝 | 两者都由同一个 `percent` 渲染 |

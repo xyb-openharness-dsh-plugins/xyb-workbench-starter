@@ -327,7 +327,7 @@ Windows `%APPDATA%\dsh-desktop\harness`、Linux `${XDG_CONFIG_HOME:-~/.config}/d
   独立「×」（带 `aria-label`）。面板内部不放第二组开合控件。
 - 收起只切 `paneOpen` 与 `display`，**不调用任何 close/delete**；再点回到同一会话，草稿还在。  
   原生会话节点**恒定挂载**（宿主明确要求不重挂输入树，卸载会丢输入框与草稿）。
-- 无会话时按钮是「AI 对话」（点击 `ensureSession`），**不是禁用**；业务区不依赖会话，照常可用。
+- 无会话时按钮是「AI 对话」（点击 `newSession(workspaceId)`，无工作区时由宿主弹目录选择器），**不是禁用**；业务区不依赖会话，照常可用。
 - 服务缺失才禁用，文案「AI 对话暂不可用」并写降级原因；**不许自建聊天框**兜底。
 - 根节点首个子元素必须是语义 `<header>`，并避让 `--dsh-frame-leading-clearance`（macOS 窗口按钮占左上角）。
 

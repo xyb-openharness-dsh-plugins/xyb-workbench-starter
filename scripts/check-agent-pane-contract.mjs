@@ -70,11 +70,18 @@ export function inspect(source, { hasGenerated = true, generatedSource = null } 
     else f.push(msg)
   }
 
-  /* 7 生成物同步（只在有 lib/client.js 时判；自测用参数注入） */
+  /* 7 生成物同步（只在有 lib/client.js 时判；自测用参数注入）
+     构建器会先声明 `const __PANEL_LAYOUT__ = {...}`，再在渲染/注册代码里引用它。
+     声明名与对它的引用都不是漏替换；真正要抓的是**从未被声明**的 __XXX__。
+     2026-11-10 cold-agglutinin 实测：只按“声明行”豁免仍会把引用判红，必须按名字收集。 */
   if (hasGenerated) {
     const gen = generatedSource ?? ''
-    if (/__[A-Z][A-Z0-9_]+__/.test(gen)) f.push('7 lib/client.js 残留裸占位符（构建注入未执行，装进去就是字面量）')
-    else o.push('7 生成物无裸占位符 ✓')
+    const declared = new Set()
+    for (const m of gen.matchAll(/\b(?:const|let|var)\s+(__[A-Z][A-Z0-9_]+__)\s*=/g)) declared.add(m[1])
+    let unresolved = gen
+    for (const name of declared) unresolved = unresolved.split(name).join('DECLARED')
+    if (/__[A-Z][A-Z0-9_]+__/.test(unresolved)) f.push('7 lib/client.js 残留裸占位符（构建注入未执行，装进去就是字面量）')
+    else o.push('7 生成物无未替换占位符 ✓')
   }
 
   return { fails: f, oks: o }
@@ -94,12 +101,15 @@ if (SELF_TEST) {
   ].join('\n')
   const r1 = inspect(bad, { hasGenerated: true, generatedSource: 'const X = __CUSTOM_FRAME__' })
   const r2 = inspect(good, { hasGenerated: true, generatedSource: 'const X = true' })
+  const r3 = inspect(good, { hasGenerated: true, generatedSource: 'const __VERSION__ = "0.2.1"\nconst __AGENT_PANE__ = {"default":0.35}\nconst AGENT = __AGENT_PANE__' })
   const badCaught = r1.fails.length >= 5
   const goodClean = r2.fails.length === 0
+  const declarationsClean = r3.fails.length === 0
   console.log(`${badCaught ? 'PASS' : 'FAIL'}  self-test 反例被抓住（${r1.fails.length} 条）`)
   for (const x of r1.fails) console.log('   · ' + x)
   console.log(`${goodClean ? 'PASS' : 'FAIL'}  self-test 正例零误报${goodClean ? '' : '：' + r2.fails.join(' | ')}`)
-  process.exit(badCaught && goodClean ? 0 : 2)
+  console.log(`${declarationsClean ? 'PASS' : 'FAIL'}  self-test 已声明的注入常量不误报${declarationsClean ? '' : '：' + r3.fails.join(' | ')}`)
+  process.exit(badCaught && goodClean && declarationsClean ? 0 : 2)
 }
 
 const candidates = ['src/client.js', 'lib/client.js'].map((p) => join(target, p))

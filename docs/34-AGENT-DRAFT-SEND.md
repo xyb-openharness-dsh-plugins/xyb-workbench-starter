@@ -19,7 +19,7 @@
 
 1. **双守卫**：自动发送前重取 snapshot，仅 plain 相 + 非空才 submit；异常捕获不外抛。
 2. **降级链**：composer 未就绪 → 草稿入 pendingDraft（localStorage 持久），500ms 轮询 flush，就绪后**同样自动发送**；submit 失败 → 草稿保留，提示按回车发送。
-3. **会话就绪前**：无归属会话 → `ensureSession` 调起后再走第 4 段；所有权校验（`ownedSession()`）不过不发送。
+3. **会话就绪前**：无归属会话 → `newSession(workspaceId)` 调起后再走第 4 段；所有权校验（`ownedSession()`）不过不发送。
 4. **草稿冲突**：现有草稿含引用/特殊输入 → 追加而非覆盖；拒发并提示先处理。
 
 ## 三、不变的红线（沿用 20 号/prompt，不因"自动发送"放松）

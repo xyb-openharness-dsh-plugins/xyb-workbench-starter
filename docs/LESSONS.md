@@ -635,3 +635,18 @@ L1/L3 会拦 clinicaltrials.gov/ 这种裸域名）；③验收必须「双探�
 - **来源**：2026-11-09 夜班 cold-agglutinin-workbench M4。
 - **现场**：罕见病种（CAD）候选池小，试验线按 35 号裁剪；若只写「池小」不实跑，裁剪理由不可核验，也不满足「未查或服务失败不能写零结果」。
 - **修法**：照常跑 fetch 脚本（四在线通道终态如实入库），在 research/<slug>/README 写「与试验线关系」一节：43 条量级 → 支持裁剪、快照留存备未来版本启用 35 号链路；设置·临床数据库 tab 与 DEV-REQUIREMENTS §三 同口径声明。若实跑结果量级大，改为保留试验线而不是硬裁。
+
+### L82 · 工作台内新建 AI 会话：`newSession(workspaceId)` 才是当前宿主合同，`ensureSession({})` 会「点了没反应」
+
+- **来源**：2026-11-10 小暖宝（cold-agglutinin-workbench）用户点名复核；0.2.1 修复。
+- **现场**：customFrame 下宿主即使没有会话也会传一个 `display:none` 的 `conversation` 容器，用 `Boolean(conversation)` 判「已有会话」必然误判；没有会话时又调 `ensureSession({})`，宿主 `ensureSession` 要求 `folder` 为非空字符串，空参数直接 reject——按钮点了既没面板也没报错。2026-11-10 读 io.dsh.desktop 工作台服务源码确认：工作台内创建会话走 `newSession(workspaceId)`；`workspaceId` 缺省时取 `defaultWorkspace()?.workspaceId`，仍没有则走 `newWorkspaceSession → pickDirectory`，用户取消返回 `undefined`，宿主不留目录/工作区/会话/绑定。
+- **修法**：①判会话归属仍用 `currentSession()` + `ownsSession()` + `subscribe` 重渲染（L40 既有口径）；②创建走 `service.newSession(service.defaultWorkspace?.()?.workspaceId)`，显式传入；③返回假值 = 用户取消，提示「没有创建会话，可再点重试」，失败在 `note` 写原因；④`creatingRef` 防快速连点/iframe 连发造成双会话；⑤草稿仍只 `setDraft` 不 `submit`。
+- **可断言化**：starter `scripts/check-agent-pane-contract.mjs`（rc.29 引入，L82 修正）静态判 7 条：禁 `Boolean(conversation)`、禁 `ensureSession({})`、必须有 `newSession(`/`defaultWorkspace`/订阅钩子/agent-draft 桥、生成物无未替换占位符。占位符判据按「先收集已声明标识符再查剩余」实现——直接搜 `__[A-Z]+__` 会把构建器正常生成的 `const __VERSION__ = ...` 判红（本轮实测假阳性）。
+- **仍未自动覆盖**：面板是否真的出现、取消目录后是否留空会话、失败提示是否可见，必须装机后人工走查（V3）；静态检查器只挡反模式，不冒充 UI 验收。
+
+### L83 · 首页第二个「疾病概要」入口关闭后丢焦点：动态节点必须带稳定标识 + 多轮补焦
+
+- **来源**：2026-11-10 cold-agglutinin-workbench P1b 探针首跑失败（secondOpened=true，secondFocusBack=false）。
+- **现场**：顶栏 `?` 在 `#main` 外，关闭后 focus 正常；首页文字入口在 `#main` 内，primer 关闭走 `history.back() → hashchange → app.render()`，旧按钮节点被替换，primer.js 对已脱离 DOM 的 `state.trigger` 调 `focus()` 等于没调，焦点掉回 body。
+- **修法**：①每个入口加稳定 `data-primer-entry`（顶栏 `top` / 首页 `home`）；②primer.js 关闭时按 key 重定位（旧节点在 DOM 就用旧节点，否则 `querySelector('[data-primer-open][data-primer-entry="…"]')`），并做 `[0,60,200,500]ms` 多轮补焦；③只在 `activeElement` 仍是 body 时接管，避免抢走用户新点的位置；④探针 P1b 必须验「可见入口 ≥2 + 第二个能开四段 + Esc 后焦点回该入口」，不能只验顶栏 P1。
+- **可断言化**：cold-agglutinin `scripts/probe-cold-agglutinin-m2.mjs` P1b（双形态 35/35）；starter `assets/patterns/disease-primer.js` 已带重定位实现，`docs/36-DISEASE-PRIMER.md` §4.1b 写明合同。

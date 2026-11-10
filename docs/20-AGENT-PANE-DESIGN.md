@@ -10,7 +10,7 @@
 | --- | --- | --- |
 | 包级合同 V1 | 校验脚本实测输出 | 通过（49 项）：v0.6.0 · `/api/<pkg-name>/ui/` · left 0.65 · **customFrame=true** |
 | Desktop 装机 V2 | 是否在目标 RC 实机装过 | **未验证**——拖动/收起/抽屉的观感与边界需重启 Desktop 人工确认 |
-| 业务侧 AI/会话代码 | 全文检索 conversation / ensureSession / splitter | 顶栏五态入口 + splitter（鼠标拖 + 键盘 ←/→ 步进 2%、Home/End）+ 宽度持久化 |
+| 业务侧 AI/会话代码 | 全文检索 conversation / newSession / splitter | 顶栏五态入口 + splitter（鼠标拖 + 键盘 ←/→ 步进 2%、Home/End）+ 宽度持久化 |
 | 顶栏入口 | 现有按钮清单 | 「AI 对话 / 正在连接… / 收起 AI 对话 / 打开 AI 对话 / AI 对话暂不可用」+ 独立「×」收起控件 |
 | 可移植参考 | 其他工作台已写的同功能纯函数 | `deriveAgentPanel()`：requested × sessionView × slotReady × viewport 三态判定，不调宿主 API |
 
@@ -34,7 +34,7 @@
 > 1. split 下宿主把业务宽度写成**注册时的静态值**，之后不再变：
 >    `h('div',{className:'dshWbBody',hidden:customFrame,style:{'--workbench-business-width':`${entry?.layout?.businessWidth ?? 0.36)*100}%`}})`
 > 2. 服务（`ctx.reflect.provide('desktopWorkbenches', service)`）只暴露
->    `register / isActive / ownsSession / add / open / home / setMarketOpen / showMarket / ensureSession / currentSession / subscribe`
+>    `register / isActive / ownsSession / add / open / home / setMarketOpen / showMarket / newSession / defaultWorkspace / currentSession / subscribe`
 >    ——**没有** `setBusinessWidth`、`togglePane`，DOM 里也不存在 splitter 节点。
 > 3. customFrame 下宿主走另一条分支（同文件约 2000 行）：
 >    `h(item.Component, { service, entry, active, conversation: <原生会话挂载点> })`
@@ -85,7 +85,7 @@
 - 打开/收起的入口**只在顶栏**（五态按钮 + 独立「×」）。面板内部不再放第二组开合控件——两处都能关，用户会以为关的是两件不同的事。
 - 收起只切 `paneOpen` 与 `display`，**不调用任何 close / delete 接口**；再点「打开 AI 对话」回到同一会话，输入框草稿还在。
 - 原生会话节点**恒定挂载**：宿主明确要求不重挂输入树，卸载会丢输入框与草稿。
-- 无会话时按钮是「AI 对话」（点击 `ensureSession`），**不是禁用**；业务区在不依赖会话的情况下必须照常可用。
+- 无会话时按钮是「AI 对话」（点击 `newSession(workspaceId)`，无工作区时由宿主弹目录选择器），**不是禁用**；业务区在不依赖会话的情况下必须照常可用。
 - 服务缺失才禁用，文案「AI 对话暂不可用」，并在说明里写降级原因（不许自建聊天框兜底）。
 
 ## 3. 交互合同逐条落地（每条都填「本项目怎么做」）

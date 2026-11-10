@@ -193,6 +193,16 @@ README 里是**正文**（可读的段落），不是「详见看板」——因
 不写按钮也可以——模块会自动把「?」插进 `.top-actions`。要自己控制位置时，在 HTML 里放一个带
 `data-primer-open` 的空按钮，模块会接管它。
 
+### 4.1b 两个入口与焦点回归（2026-11-10 小暖宝实测）
+
+家族基线要求**至少两个入口**：顶栏「?」+ 首页状态卡的「疾病概要：…是什么？」文字按钮。
+两个入口都要带 `data-primer-open`；**动态渲染的入口再加 `data-primer-entry`**（如顶栏 `top`、
+首页 `home`）。原因：关闭面板走 `history.back()` → `hashchange` → 业务页 `render()` 会重建
+`#main` 里的按钮节点；primer.js 若只对旧节点 `focus()`，焦点会掉回 `body`。模块现按
+`data-primer-entry` 重定位并做 `[0,60,200,500]ms` 多轮补焦，且只在焦点仍停在 body 时接管。
+验收必须有 P1b：`[data-primer-open]` 可见入口 ≥2，点第二个能开四段，Esc 后
+`document.activeElement.closest('[data-primer-open]')` 命中该入口（不能只验顶栏 `?`）。
+
 ### 4.2 数据结构
 
 ```js

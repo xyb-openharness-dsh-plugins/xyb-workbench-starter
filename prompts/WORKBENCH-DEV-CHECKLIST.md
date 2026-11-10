@@ -188,7 +188,7 @@
 | Q14 | 每个一级页有「和 AI 讨论」（IP11），且看板顶栏有原生对话入口 | 逐页找按钮；`grep -c "agent-draft"` > 0 |
 | Q15 | 一键发送走 `xxx:agent-draft` 协议：业务页 `preventDefault` 后 `postMessage({type:'<app>:agent-draft', prompt, send:true})`；`lib/client.js` 监听同类型并校验 `event.source` | `templates/check-agent-draft-bridge.mjs` 对穿断言 |
 | Q16 | 独立打开（`file://`）时进本地演示面板并明说"未接通"，不假装发送 | 双击打开点一次 |
-| Q17 | 对话草稿只填不发（`ensureSession` 只在用户显式点击时调一次，`appendDraft` 不自动发送） | 点按钮后输入框有内容、无消息发出 |
+| Q17 | 对话草稿只填不发（`newSession` 只在用户显式点击时调一次，`appendDraft` 不自动发送） | 点按钮后输入框有内容、无消息发出 |
 | Q18 | 对话栏状态五态（展开/收起/隐藏/重开/窄屏抽屉），可拖宽度 25–45% | 逐个试 |
 | Q19 | 携带的病情上下文只含事实，不含判定词（诊断、分级、预后、建议） | 读 prompt 文本 |
 

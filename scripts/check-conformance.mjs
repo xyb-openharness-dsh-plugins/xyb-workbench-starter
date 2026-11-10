@@ -138,7 +138,7 @@ async function main() {
       const owns = /ownsSession\s*\(/.test(client)
       const current = /currentSession\s*\(/.test(client)
       if (owns && current) ok('panel/会话归属', '用 currentSession + ownsSession 判断会话归属')
-      else warn('panel/会话归属', '未见 currentSession/ownsSession：若用 conversation prop 判「已有会话」会永远为真，ensureSession 不触发', `${current ? '' : 'currentSession 缺 '}${owns ? '' : 'ownsSession 缺'}`)
+      else warn('panel/会话归属', '未见 currentSession/ownsSession：若用 conversation prop 判「已有会话」会永远为真，创建入口不触发', `${current ? '' : 'currentSession 缺 '}${owns ? '' : 'ownsSession 缺'}`)
 
       // 判断「始终挂载」：会话节点被渲染出来，且用 display 控显隐
       const rendersConversation = /\bconversation\b/.test(client)
