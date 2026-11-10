@@ -1,5 +1,10 @@
 # 小胰宝 / 小x宝社区 Workbench 开发脚手架
 
+## 完全新手？从这里开始
+
+整段复制 [新手保姆级启动提示词](prompts/NEWBIE-KICKOFF.md)，只改一个病种名就能开工；它自己定位下载目录、装脚手架、生成项目，并在三个最容易漏的地方（首页「?」疾病概要、两套示例档案、AI 对话面板）要求给你看实测证据。
+熟悉流程后换用 [FULL-CYCLE-KICKOFF](prompts/FULL-CYCLE-KICKOFF.md)（无人值守 M0–M9）。
+
 ## 只想在本机制作和使用工作台？
 
 直接使用 [本地工作台开发完整指令](prompts/LOCAL-WORKBENCH-DEVELOPMENT.md)，不需要认领、上传、投稿或先激活 CLI。每次开发或更新都先阅读 [DSH 线上最新开发规范](https://dshdesktop.com/workbench/docs/development.md)；本仓官方快照仅供离线备用，不能代替核对最新版。需求足够明确且确认最小范围后即可开工，每次只问一个必要问题，不要求填写固定问卷。

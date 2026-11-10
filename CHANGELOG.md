@@ -1,3 +1,13 @@
+## 1.10.0-rc.26（2026-11-10，新增新手保姆级启动提示词）
+
+- `prompts/NEWBIE-KICKOFF.md`：给第一次接触家族流程的人用的"扫码即复制"起步卡。只改一个病种名，其余全部自动：
+  自动定位下载目录（`$XDG_DOWNLOAD_DIR` → `user-dirs.dirs` → `Downloads`/`下载`/`downloads` → 兜底新建，三平台分支已在 macOS 实测；
+  Windows 走 `shell:Downloads` COM + `USERPROFILE` 兜底，本机未实测已如实标注）→ 克隆脚手架（已存在 `pull --ff-only`）→
+  `dsh-wb-cli init`（配置从 `project.config.example.json` 复制，不让新手填格式）→ 补 `config.root`。
+  三处硬验证写在提示词里：首页「?」整页四段（探针必须 `--url` 指本仓原型，不能跑 starter examples）、两套示例档案不串档、
+  AI 对话面板会话创建契约（`service.newSession(workspaceId)` + `defaultWorkspace`，禁 `Boolean(conversation)` 与 `ensureSession({})`）。
+  与既有文档的关系在文末用一张表钉死：本文件不新增判据，冲突以 FULL-CYCLE-KICKOFF 与检查点清单为准。
+- README 顶部加「完全新手？从这里开始」入口，指向该文件。
 ## 1.10.0-rc.26 — 2026-11-09（自 cold-agglutinin-workbench 首夜回收）
 
 - LESSONS L74：整页视图焦点回归三件套（显式触发元素 + 多轮补焦 + 探针先滚到再点/等落定）——macOS 无头环境 A4b 假红两轮的根因。
