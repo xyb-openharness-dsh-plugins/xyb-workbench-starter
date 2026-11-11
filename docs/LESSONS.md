@@ -735,3 +735,12 @@ L1/L3 会拦 clinicaltrials.gov/ 这种裸域名）；③验收必须「双探�
 - **为什么既有闸门抓不到**：两套合成档案让首屏有内容、截图好看、`check`/`audit` 全绿；"能不能新建"既不是字符串规则也不是布局规则，所有检查都对它失明。
 - **修法**：新增 `templates/check-patient-create.mjs` 随 init 下发并入链。四判据：①患者/档案级新建入口（"新建一条记录"不算）②`POST /subjects` + `INSERT INTO subjects/profiles` 真写库 ③多档案列表 + 当前档案状态 ④demo 有 `is_demo`/种子标记，新建档案与 demo 并存。`--self-test` 内置"只有 demo"反例。
 - **教训**：**"演示能跑"不是可用性判据**。凡是"用户要长期往里写东西"的产品，闸门必须查"新增链路"，而不是查"首屏有内容"。
+
+### L76 · file: tgz 重装时 pnpm 会判「Already up to date」不重解包
+
+**现象**：mds-workbench 0.2.0→0.2.1 重装 profiles/web，`pnpm add -w --save-exact file:…tgz`
+输出 Already up to date、added 0——package.json 钉到了新 tgz，但 node_modules 里的解包内容
+还是 0.2.0 的旧文件（grep 新代码特征 = 0）。判定法被"看起来装了"骗过。
+**出处**：2026-11-12 MDS 工作台试验线真实可用改造（用户指正后重装机实测）。
+**修法**：重装先 `rm -rf node_modules/<pkg>` 再 `pnpm add -w --save-exact --force file:…tgz`；
+装完必须 `grep -c <本次新代码特征>` 安装副本（06 号「装机副本 grep 新代码特征」的强制化）。

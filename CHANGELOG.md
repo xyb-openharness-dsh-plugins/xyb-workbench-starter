@@ -86,6 +86,16 @@
 
 # CHANGELOG
 
+## 1.10.0-rc.21（2026-11-12，自 mds-workbench 0.2.1 重装机回收）
+
+### 新增
+
+- LESSONS L76：file: tgz 重装时 pnpm 判「Already up to date」不重解包——先删后装 --force + 装机副本 grep 新代码特征。
+
+### 版本
+
+- `1.10.0-rc.20` → `1.10.0-rc.21`（未发布）。
+
 ## 1.10.0-rc.24（2026-11-08，short-bowel 晨间复核回收）
 
 ### 1.10.0-rc.41 — 第三个闸门 check-patient-create：只能看 demo 等于样机
