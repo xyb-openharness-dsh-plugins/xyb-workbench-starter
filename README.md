@@ -194,6 +194,7 @@ python3 skills/hvt-requirement-review/scripts/hvt_scan.py --project . --profile 
 | **Agent 对话面板落地设计（先判定版式形态、摆证据、列未决，不绑定癌种）** | [20-AGENT-PANE-DESIGN](docs/20-AGENT-PANE-DESIGN.md) |
 | **工作台顶栏：三段式 + 按钮右置 + 版本号随品牌（customFrame 专用提示词）** | [DSH-WORKBENCH-TOP-BAR](prompts/DSH-WORKBENCH-TOP-BAR.md) |
 | **把一个已有工作台装进本机 Desktop（安装检测→目录权限→clone/MinerU 申请→tar 包激活→综合功能检查→安装通过+第一个建议动作）** | [DEPLOY-INSTALL-KICKOFF](prompts/DEPLOY-INSTALL-KICKOFF.md) |
+| **装完对照「装进去的那份」是不是对的（版本/面板契约/界面进包/bundles 登记，一条命令扫全 profile）** | `node scripts/check-profile.mjs`（`--only <slug>` / `--json`） |
 | **从一个癌种名到可运行开发版（init→强约束→调研/schema/多通道临床库/原型→开发版→dsh-desktop 实测→回流）** | [ZERO-TO-DEV](prompts/ZERO-TO-DEV.md) |
 | **三阶段×三闸口开发流程速查（必记心智模型，G1/G2/G3 签认规则）** | [22-PHASES-AND-GATES](docs/22-PHASES-AND-GATES.md) |
 | **罕见病/新病种调研手册（设计→执行→输出，证据分级）** | [21-RESEARCH-PLAYBOOK](docs/21-RESEARCH-PLAYBOOK.md) |

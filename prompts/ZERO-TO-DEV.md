@@ -1,4 +1,4 @@
-# 从一个癌种名到可运行开发版：一次性交付提示词 v1.2（发起层见 prompts/CANCER-KICKOFF.md v2.0）
+# 从一个癌种名到可运行开发版：一次性交付提示词 v1.3（发起层见 prompts/CANCER-KICKOFF.md v2.0）
 
 > 用法：把「你是…」到文件结尾整段复制给一个新会话，先填四个空：癌种中文名 / 癌种英文名 / 目标目录 / 样板基准。  
 > 样板基准默认 `<癌种英文>-workbench v0.1.0`（当前可用样板：`colorectal-workbench`、`gastric-workbench`；数据/指南/分级三层可参照 `breast-cancer-workbench` v0.12.0）。  
@@ -418,6 +418,14 @@ README.md / CHANGELOG.md / VERSION / package.json
     tgz 条目与副本条目，对不上就停，不跑探针；③ 副本入口文件与仓库逐字节一致。
     参考实现：`attr-workbench/scripts/install-local.mjs`（`npm run install:local` 一条命令走完
     pack → 装 → 比对 → 探针）。`npm pack` 同版本重打 shasum 每次都变，**shasum 不能当版本号用**。
+12. **装完跑一次「装机层全量核验」**（v1.3 新增）：`node <starter>/scripts/check-profile.mjs`
+    （自动探测 Desktop 的 `profiles/web`；`--only <slug>` 只看本仓，`--json` 给机器读）。
+    它逐包读**装机副本**，输出：版本 / 面板 `newSession`·`subscribe` / 界面在不在 / `dsh.profile.bundles` / dependencies，
+    **退出码 0 才算过**。三种界面形态都认：`public/`（iframe）、内联在 `lib/client.js`（体积过百 KB）、缺（判红）。
+    `.bak-*` 之类残留副本会单列、不参与判定，但要清理——它们会让工作台列表出现重复项。
+    两个它专门抓的假绿：①仓里有 `public/` 但 `files` 白名单漏了它 → 装上空白；②漏登记 `dsh.profile.bundles`
+    → 列表里看不到（装错宿主也一样安静）。这一条**不替代 10 与 11**：它只回答"装进去的那份对不对"，
+    界面加载与点击行为仍要人验；也不替代 `npm run check`（那查源码树）。
 
 ---
 

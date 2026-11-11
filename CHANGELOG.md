@@ -79,6 +79,15 @@
 
 ## 1.10.0-rc.24（2026-11-08，short-bowel 晨间复核回收）
 
+### 1.10.0-rc.36 — 装机层全量核验脚本 check-profile.mjs，接进部署与开发两条提示词
+
+新增 `scripts/check-profile.mjs`：读**装机副本**（不是源码树），逐包输出 版本 / 面板 `newSession`·`subscribe` / 界面在不在 / `dsh.profile.bundles` / dependencies，退出码 0 才算过。三种界面形态都认（`public/`、内联在 `lib/client.js`、缺→红），`.bak-*` 残留副本单列不参与判定。
+
+为什么把它做成脚本：2026-11-11 全家族收敛时这一层是临时 `node -e` 手写的，不可复跑；而且它抓到的两类假绿都不是源码检查能发现的——仓里有 `public/` 但 `files` 漏了它（装上空白）、漏登记 bundles（列表里看不到）。本机首跑 45/48，3 红里两个是真缺口（fshd 包内无业务界面、find-museum/xyb-workbench 仍是旧面板形态）。
+
+- [DEPLOY-INSTALL-KICKOFF](prompts/DEPLOY-INSTALL-KICKOFF.md) 第 6 步新增「E 装机层全量核验」，判据表加第 ⑤ 行，六段汇报第 3 段要求带装机层数字。
+- [ZERO-TO-DEV](prompts/ZERO-TO-DEV.md) 升 v1.3：阶段 3 新增第 12 条，并写明它**不替代**第 10 条（装机副本探针）、第 11 条（同版重打包逐文件比对）与 `npm run check`（源码树）。
+
 ### 1.10.0-rc.35 — 部署提示词修正：业务界面不一定要 public/
 
 装机核验 10 个仓时发现 ovarian / lung 的界面是**内联在 `lib/client.js`**（347 KB / 864 KB），包里没有 `public/`，按 rc.34 的判据会被误判「装上空白」。改为：业务界面进包即可，`public/`（iframe）与内联视图两种形态都算；真正要判的是「装上后业务区有没有东西」。同时补一条常见失败：仓里有 `public/` 但包里没有 → `files` 白名单漏了它。
