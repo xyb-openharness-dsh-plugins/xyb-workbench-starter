@@ -1,3 +1,12 @@
+## 1.10.0-rc.38（2026-11-12，acquired-hemophilia 夜班回流：模板 id 派生 + 残留词表累积 + 自病种排除）
+
+- `templates/build-client.mjs`：模块 id 从本仓 package.json 派生，不再写死 `pemphigus-workbench`——
+  实测 acquired-hemophilia-workbench init 出来的 build-client 写着上一病种 id，装进 Desktop 会以别人的 id 注册（L89）。
+- `templates/check-ui-parity.mjs`：`trial-match.js` 只在该文件存在时逐字节比对——试验线如实裁剪的仓不再被模板逼着放假文件。
+- `scripts/check-derivative-leftovers.mjs`：词表追加 cold-agglutinin（小暖宝/WarmPal/冷凝集素）、pemphigus（小愈宝/HealPal/天疱疮）、acquired-hemophilia（小凝宝/CoagPal）三组底本词；
+  并加「自病种排除」：命中词是本仓 package.json name/slug/仓库名子串时忽略——否则词表每加一组，对应仓自己必红。
+- `templates/migrate-public.mjs`：bootstrap 日志 tag 去病种化（[workbench]）。
+- 回流来源：acquired-hemophilia-workbench 0.1.0（2026-11-11/12 夜班，M0–M9 全链）。
 ## 1.10.0-rc.30（2026-11-10/11，AI 面板契约检查器修正并随 init 下发）
 
 - `templates/check-agent-pane-contract.mjs`：从 `scripts/` 移到 `templates/`，由 `init` 复制进新项目 `scripts/`，

@@ -689,3 +689,8 @@ L1/L3 会拦 clinicaltrials.gov/ 这种裸域名）；③验收必须「双探�
 - **现场**：fshd 的 `dsh/index.js` 写的是 `const UI_DIR = join(..., '..', 'assets', 'ui')`，界面在 `assets/ui/{index.html,app.js,primer*}`，包里也确实带着——只是不在 `public/`。同批还有 ovarian(347KB)/lung(864KB) 把界面**内联在 `lib/client.js`**，也没有 `public/`。
 - **修法**：判据从「有没有 public 目录」改成「有没有能打开的业务页」，认三种形态：`public/index.html`、任意被服务的静态目录（包内两层内找 `index.html`，跳过 docs/examples/prototypes 等）、内联视图（client.js 体积过百 KB）。检查器同时把「界面在哪」打印出来，人能一眼复核。
 - **教训**：目录名是最脆弱的判据。三个仓三种放法，说明"家族约定"只覆盖了多数派；闸门一旦写死路径，少数派会被误判成缺陷，而误判比漏判更贵——它会让人去"修"一个没坏的东西。
+
+### L89 · 模板里的「上一病种」字面量会被 init 原样带进新仓：build-client 模块 id、migrate-public 日志 tag
+- 现场（2026-11-12 acquired-hemophilia-workbench）：init 后 `scripts/build-client.mjs` 里 `id: "@xyb-community/pemphigus-workbench"`——新仓打包产物以别人的 id 注册；`migrate-public.mjs` 日志 tag 也是 [pemphigus]。
+- 修复：模板不再写死 id（从 package.json 派生）；日志 tag 去病种化；check-derivative-leftovers 词表累积 + 自病种排除（命中词是本仓 name/slug 子串时忽略，否则词表每加一组、对应仓自己必红）。
+- 判据：`node scripts/build-client.mjs && grep -c "pemphigus" lib/client.js` = 0。

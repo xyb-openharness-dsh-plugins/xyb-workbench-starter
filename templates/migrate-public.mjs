@@ -67,9 +67,9 @@ const BOOT_BLOCK = `
       app.render()
     }
     window.__PERI_API_BASE__ = apiBase
-    console.info('[pemphigus] 已切换到本机数据库数据（' + b.profiles.length + ' 个档案）')
+    console.info('[workbench] 已切换到本机数据库数据（' + b.profiles.length + ' 个档案）')
   }).catch(function (e) {
-    console.warn('[pemphigus] bootstrap 不可用，继续使用演示数据：', String(e && e.message || e))
+    console.warn('[workbench] bootstrap 不可用，继续使用演示数据：', String(e && e.message || e))
   });
 })();`
 

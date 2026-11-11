@@ -53,6 +53,17 @@ export const LEFTOVER_PATTERNS = [
   [/小浆宝/, '骨髓瘤工作台品牌名（中文）'],
   [/\bAnalPal\b/, '肛管癌工作台品牌名'],
   [/小萌宝/, '肛管癌工作台品牌名（中文）'],
+  [/\bWarmPal\b/, '冷凝集素工作台品牌名'],
+  [/小暖宝/, '冷凝集素工作台品牌名（中文）'],
+  [/\bcold-agglutinin\b/, '冷凝集素工作台仓库名'],
+  [/冷凝集素/, '冷凝集素病种词（中文）'],
+  [/\bHealPal\b/, '天疱疮工作台品牌名'],
+  [/小愈宝/, '天疱疮工作台品牌名（中文）'],
+  [/\bpemphigus\b/i, '天疱疮病种词（英文）'],
+  [/天疱疮/, '天疱疮病种词（中文）'],
+  [/\bCoagPal\b/, '获得性血友病工作台品牌名'],
+  [/小凝宝/, '获得性血友病工作台品牌名（中文）'],
+  [/\bacquired-hemophilia\b/, '获得性血友病工作台仓库名'],
 ]
 
 const SCAN_DIRS = ['dsh', 'lib', 'public', 'src', 'demo', 'scripts', 'test', 'prototypes']
@@ -86,7 +97,25 @@ export function scanText(text, file = '<inline>') {
   return hits
 }
 
+/* 自病种排除（L89 配套）：词表会随底本累积，本仓自己的名字不算残留。
+ * 判据：命中词是本仓 package.json name / slug / 仓库名的子串 → 忽略。 */
+function ownTokens(root) {
+  const out = new Set()
+  try {
+    const pkg = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'))
+    const name = String(pkg.name || '')
+    out.add(name)
+    for (const piece of name.split('/')) out.add(piece)
+    const repo = String((pkg.repository && pkg.repository.url) || pkg.repository || '')
+    const m = repo.match(/([^/:]+)\.git$/) || repo.match(/([^/:]+)$/)
+    if (m) out.add(m[1])
+  } catch { /* 无 package.json（self-test）时不排除 */ }
+  for (const t of [...out]) if (t.endsWith('-workbench')) out.add(t.replace(/-workbench$/, ''))
+  return out
+}
+
 export function scanProject(root = process.cwd()) {
+  const own = ownTokens(root)
   const files = []
   for (const d of SCAN_DIRS) {
     const p = join(root, d)
@@ -104,7 +133,8 @@ export function scanProject(root = process.cwd()) {
     try { text = readFileSync(f, 'utf8') } catch { continue }
     hits.push(...scanText(text, relative(root, f)))
   }
-  return { files: files.length, hits }
+  const filtered = hits.filter((h) => ![...own].some((t) => t && (h.hit.includes(t) || t.includes(h.hit))))
+  return { files: files.length, hits: filtered, skippedOwn: hits.length - filtered.length }
 }
 
 function selfTest() {
