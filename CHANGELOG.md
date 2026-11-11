@@ -79,6 +79,10 @@
 
 ## 1.10.0-rc.24（2026-11-08，short-bowel 晨间复核回收）
 
+### 1.10.0-rc.34 — 部署提示词修正：入口是「AI 对话」按钮自检并创建，不是等专用开关
+
+用户指出 rc.33 里「目前没有专用入口/开关」的说法会误导安装者去找一个不存在的开关。改为按已落地的 9 条契约描述真实入口：顶栏「AI 对话」按钮先做宿主归属判定（`ownsSession(currentSession())`），无会话就 `newSession(defaultWorkspace()?.()?.workspaceId)` 创建归属会话并立即显示原生 conversation 面板，已有会话只开合不重建。第 5 步激活验收、第 6 步 B 段与「四步与判据」表同步改写，并补一条「切换/新建会话后回来面板状态跟着变（订阅生效）」的检查项。
+
 ### 1.10.0-rc.33 — 部署安装提示词（装进本机 Desktop，不写业务代码）
 
 新增 [prompts/DEPLOY-INSTALL-KICKOFF.md](prompts/DEPLOY-INSTALL-KICKOFF.md)：整段复制、只改病种名，把「已有工作台装进本机 DSH Desktop」固化成四段可验收流程——①安装检测（打印判定基准、排除 `~/.dsh` 与 DeepSeek Harness）与用户同意后的目录/权限落定；②clone + 环境变量申请（MinerU token 只进 600 密钥文件、只出掩码）+ 资料目录树；③tar 包模式首次激活（`pnpm add` + `dsh.profile.bundles` 登记 + 装机副本版本/文件核对，Desktop 由用户自己重开）；④综合功能检查（服务/UI/primer/AI 面板/目录权限）并输出「安装通过」与唯一一条第一动作。
