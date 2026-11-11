@@ -79,6 +79,12 @@
 
 ## 1.10.0-rc.24（2026-11-08，short-bowel 晨间复核回收）
 
+### 1.10.0-rc.33 — 部署安装提示词（装进本机 Desktop，不写业务代码）
+
+新增 [prompts/DEPLOY-INSTALL-KICKOFF.md](prompts/DEPLOY-INSTALL-KICKOFF.md)：整段复制、只改病种名，把「已有工作台装进本机 DSH Desktop」固化成四段可验收流程——①安装检测（打印判定基准、排除 `~/.dsh` 与 DeepSeek Harness）与用户同意后的目录/权限落定；②clone + 环境变量申请（MinerU token 只进 600 密钥文件、只出掩码）+ 资料目录树；③tar 包模式首次激活（`pnpm add` + `dsh.profile.bundles` 登记 + 装机副本版本/文件核对，Desktop 由用户自己重开）；④综合功能检查（服务/UI/primer/AI 面板/目录权限）并输出「安装通过」与唯一一条第一动作。
+
+写进去的判据全部来自本家族真机踩坑：装错 profile 不报错只会安静失效；包内缺 `public/` 就是空白；UI 路由带尾斜杠 `/ui` 404；`../../assets/patterns/disease-primer.*` 未改写导致「?」点了没反应；`Boolean(conversation)` 让按钮恒可点却不创建；订阅误插在 `return` 之后变成死代码（L87）；重打包 tgz 需 `--config.strict-store-pkg-content-check=false`。同时如实写明：Desktop **目前没有专用入口/开关**，只能从工作台列表打开。
+
 ### 变更
 
 - `docs/LESSONS.md` 新增 L81：「?」按钮在 ≠ DP 模块在——家族探针合同（.dp-overlay 系 + DP 数据形状）必须逐字对齐；验收双探针（仓内真开断言 + 家族探针显式 --url 指本仓）；sources 禁裸域名首页（L1/L3 已拦截）。
