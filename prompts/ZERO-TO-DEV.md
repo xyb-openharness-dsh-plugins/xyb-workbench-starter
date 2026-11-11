@@ -156,7 +156,9 @@ Windows `%APPDATA%\dsh-desktop\harness`、Linux `${XDG_CONFIG_HOME:-~/.config}/d
   要么按 35 号四段链路补齐（建档/检索/匹配/呈现收藏），要么在 `docs/CLINICAL-DATA.md` 写实测数字再裁。
 - **资料目录必须是真入口**：顶栏「配置目录」要真调 `uiWorkspace.pickDirectory()`、硬拒主目录/桌面/下载根目录/tmp、
   写进 `config.root`；`「本原型为示意，目录未真实挂载」`只允许作为降级文案，不许拿它当唯一实现。
-- 两个闸门随 `init` 下发并已入 `npm run check`：`check-data-dir.mjs`、`check-trial-chain.mjs`，`--self-test` 都必须能红。
+- **必须支持 demo + 新建**：只带两套合成档案就等于样机。要求「新建我的档案」落本机 sqlite（`subjects.is_demo=0`）、
+  demo 与真实数据分开标记、多档案可列可切、新档案空记录也能用。
+- 三个闸门随 `init` 下发并已入 `npm run check`：`check-data-dir.mjs`、`check-trial-chain.mjs`、`check-patient-create.mjs`，`--self-test` 都必须能红。
 
 ### 1.4 演示数据 + HTML demo（G2 闸口）
 

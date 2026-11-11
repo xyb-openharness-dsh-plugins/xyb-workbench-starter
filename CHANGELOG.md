@@ -88,6 +88,18 @@
 
 ## 1.10.0-rc.24（2026-11-08，short-bowel 晨间复核回收）
 
+### 1.10.0-rc.41 — 第三个闸门 check-patient-create：只能看 demo 等于样机
+
+用户点名"大部分项目只有 demo 数据、无新建入口，用户无法真实使用"。抽查 4 个仓全红，全家族仅 7 个仓有某种档案入口，故加闸门：
+
+`templates/check-patient-create.mjs` 四判据（`--self-test` 内置"只有 demo"反例必须能红）：
+①UI 有**患者/档案级**新建入口（"新建一条记录"不算）②服务端 `POST /subjects` + `INSERT INTO subjects/profiles` 真写库 ③多档案列表 + 当前档案状态 ④demo 有 `is_demo`/种子标记，新建档案与 demo 并存。
+
+随 `init` 下发、入生成项目 `npm run check`；starter 自身 check 加它的 `--self-test`。
+提示词：NEWBIE-KICKOFF 第 4 步新增 **E 患者档案**；ZERO-TO-DEV §1.3.1 加"必须支持 demo + 新建"；CHECKLIST 新增 **§14（PC1–PC7）**；回流 **L95**。
+
+参照实现（本轮已落地并通过三闸门）：`cidp-workbench` 0.2.1——`POST /api/subjects` → `subjects.is_demo=0` 落 sqlite → 立刻切新档案；demo 档案不可删；空名字 400。
+
 ### 1.10.0-rc.40 — 两个新闸门：资料目录必须真能用、临床试验要么四段齐要么裁得有实测
 
 2026-11-12 两个新开发仓同天在同样两处失手，故各加一个静态闸门并随 `init` 下发、入 `npm run check`：

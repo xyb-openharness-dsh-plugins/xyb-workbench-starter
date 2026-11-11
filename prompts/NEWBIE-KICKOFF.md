@@ -99,6 +99,13 @@ D 临床试验（要么四段齐，要么裁得有实测依据）
   而且包里其实躺着 trials 快照——数据在、入口是假的。
   闸门：`node scripts/check-trial-chain.mjs .`（`--self-test` 必须能红）
 
+E 患者档案（demo 之外必须能新建——只有 demo 等于样机）
+ 顶栏/侧栏必须有「新建我的档案」：填名字（昵称即可）→ 落本机 sqlite（`subjects.is_demo=0`）→ 立刻切到新档案开始记。
+ 三条不可让步：① **demo 与真实分开**（demo 带标记，不覆盖、不混入新档案）② **多档案可列可切**（会话与草稿按档案隔离）
+ ③ 新档案从空记录开始也能用，不能"没有 demo 数据就白屏"。
+ 反例（2026-11-12 全家族体检）：绝大多数仓只有两套合成档案，顶栏压根没有"新建"，用户拿到手没法记自己的事。
+ 闸门：`node scripts/check-patient-create.mjs .`（`--self-test` 必须能红）
+
 ========== 第 5 步 · DSH 原生 AI 对话面板契约（customFrame 必做，9 条） ==========
 · 判断有没有会话：不要用 Boolean(conversation) —— customFrame 下宿主即使没有会话也会传一个隐藏的 conversation 容器。
 · 没有会话时创建：service.newSession(workspaceId)；workspaceId 优先取 service.defaultWorkspace?.()?.workspaceId；没有可用工作区时让宿主按自身流程提示选择目录。
