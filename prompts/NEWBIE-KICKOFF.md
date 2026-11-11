@@ -84,6 +84,21 @@ A 首页疾病介绍（疾病概要）
 B 首页第一屏
   什么都不输入就有内容；两套示例档案能切换（一套刚确诊记录少、一套长期随访记录多），切换后数据不串档。
 
+C 资料目录（2026-11-12 两个仓同天翻车：按钮点了只有一句说明）
+  顶栏「配置目录 / 资料目录」点开必须**真的能选目录并落盘**，不是一段说明文字。四件事缺一不可：
+   · 真调宿主选择器：`bridge.uiWorkspace.pickDirectory()`（拿不到才降级 `showDirectoryPicker`）
+   · 口径硬拒：主目录、桌面、下载根目录、tmp —— 选中就当场拒绝并说明原因，不静默接受
+   · 落点接上：`cordis.patch.yml` 的 `config.root: !!js dshHomePath('<slug>')`，`dsh/index.js` 真读 `config.root`
+   · 未挂载才提示：「本原型为示意，目录未真实挂载」**只允许出现在降级路径**；有选择动作才配这句话
+  闸门：`node scripts/check-data-dir.mjs .`（`--self-test` 必须能红）
+
+D 临床试验（要么四段齐，要么裁得有实测依据）
+  按 35 号四段链路：建档（只有已确认字段参与匹配）→ 检索（关键词/病理/状态/阶段/地区）→ 匹配（符合度 pct + 四档分层，待确认按 0 计，pct 只偏低不偏高）→ 呈现/收藏（`saved_trial`）。
+  裁剪红线：**不许用「候选池个位数 / 罕见病召回不可靠」这类推断当理由**——先实测召回（跑一次在线/本地通道，记 N 条与快照日期）。
+  2026-11-12 的教训：两个仓都写「快照 0 条、召回不可靠」，实测却有 30 条（多数是登记研究、不是干预试验），
+  而且包里其实躺着 trials 快照——数据在、入口是假的。
+  闸门：`node scripts/check-trial-chain.mjs .`（`--self-test` 必须能红）
+
 ========== 第 5 步 · DSH 原生 AI 对话面板契约（customFrame 必做，9 条） ==========
 · 判断有没有会话：不要用 Boolean(conversation) —— customFrame 下宿主即使没有会话也会传一个隐藏的 conversation 容器。
 · 没有会话时创建：service.newSession(workspaceId)；workspaceId 优先取 service.defaultWorkspace?.()?.workspaceId；没有可用工作区时让宿主按自身流程提示选择目录。

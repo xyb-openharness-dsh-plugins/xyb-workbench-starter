@@ -88,6 +88,17 @@
 
 ## 1.10.0-rc.24（2026-11-08，short-bowel 晨间复核回收）
 
+### 1.10.0-rc.40 — 两个新闸门：资料目录必须真能用、临床试验要么四段齐要么裁得有实测
+
+2026-11-12 两个新开发仓同天在同样两处失手，故各加一个静态闸门并随 `init` 下发、入 `npm run check`：
+
+- `templates/check-data-dir.mjs`：①真实选择动作（`pickDirectory`/`showDirectoryPicker`/`webkitdirectory`）②拒绝清单命中 ≥3（主目录/桌面/下载根/tmp）+ 判定函数 ③`config.root: dshHomePath(...)` 且 `dsh/index.js` 真读 ④只写「目录未真实挂载」而无任何选择动作 → 红。`--self-test` 内置"说明弹窗"反例。
+- `templates/check-trial-chain.mjs`：有 trials 快照或 `trialMatch` → 前端必须四段齐（建档/检索/匹配/呈现收藏），有数据却只有裁剪说明页 → 红；无数据 → 裁剪理由必须带实测 N 条 + 快照口径，纯推断（个位数/极少/不可靠）→ 红。
+
+首跑结果：两仓都红在真实缺陷上（acquired-hemophilia / cidp 各缺 ①②④ 与 检索+收藏 两段，且都是"数据在、入口是假的"）；对照仓 lung 四段齐通过、biliary 裁剪带实测数字通过——证明闸门不是一律报红。
+
+同步改提示词：NEWBIE-KICKOFF 第 4 步新增 C（资料目录）/D（临床试验）；ZERO-TO-DEV 新增 §1.3.1 裁剪红线；WORKBENCH-DEV-CHECKLIST 新增 §12（D1–D5）与 §13（TR1–TR8）。回流 L93/L94。
+
 ### 1.10.0-rc.37 — check-profile 界面判据修正：fshd 的界面在 assets/ui/
 
 首版把 `fshd-workbench 0.1.6` 误判为「包里没有业务界面」——它的 `dsh/index.js` 服务的是 `assets/ui/`，包里也确实带着（用户当时正看着它的界面）。同批 ovarian(347KB)/lung(864KB) 还是内联视图。

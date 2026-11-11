@@ -148,6 +148,16 @@ Windows `%APPDATA%\dsh-desktop\harness`、Linux `${XDG_CONFIG_HOME:-~/.config}/d
 
    > **试验匹配（35 号）**：涉及"个人建档 → 检索/AI 匹配 → 呈现"功能时，按 docs/35-TRIAL-MATCHING.md（**v3**，参考实现小胆宝 match-0.1.0 与 lung-cancer client-trials）执行——粗筛符合度 pct（符合÷已对照、待确认=0 只偏低）+ 档位词「字段都对得上 / 部分对得上」+ 逐条证据链 + 三子页（匹配/检索/收藏）与右侧浮窗。三条落地硬约束：判据只取快照里真实存在的字段；**药物靶点不进分母**；**可对照项不足 2 条不给百分数**，病理未确认整页不排名。禁止 eligible/suitability 判读列与"适配度/入组概率"命名；断言器 templates/check-trial-matching.mjs（带 `--self-test`）进 check 链。
 
+### 1.3.1 裁剪红线（v1.4 新增，两条都踩过）
+
+- **临床试验不许靠推断裁掉**：写「候选池会长期是已载个位数」「罕见病召回不可靠」之前，必须先跑一次通道拿到实测 N 条
+  （记快照日期、来源、以及"其中干预试验几条 / 登记研究几条"）。2026-11-12 两个仓都裁了，实测 30 条，
+  而且包内本来就有 trials 快照——`trialMatch` 后端在、前端只有「裁剪说明页」，是最典型的假入口。
+  要么按 35 号四段链路补齐（建档/检索/匹配/呈现收藏），要么在 `docs/CLINICAL-DATA.md` 写实测数字再裁。
+- **资料目录必须是真入口**：顶栏「配置目录」要真调 `uiWorkspace.pickDirectory()`、硬拒主目录/桌面/下载根目录/tmp、
+  写进 `config.root`；`「本原型为示意，目录未真实挂载」`只允许作为降级文案，不许拿它当唯一实现。
+- 两个闸门随 `init` 下发并已入 `npm run check`：`check-data-dir.mjs`、`check-trial-chain.mjs`，`--self-test` 都必须能红。
+
 ### 1.4 演示数据 + HTML demo（G2 闸口）
 
 - **开工前置（IP1）**：先按 starter `docs/28-INTERACTION-PATH-DESIGN.md` 产出并签认交互路径文档（场景路径表 + CRUD 双通道矩阵）；  
