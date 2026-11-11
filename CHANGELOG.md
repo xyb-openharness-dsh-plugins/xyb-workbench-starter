@@ -79,6 +79,12 @@
 
 ## 1.10.0-rc.24（2026-11-08，short-bowel 晨间复核回收）
 
+### 1.10.0-rc.37 — check-profile 界面判据修正：fshd 的界面在 assets/ui/
+
+首版把 `fshd-workbench 0.1.6` 误判为「包里没有业务界面」——它的 `dsh/index.js` 服务的是 `assets/ui/`，包里也确实带着（用户当时正看着它的界面）。同批 ovarian(347KB)/lung(864KB) 还是内联视图。
+
+判定改为「有没有能打开的业务页」：`public/index.html` → 任意被服务的静态目录（包内两层找 `index.html`，跳过 docs/examples/prototypes 等）→ 内联视图（client.js 过百 KB）→ 都没有才判红，并打印「界面在哪」。本机复跑 46/48，剩两个真红（find-museum、xyb-workbench 仍是旧面板形态）。同步改正部署提示词里写死 `public/` 的那句，回流 L88。
+
 ### 1.10.0-rc.36 — 装机层全量核验脚本 check-profile.mjs，接进部署与开发两条提示词
 
 新增 `scripts/check-profile.mjs`：读**装机副本**（不是源码树），逐包输出 版本 / 面板 `newSession`·`subscribe` / 界面在不在 / `dsh.profile.bundles` / dependencies，退出码 0 才算过。三种界面形态都认（`public/`、内联在 `lib/client.js`、缺→红），`.bak-*` 残留副本单列不参与判定。

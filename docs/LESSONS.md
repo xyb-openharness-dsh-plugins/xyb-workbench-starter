@@ -682,3 +682,10 @@ L1/L3 会拦 clinicaltrials.gov/ 这种裸域名）；③验收必须「双探�
 - **同批第二个假绿**：ovarian / lung 的 CHANGELOG 写着「订阅会话变化触发重渲染」，代码里 subscribe 计数为 0；四条里三条根本没有订阅，一条是有害误插。**写着改过不等于改过，字符串出现在源码里不等于被执行。**
 - **修法（已回流进 starter 的 check-agent-pane-contract）**：①订阅断言要求 `subscribe` 出现在 Panel 组件体内、且排除掉 `return` 之后的行（简写法：取 Panel 起止区间再判，找不到区间就报红）；②`agent-draft 只填不发` 要求判 `send` 是否被真正传给宿主通道，不看注释；③任何「已修复」的 CHANGELOG 条目必须附 grep 数字（`subscribe=1 ensureSessionCall=0 BooleanConv=0`），复跑检查器 `--self-test` 仍须能红。
 - **教训**：检查器越容易满足，越容易变成装饰。反模式检查器的每条断言都要问一遍「怎么用一行无害文本骗过它」，能骗过就加结构条件。
+
+### L88 · 业务界面不一定叫 `public/`：判"装了空白"前先看 `dsh/index.js` 服务的是哪个目录
+
+- **来源**：2026-11-11 装机层全量核验脚本首版，把 `fshd-workbench 0.1.6` 判成「包里没有业务界面」。用户当时正在看这台工作台，界面好好的。
+- **现场**：fshd 的 `dsh/index.js` 写的是 `const UI_DIR = join(..., '..', 'assets', 'ui')`，界面在 `assets/ui/{index.html,app.js,primer*}`，包里也确实带着——只是不在 `public/`。同批还有 ovarian(347KB)/lung(864KB) 把界面**内联在 `lib/client.js`**，也没有 `public/`。
+- **修法**：判据从「有没有 public 目录」改成「有没有能打开的业务页」，认三种形态：`public/index.html`、任意被服务的静态目录（包内两层内找 `index.html`，跳过 docs/examples/prototypes 等）、内联视图（client.js 体积过百 KB）。检查器同时把「界面在哪」打印出来，人能一眼复核。
+- **教训**：目录名是最脆弱的判据。三个仓三种放法，说明"家族约定"只覆盖了多数派；闸门一旦写死路径，少数派会被误判成缺陷，而误判比漏判更贵——它会让人去"修"一个没坏的东西。

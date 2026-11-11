@@ -91,9 +91,32 @@ for (const scope of SCOPES) {
     const ensureSession = count(code, /ensureSession\s*\(/g)
     const boolConv = count(code, /Boolean\(conversation\)/g)
 
-    const hasPublic = existsSync(join(dir, 'public/index.html'))
-    const inlineUi = !hasPublic && stat.size > 100 * 1024
-    const ui = hasPublic ? 'public/' : inlineUi ? `内联 client.js(${Math.round(stat.size / 1024)}KB)` : '缺'
+    /* 界面在包里可以是三种形态，判据必须是"有没有能打开的业务页"，不是"有没有 public 目录"：
+       ① public/index.html（最常见，iframe 装进来的独立前端）
+       ② 其它被 dsh/index.js 服务出去的静态目录，例如 fshd 用 assets/ui/（2026-11-11 实测误判过一次）
+       ③ 内联在 lib/client.js 里（ovarian 347KB / lung 864KB），没有独立的页面文件
+       扫描深度到两层，跳过明显不是界面的目录。 */
+    const NON_UI_DIRS = new Set(['node_modules', 'docs', 'examples', 'prototypes', 'test', 'tests', 'scripts',
+      'demo', 'reference', 'skills', 'templates', 'prompts', 'research', 'schema', 'release', 'lib', 'dsh', 'build'])
+    function findUiDir(pkgDir) {
+      if (existsSync(join(pkgDir, 'public/index.html'))) return 'public/'
+      let entries = []
+      try { entries = readdirSync(pkgDir, { withFileTypes: true }) } catch { return null }
+      for (const e of entries) {
+        if (!e.isDirectory() || NON_UI_DIRS.has(e.name) || e.name.startsWith('.')) continue
+        if (existsSync(join(pkgDir, e.name, 'index.html'))) return `${e.name}/`
+        let inner = []
+        try { inner = readdirSync(join(pkgDir, e.name), { withFileTypes: true }) } catch { continue }
+        for (const i of inner) {
+          if (!i.isDirectory()) continue
+          if (existsSync(join(pkgDir, e.name, i.name, 'index.html'))) return `${e.name}/${i.name}/`
+        }
+      }
+      return null
+    }
+    const uiDir = findUiDir(dir)
+    const inlineUi = !uiDir && stat.size > 100 * 1024
+    const ui = uiDir || (inlineUi ? `内联 client.js(${Math.round(stat.size / 1024)}KB)` : '缺')
 
     const inBundles = bundles.has(pkgName)
     const isDep = Object.prototype.hasOwnProperty.call(deps, pkgName)
