@@ -694,3 +694,22 @@ L1/L3 会拦 clinicaltrials.gov/ 这种裸域名）；③验收必须「双探�
 - 现场（2026-11-12 acquired-hemophilia-workbench）：init 后 `scripts/build-client.mjs` 里 `id: "@xyb-community/pemphigus-workbench"`——新仓打包产物以别人的 id 注册；`migrate-public.mjs` 日志 tag 也是 [pemphigus]。
 - 修复：模板不再写死 id（从 package.json 派生）；日志 tag 去病种化；check-derivative-leftovers 词表累积 + 自病种排除（命中词是本仓 name/slug 子串时忽略，否则词表每加一组、对应仓自己必红）。
 - 判据：`node scripts/build-client.mjs && grep -c "pemphigus" lib/client.js` = 0。
+
+### L90 · init 骨架与自家检查链不自洽：新仓第一天基线必红（已回流修复）
+
+- **来源**：2026-11-12 cidp-workbench 夜班 M0：dsh-wb-cli rc.37 init 出的 `lib/client.js`（42 行骨架）没有原生 AI 面板会话接线，而 rc.37 把 `check-agent-pane-contract`（要求 newSession/defaultWorkspace/订阅/草稿桥）接进了 init 的 check 链——新仓基线 `npm run check` 必红，M0「基线绿」闸口无法过。
+- **修法（已回流进 starter，rc.39）**：`project-template/lib/client.js.tpl` 从 42 行骨架扩为约 320 行**带真实接线**的原生面板骨架（ownedSession 归属判定 / `service.newSession(defaultWorkspace?.()?.workspaceId)` / 订阅触发重渲 / 草稿只填不发 / 取消与失败提示 / 25–45% 可拖 splitter / `@@SLUG@@:agent-draft` 桥），模板化自 cidp-workbench 骨架实现（其静态 7/7+双形态实测）。
+- **判据**：fresh init 后 `npm run check` exit 0（夜班实测 /tmp 冒烟仓通过）；检查器 10 条断言里「禁止 Boolean(conversation)」连**注释里的字面量**都会抓——模板注释措辞要用「conversation prop 的真值判断」绕开词面。
+- **教训**：给检查链加新断言时，必须同步验「init 的产物能不能过自己的链」——门禁的起点是自家模板。
+
+### L91 · 定点移植的 OLD 常量会静默失配：replace 不命中不报错，ui-parity 双假绿
+
+- **来源**：2026-11-12 cidp-workbench M5 移植：`migrate-public.mjs` 的 `TITLE_OLD` 是上游 pemphigus 时代字面量（「小愈宝 HealPal · 天疱疮工作台」），对本仓原型 `.replace()` **静默 no-op** → public/index.html 保留原型标题；ui-parity 测试因 `expected()` 走同一个 no-op replace 而两侧相等——**两道闸门同时假绿**。同批发现 `APPINFO_OLD` 引号形态（单引号 vs 原型双引号）也不匹配。
+- **修法（建议，cidp 已手改常量；模板化待下一轮）**：migrate-public 的每个 OLD 常量在 build 时断言「替换真的发生」——`if (!src.includes(OLD)) problems.push(...)`；替换后 `assert(!out.includes(OLD))`。ui-parity 的 revert 链同理：把 revert 结果与原型 diff，若 revert 没还原出原型原文立即红。
+- **教训**：靠 `.replace()` 的定点移植，任何 OLD 写错都是**静默失配**；「expected() 与产物相等」这种自洽断言只证明「没改过字符」，不证明「该改的改了」。凡 replace 类契约，必须有「命中数 = 预期数」断言。
+
+### L92 · perl 单行改码时 `@` 要转义：`s/"@xyb\//...` 会把 @xyb 当数组插值静默吞掉
+
+- **来源**：2026-11-12 cidp-workbench M5：`perl -pi -e 's/id: "@xyb-community\/pemphigus-workbench"/...'` 里 `@xyb` 被 perl 当数组插值（空），pattern 实际变成 `id: "-community/..."`，**匹配不到也不报错**，命令「成功」但没改任何东西。
+- **修法**：写 `s/"\@xyb.../` 转义，或改用 python/node 脚本改码；改完必须 grep 验证目标串已变，不靠命令退出码。
+- **教训**：单行改码工具的静默失配与 L91 同类——「命令成功」不等于「改动落地」。

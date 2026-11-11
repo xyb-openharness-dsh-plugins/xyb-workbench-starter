@@ -19,6 +19,9 @@
  *  5 必须出现会话订阅/重渲染钩子（subscribe / onSession / useEffect 之一）
  *  6 必须存在"草稿只填不发"的证据：agent-draft 桥（postMessage 含 agent-draft 且无自动 send）
  *  7 生成物同步：lib/client.js 存在且不含裸占位符（__XXX__）
+ *  8 已有会话只开/收不重复创建（ownedSession 早退或 creatingRef 防连点）——2026-11-12 用户点名第 4 条
+ *  9 取消提示 + 失败原因反馈（宿主取消 pickDirectory 返回 undefined，已在 asar 源码核对）
+ * 10 创建成功后 setPaneOpen(true)（用户点名第 3 条的静态可判部分）
  *
  * 用法：
  *   node scripts/check-agent-pane-contract.mjs [项目目录]
@@ -38,26 +41,23 @@ const ALLOW = /pane-contract-allow/
 const fails = []
 const oks = []
 
-/** 先整体剥块注释（保留换行数以对齐行号），再逐行剥行注释并处理 allow 豁免。
- *  为什么不能逐行剥：多行块注释里的示例代码会被当成真实代码误报（2026-11-11 实测踩到）。 */
-function stripSource(source) {
-  const noBlock = source.replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, ''))
-  return noBlock.split('\n').map((line) => (ALLOW.test(line) ? '' : line.replace(/\/\/.*$/, '')))
+function strip(line) {
+  if (ALLOW.test(line)) return ''
+  return line.replace(/\/\/.*$/, '').replace(/\/\*[\s\S]*?\*\//g, '')
 }
 
 /** 对一段源码跑全部 7 条判据；返回 {fails, oks}。自测复用同一函数。 */
 export function inspect(source, { hasGenerated = true, generatedSource = null } = {}) {
   const f = [], o = []
   const lines = source.split('\n')
-  const codeLines = stripSource(source)
-  const code = codeLines.join('\n')
+  const code = lines.map(strip).join('\n')
 
   const banned = [
     [/Boolean\s*\(\s*conversation\s*\)/, '1 禁止用 Boolean(conversation) 判断是否有会话（customFrame 下宿主恒传隐藏容器）'],
     [/ensureSession\s*\(\s*\{\s*\}\s*\)/, '2 禁止调用 ensureSession({})（会留下无归属会话/无面板）'],
   ]
   for (const [re, msg] of banned) {
-    const hit = codeLines.findIndex((l) => re.test(l))
+    const hit = lines.findIndex((l, i) => re.test(code.split('\n')[i]) && re.test(l))
     if (hit >= 0) f.push(`L${hit + 1} ${msg}`)
     else o.push(msg.replace(/^[12]\s*/, '').replace(/（.*$/, '') + '：未出现 ✓')
   }
@@ -66,23 +66,36 @@ export function inspect(source, { hasGenerated = true, generatedSource = null } 
     [/newSession\s*\(/, '3 必须通过 service.newSession(workspaceId) 创建会话'],
     [/defaultWorkspace/, '4 必须优先取 service.defaultWorkspace?.()?.workspaceId'],
     [/subscribe|onSession|useEffect\s*\(/, '5 必须订阅会话变化并触发重渲染'],
+    [/agent-draft/, '6 必须有 agent-draft 草稿桥（只填不发）'],
   ]
   for (const [re, msg] of need) {
-    if (re.test(code)) o.push(msg.replace(/^[3-5]\s*/, '').split('（')[0] + '：存在 ✓')
+    if (re.test(code)) o.push(msg.replace(/^[3-6]\s*/, '').split('（')[0] + '：存在 ✓')
     else f.push(msg)
   }
-  /* 6 草稿桥：契约是「保留只填不发」。仓里本来没有草稿入口时这条**不适用**，
-     但必须明确记 n/a（不能静默算通过），且一旦出现草稿通道就不允许自动发送。 */
-  if (/agent-draft/.test(code)) {
-    if (/send\s*:\s*true[^}]*agent-draft|agent-draft[^}]*send\s*:\s*true/.test(code)) {
-      f.push('6 草稿桥出现 send:true —— 草稿必须只填不发')
-    } else o.push('6 agent-draft 草稿桥：存在且只填不发 ✓')
-  } else if (/setDraft\s*\(/.test(code)) {
-    o.push('6 本仓用自有 setDraft 机制填充草稿（未走 agent-draft 协议）：记 WARN，待架构统一')
-  } else if (/和 ?AI ?讨论|讨论这个|discuss/i.test(code)) {
-    f.push('6 有「和 AI 讨论」入口但找不到草稿填充通道（会点不动或直接发送）')
-  } else {
-    o.push('6 本仓未提供草稿入口：agent-draft 一项不适用（n/a，非通过）')
+
+  /* 8 已有会话时只开/收，不重复创建：newSession 调用点之前必须有 ownedSession 命中早退或防连点守卫
+     （2026-11-12 用户点名复核第 4 条：重复点击不得重复创建）。 */
+  {
+    const hasNew = /newSession\s*\(/.test(code)
+    const guardOk = /ownedSession\s*\(\)[\s\S]{0,400}?return/.test(code) || /creatingRef\.(current|value)/.test(code)
+    if (hasNew && !guardOk) f.push('8 newSession 调用前缺少「已有会话早退/防重复创建」守卫')
+    else if (hasNew) o.push('8 已有会话只开/收，不重复创建 ✓')
+  }
+  /* 9 取消与失败都必须在工作台内给出可读反馈（不得静默）。
+     2026-11-12 宿主源码核对（app.asar newSession）：取消 pickDirectory → 返回 undefined。 */
+  {
+    const okCancel = /取消|没有创建会话/.test(code) && /重试/.test(code)
+    const okFail = /没能调起会话|失败/.test(code)
+    if (!okCancel) f.push('9 取消目录选择后缺「可再次点击重试」提示文案')
+    else if (!okFail) f.push('9 创建失败后缺可读错误反馈')
+    else o.push('9 取消提示 + 失败原因反馈 ✓')
+  }
+  /* 10 创建成功后必须把原生面板打开。 */
+  {
+    const hasNew = /newSession\s*\(/.test(code)
+    const opened = /setPaneOpen\s*\(\s*true\s*\)|paneOpen\s*=\s*true|setPaneVisible\s*\(\s*true\s*\)/.test(code)
+    if (hasNew && !opened) f.push('10 会话创建成功后未把原生面板置为打开')
+    else if (hasNew) o.push('10 创建成功后打开原生面板 ✓')
   }
 
   /* 7 生成物同步（只在有 lib/client.js 时判；自测用参数注入）
@@ -92,12 +105,10 @@ export function inspect(source, { hasGenerated = true, generatedSource = null } 
   if (hasGenerated) {
     const gen = generatedSource ?? ''
     const declared = new Set()
-    /* window.__X__ = 是宿主页写入的运行时全局（lymphoma 实测），也算声明，不算漏注入。 */
-    for (const m of gen.matchAll(/\b(?:const|let|var)\s+(__[A-Z][A-Z0-9_]+__)\s*=|\bwindow\.(__[A-Z][A-Z0-9_]+__)\s*=/g)) declared.add(m[1] || m[2])
-    const genNoComments = gen.replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, ''))
-    let unresolved = genNoComments
+    for (const m of gen.matchAll(/\b(?:const|let|var)\s+(__[A-Z][A-Z0-9_]+__)\s*=/g)) declared.add(m[1])
+    let unresolved = gen
     for (const name of declared) unresolved = unresolved.split(name).join('DECLARED')
-    if (/__[A-Z][A-Z0-9_]+__/.test(unresolved)) f.push('7 lib/client.js 残留注入占位符（构建注入未执行，装进去就是字面量）')
+    if (/__[A-Z][A-Z0-9_]+__/.test(unresolved)) f.push('7 lib/client.js 残留裸占位符（构建注入未执行，装进去就是字面量）')
     else o.push('7 生成物无未替换占位符 ✓')
   }
 
@@ -115,11 +126,14 @@ if (SELF_TEST) {
     "onClick(() => { if (!session) { const id = service.defaultWorkspace?.()?.workspaceId; service.newSession(id) } })",
     "service.subscribe(() => rerender())",
     "postMessage({ type: 'thymic:agent-draft', prompt, send: false })",
+    "if (ownedSession()) { setPaneOpen(true); return }",
+    "const id = await service.newSession(ws); if (!id) { setNote('已取消资料目录选择，没有创建会话。可以再次点击重试。'); return } setPaneOpen(true)",
+    "catch (e) { setNote(`没能调起会话：${e.message}。可以再次点击重试。`) }",
   ].join('\n')
   const r1 = inspect(bad, { hasGenerated: true, generatedSource: 'const X = __CUSTOM_FRAME__' })
   const r2 = inspect(good, { hasGenerated: true, generatedSource: 'const X = true' })
   const r3 = inspect(good, { hasGenerated: true, generatedSource: 'const __VERSION__ = "0.2.1"\nconst __AGENT_PANE__ = {"default":0.35}\nconst AGENT = __AGENT_PANE__' })
-  const badCaught = r1.fails.length >= 5
+  const badCaught = r1.fails.length >= 8
   const goodClean = r2.fails.length === 0
   const declarationsClean = r3.fails.length === 0
   console.log(`${badCaught ? 'PASS' : 'FAIL'}  self-test 反例被抓住（${r1.fails.length} 条）`)

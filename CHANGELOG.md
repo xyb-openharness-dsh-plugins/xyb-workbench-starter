@@ -840,6 +840,12 @@ LESSONS 追加 2 条：`ctx.<any> = …` 必须 provide（否则插件不激活�
 
 - docs/LESSONS.md L66：越级相对路径（../assets）在装机态 /api/<slug>/ui/ 下必 404 → primer 入口全哑（静默）；资源同目录化。
 - templates/check-static-refs.mjs：新增断言「本地引用不得含 `..` 段」，可断言化 L66（随 init 下发）。
+## 1.10.0-rc.39 — 2026-11-12（自 cidp-workbench 夜班回收）
+
+- **init 骨架带真实 AI 面板接线（L90）**：project-template/lib/client.js.tpl 从 42 行占位扩为约 320 行原生面板骨架（ownedSession 归属判定 / newSession(defaultWorkspace) / 订阅重渲 / 草稿只填不发 / 取消与失败提示 / 25–45% splitter / <slug>:agent-draft 桥）——此前 rc.37 起新仓第一天基线必红（init 链含 check-agent-pane-contract 而骨架不接线）。fresh init 冒烟实测 exit 0。
+- docs/LESSONS.md 新增 L90（骨架与自家链自洽）、L91（定点移植 OLD 常量静默失配 → ui-parity 双假绿；修法=「命中数=预期数」断言）、L92（perl @ 插值静默吞 pattern）。
+- 回收自：cidp-workbench（小髓宝 MyelinPal）M0/M5。
+
 ## 1.10.0-rc.32 — 2026-11-11（自 pemphigus-workbench 夜班回收）
 
 - check-probe-coverage 模板：全量探针名按目标仓 slug 自动探测（probe-<slug>-m2.mjs），不再硬编码 aml；两者皆缺报红并给出应建文件名（L86）。
