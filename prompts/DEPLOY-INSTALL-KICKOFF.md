@@ -72,7 +72,8 @@
    npm pack --pack-destination release
    tar -tzf release/<name>-<version>.tgz | head -30
    三条硬检查：
-   · 包里有 dsh/、lib/、public/（业务界面必须进包，否则装上就是空白）
+   · 包里有 dsh/、lib/；业务界面必须进包——两种形态都算：`public/`（iframe 装进来的独立前端）或**内联在 lib/client.js 里的视图**（本家族有仓是这种，client.js 几百 KB 就是全量界面）。判据是「装上后业务区有没有东西」，不是「有没有 public 目录」；两者都没有就是装上空白。
+   · 如果仓里有 `public/` 但包里没有，多半是 package.json 的 `files` 白名单漏了 `public`（本家族踩过）。
    · 包内 lib/client.js 里未替换占位符为 0（`__XXX__` 形式；构建注入的 START/END 注释不算）
    · 包内 package.json 的 version 与 VERSION 一致
 3) 报数字：「tgz <名称> 37 文件 · 占位符 0 · version 0.2.0」
@@ -141,7 +142,7 @@ D 状态如实记录
 | 现象 | 先查什么（按顺序，别跳） |
 | --- | --- |
 | 工作台列表里看不到 | 装错 profile → `dsh.profile.bundles` 没登记 → Desktop 没真正退出重开 → 包内缺 `dsh/index.js` |
-| 装上了但业务区空白 | 包内缺 `public/`；或 UI 路由注册路径带了尾斜杠（`/ui` 本身会 404） |
+| 装上了但业务区空白 | 包内既没有 `public/` 也没有内联视图（看 `lib/client.js` 体积）；仓里有 `public/` 但包里没有 → `package.json` 的 `files` 漏了它；或 UI 路由注册路径带了尾斜杠（`/ui` 本身会 404） |
 | 页面正常但「?」点了没反应 | `public/` 里缺 primer 三件套，或原型里的 `../../assets/patterns/...` 未改写成 `./patterns/` |
 | 点「AI 对话」没反应 | 用 `Boolean(conversation)` 判会话（宿主恒传隐藏容器）→ 必须改宿主归属判定；或按钮 `disabled` 锁死 |
 | 切换会话后面板不刷新 | 没订阅 `desktopWorkbenches.subscribe`；注意订阅必须落在 Panel 内、`return` 之前（误插会变成死代码） |
