@@ -675,3 +675,10 @@ L1/L3 会拦 clinicaltrials.gov/ 这种裸域名）；③验收必须「双探�
 
 - **来源**：2026-11-11 pemphigus M2/M5：check-probe-coverage 硬编码 `probe-aml-m2.mjs` 直接红；check 链缺 build:public/check-ui-parity/check-wording/check-schema-words 等，需从上一仓手工搬 7 个脚本。
 - **修法（已回流进 starter）**：①project-template/scripts/check-probe-coverage.mjs 改为按目标仓 slug 自动探测 `probe-<slug>-m2.mjs`（读 package.json name 去 -workbench），回退 aml，两者皆缺报红并给应建文件名；②init.mjs 计划补发 7 个脚本（check-schema-words/check-wording/check-ui-parity/check-public-tokens/migrate-public/build-client/build-version）并把 M0 安全项（schema-words、wording）接入检查链，build 系脚本随包待 M5 使用；③test 脚本统一加 `--disable-warning=ExperimentalWarning --test-concurrency=1`。
+
+### L87 · 静态契约检查器会被「误插的 subscribe」骗过：光有字样不算订阅，要验它落在 Panel 里且在 return 之前
+
+- **来源**：2026-11-11 全家族 AI 面板收敛（第二/三轮）。prostate-workbench 上一轮所谓「已加会话订阅」实际是把三行 subscribe 塞进了 `PrimerPanel` 的 `useEffect`，而且插在 `return () => {...}` **之后**——那段代码永远不执行，还因为引用了未声明的 `setPaneTick`/`setNote` 把 primer 的 pushState/popstate/焦点回收/滚动恢复一起变成死代码。检查器只查「文件里有没有 subscribe 字样」，于是判绿；实机表现是 primer 整页视图深链全坏。
+- **同批第二个假绿**：ovarian / lung 的 CHANGELOG 写着「订阅会话变化触发重渲染」，代码里 subscribe 计数为 0；四条里三条根本没有订阅，一条是有害误插。**写着改过不等于改过，字符串出现在源码里不等于被执行。**
+- **修法（已回流进 starter 的 check-agent-pane-contract）**：①订阅断言要求 `subscribe` 出现在 Panel 组件体内、且排除掉 `return` 之后的行（简写法：取 Panel 起止区间再判，找不到区间就报红）；②`agent-draft 只填不发` 要求判 `send` 是否被真正传给宿主通道，不看注释；③任何「已修复」的 CHANGELOG 条目必须附 grep 数字（`subscribe=1 ensureSessionCall=0 BooleanConv=0`），复跑检查器 `--self-test` 仍须能红。
+- **教训**：检查器越容易满足，越容易变成装饰。反模式检查器的每条断言都要问一遍「怎么用一行无害文本骗过它」，能骗过就加结构条件。
