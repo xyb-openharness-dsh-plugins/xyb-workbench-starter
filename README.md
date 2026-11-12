@@ -195,6 +195,7 @@ python3 skills/hvt-requirement-review/scripts/hvt_scan.py --project . --profile 
 | **工作台顶栏：三段式 + 按钮右置 + 版本号随品牌（customFrame 专用提示词）** | [DSH-WORKBENCH-TOP-BAR](prompts/DSH-WORKBENCH-TOP-BAR.md) |
 | **把一个已有工作台装进本机 Desktop（安装检测→目录权限→clone/MinerU 申请→tar 包激活→综合功能检查→安装通过+第一个建议动作）** | [DEPLOY-INSTALL-KICKOFF](prompts/DEPLOY-INSTALL-KICKOFF.md) |
 | **一次把「临床线 + 新建患者/多用户写入闭环」做完整（先裁剪/只做演示态必返工）** | [PATIENT-DATA-AND-TRIALS-ONESHOT](prompts/PATIENT-DATA-AND-TRIALS-ONESHOT.md) |
+| **一个人一个晚上把病种做完并装进 Desktop（夜班 M0–M9 + 三条不可让步 + 原生 AI 面板 + 四步流水线）** | [NIGHT-SHIFT-FULLSTACK](prompts/NIGHT-SHIFT-FULLSTACK.md) |
 | **交付顺序：开发完成 → 独立体检 → 验收自修 → 装机**（跳哪步都会返工，四步判据见 ZERO v1.6 §交付流水线） | [ZERO-TO-DEV](prompts/ZERO-TO-DEV.md) · [FAMILY-INSPECTOR](prompts/FAMILY-INSPECTOR.md) · [USER-ACCEPTANCE-AUTOFIX](prompts/USER-ACCEPTANCE-AUTOFIX.md) · [DEPLOY-INSTALL-KICKOFF](prompts/DEPLOY-INSTALL-KICKOFF.md) |
 | **装完对照「装进去的那份」是不是对的（版本/面板契约/界面进包/bundles 登记，一条命令扫全 profile）** | `node scripts/check-profile.mjs`（`--only <slug>` / `--json`） |
 | **从一个癌种名到可运行开发版（init→强约束→调研/schema/多通道临床库/原型→开发版→dsh-desktop 实测→回流）** | [ZERO-TO-DEV](prompts/ZERO-TO-DEV.md) |

@@ -100,7 +100,16 @@
 
 ## 1.10.0-rc.21（2026-11-12，自 mds-workbench 0.2.1 重装机回收）
 
-> ### 1.10.0-rc.43 — ZERO-TO-DEV v1.6：交付流水线四步（开发→体检→验收自修→装机）
+> ### 1.10.0-rc.44 — 夜班组合版提示词 NIGHT-SHIFT-FULLSTACK（M0–M9 + 三条不可让步 + 面板九条 + 四步流水线）
+
+用户给了一段"三合一"的夜班提示词（M0–M9 + 「?」检查 + cold-agglutinin 面板修复），里面有三类问题：本机绝对路径不可分享、三件事混读像三个任务、以及本轮刚踩的两组返工（目录/临床/新建患者）完全没写。
+
+- 新增 [prompts/NIGHT-SHIFT-FULLSTACK.md](prompts/NIGHT-SHIFT-FULLSTACK.md)：**执行主体交给 FULL-CYCLE-KICKOFF，本文件只叠加三件**——①§2 三条不可让步 + 五件门禁命令 ②§3「?」双入口可执行验收（探针必须 `--url` 指向本仓原型、`--self-test` 必须能红、写明"index.html 搜不到 `#disease-primer` 是正常的"）③§4 面板九条 + 两条真踩过的落地细节（**订阅必须在 Panel 内且在 return 之前**、**无会话时按钮不许 disabled**）。再给 §5 四步交付流水线与 §6 固定八段报告。
+- 私有仓（breast/cervical/pericarditis）标注"只能本地对照，不许写进交付说明"。
+- §7 附改动对照表（原提示词的每个问题 → 改法），便于后续再迭代。
+
+
+### 1.10.0-rc.43 — ZERO-TO-DEV v1.6：交付流水线四步（开发→体检→验收自修→装机）
 
 用户问「夜纲 / FAMILY-INSPECTOR / USER-ACCEPTANCE-AUTOFIX 要不要加进提示词」。核对结论：**三份都已在 starter 里**，问题是没串成顺序——ZERO 只说"可以读"，没说"必须按序跑、跑完才能进下一步"。
 
