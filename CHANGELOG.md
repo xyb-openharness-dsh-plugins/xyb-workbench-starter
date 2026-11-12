@@ -1,3 +1,10 @@
+## 未发布（2026-11-13，myeloma-workbench 夜班回流：schema 闸门升级 + 占位符闸门 + 四条 Lesson）
+
+- **templates/check-schema.mjs 升级**（原版只查 0001 + 判读列 + 表数）：现在逐个迁移查命名与序号连续、`PRAGMA user_version = N` 与序号一致、全部迁移能在内存库顺序建成、**每个迁移的 sha256 都在 freeze-contract 里**、判读列（8 条禁词逐列扫描）、个人记录表都带 `is_private`、`in_use` / 分节 `*_title` / 不用空串冒充缺测；带 `--json`（兼容老调用方）与 `--self-test`（注入 `risk_level` 必须红）。实测：psc/我的仓 22 张表 208 列全过，自测能红。
+- **templates/check-placeholder-free.mjs 新增**：随包文件（files 白名单 + dsh/ + lib/）不得含 `{{name}}` / `__NAME__` / `<slug>` 等未替换占位符（V1 判据「tgz 占位=0」的脚本化）。已接进 init 生成的 check 链。
+- **LESSONS L107–L110**：探针打错对象（量的不是本项目）；两套演示档案写反；`scroll-behavior:smooth` 让 scrollY 断言读到动画中间值；schema 换结构后领域层没跟着改、装机后接口 400。
+- 回流来源：myeloma-workbench（2026-11-13 夜班）。检查器待实施：`smoke-installed.mjs` 模板化（直接 import 安装副本跑 health / 静态资源 content-type / 档案 CRUD），当前只在该仓内实现。
+
 ## 1.10.0-rc.51（2026-11-13，ampullary 0.1.6「启动无内容」回流：smoke-activate 补真渲染）
 
 - **`templates/smoke-activate.mjs` 新增判据 6「Panel 真渲染一遍」**：注册下来的 Panel 用 conversation 两种形态真调用，

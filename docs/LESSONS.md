@@ -792,3 +792,30 @@ L1/L3 会拦 clinicaltrials.gov/ 这种裸域名）；③验收必须「双探�
 - **来源**：2026-11-13 ampullary-workbench 0.1.6 装机后「启动无内容」——业务区整片空白。Panel 与 effect 里 30 处引用 `bridge`，但工厂里既没有 `let bridge` 声明也没有 `apply(ctx)` 里的 `bridge = ctx` 赋值（attr-workbench 同款两连击只学了一半）。`check-agent-pane-contract`（正则找字符串）与 `smoke-activate`（apply/register 层）双双全绿，因为 Panel 函数体从未被执行过。
 - **修法**：业务仓补 `let bridge = null` + `apply(ctx)` 首行 `bridge = ctx`（0.1.7）；starter 侧 `smoke-activate.mjs` 升判据 6「Panel 真渲染一遍」（conversation 两种形态 + effect/清理函数同步执行），桩件补齐浏览器全局。
 - **教训**：**检查链的覆盖终点必须落到「组件真渲染一次」**——只验到 register 描述符的烟测，等价于只验了「装得上」，验不了「打开始终有内容」。凡宿主回调（Panel/组件/effect 回调）都要在桩件里真调用一次；`useEffect: () => {}` 这类空操作桩等于把最危险的一层跳过了。
+
+### L107 · 探针全绿，量的却是别人的页：项目原型从来没被查过
+
+- **来源**：2026-11-12 夜班 myeloma-workbench。`probe-disease-primer.mjs` / `probe-page-view.mjs` 打的是 **starter 的 examples 参考页**（断言绑 `.dp-*` / `.pv-*`），项目原型有自己的 `#pageView` 外壳与 `primer.js`。不带 `--url` 跑出来 10/10、13/13 全绿，而**首页「疾病概要」按钮点了根本不开**。
+- **为什么既有闸门抓不到**：绿灯来自另一个页面。探针只报「通过」，报告里没有目标 URL，看的人不会怀疑它量的不是本项目。
+- **修法**：① 探针报告必须打印**实际目标 URL**，没有 URL 的通过按未测处理；② 项目侧另建 `probe-page-view-contract.mjs` 这类「按本项目真实选择器」的契约探针；③ 两个探针都带 `--self-test` 反例，证明能红。
+- **教训**：**「探针绿」不等于「我这项功能对」**。先问一句：它打开的是哪个 URL、选中的是哪个 DOM？
+
+### L108 · 两套演示档案写反了：命名成「刚确诊」的那套记录最多
+
+- **来源**：2026-11-12 夜班 myeloma-workbench。A 套（本该刚确诊、记录少、多处未知）指标 5 点 + 2 条治疗线 + 移植记录；B 套（本该多年随访）只有 1 条治疗线、其余全空。结果「新患者」路径看起来满满当当，长期随访路径反而是空壳。
+- **为什么既有闸门抓不到**：两套数据都「存在」，页面都能打开，语法与文案全绿。缺陷是**数值分布反了**，只有量出来才知道。
+- **修法**：`probe-profile-switch.mjs` 这类探针必须出数字：① A/B 在至少 3 个维度（指标点数/治疗线/移植/骨事件/感染/疫苗）上明显不同，② 每套自己的日期在对应视图里都能找到（页面数字确实来自同一份 DEMO_DATA），③ **另一套独有的日期不得出现在当前页面**（不串档），④ 切回 A 后残留为零。
+- **教训**：两套数据不是「有没有」的问题，是「谁多谁少」的问题；不写数字断言就等于没验。
+
+### L109 · `html{scroll-behavior:smooth}` 会让 scrollY 断言读到动画中间值
+
+- **来源**：2026-11-12 夜班 myeloma-workbench 的 A5 断言（关掉整页视图后主页停在原滚动位置）。实测报 `0 → 233`，看起来像「关掉后跳回顶部」的严重缺陷，实际是探针自己读早了：`window.scrollTo(0,240)` 在 smooth 模式下是动画，紧接着读 `scrollY` 得到 0；应用归位也是动画，读完立刻读又得到中间值。
+- **修法**：探针里用 `window.scrollTo({ top: 240, behavior: 'instant' })` 并等两个 `requestAnimationFrame` 再读；关闭后等 300–400ms 再读终态。
+- **教训**：**断言失败先怀疑测量**。把「测量方法」写进脚本注释，下一个人不用再踩一遍。
+
+### L110 · schema 换了结构、领域层没跟着改：装上了，接口一调就 400
+
+- **来源**：2026-11-13 夜班 myeloma-workbench。G3 把结构换成冻结的 `profile` / `workspace`，但 `dsh/workbench.js` 还在读写旧的 `subjects` / `app_setting`。`npm run check`、`npm test`、`dsh-wb-cli audit` 全绿（它们只查语法、包结构、文档与模式），装机后 `/api/subjects` 直接 `400 no such table: subjects`。
+- **为什么既有闸门抓不到**：静态检查看不出「表名不再存在」，而探针只打原型（不跑服务端）。
+- **修法**：① `migrate()` 用 ledger 里的 sha256 校验历史迁移，改结构后旧库会被当场拒绝而不是等到某个 SELECT 报 `no such table`；② 新增 `scripts/smoke-installed.mjs`：**直接 import 已安装副本** run 一遍路由（health / 静态资源 content-type / 档案 CRUD / 建库），把「装上了但接口 400」这类缺陷挡在装机那一步。
+- **教训**：装了不等于能用；**每个写库入口都要有一次端到端调用**，哪怕只是桩 ctx 跑一遍。
