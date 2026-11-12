@@ -744,3 +744,15 @@ L1/L3 会拦 clinicaltrials.gov/ 这种裸域名）；③验收必须「双探�
 **出处**：2026-11-12 MDS 工作台试验线真实可用改造（用户指正后重装机实测）。
 **修法**：重装先 `rm -rf node_modules/<pkg>` 再 `pnpm add -w --save-exact --force file:…tgz`；
 装完必须 `grep -c <本次新代码特征>` 安装副本（06 号「装机副本 grep 新代码特征」的强制化）。
+
+### L96 · check-trial-chain 与 L76 冲突：「裁剪线也实跑 M4」在 rc.46 检查器下无合法状态
+**教训**：rc.46 的 check-trial-chain 在 research/ 下见到 `trials*.{jsonl,sqlite}` 就走 hasData 分支要求前端 35 号四段；而 L76（cold-agglutinin）要求「裁剪线也实跑 M4」。裁剪+实跑的组合被逼到改名 snapshot-* 绕开文件名匹配（primary-immunodeficiency 2026-11-13 夜班实测）。
+**修法**：check-trial-chain 新增「裁剪+实测证据」合法分支——research 下 manifest.json `trimmed:true` + `snapshot.records>0` + 前端无检索入口/无 trialMatch 后端 + 文案含实测 N 条 → 通过；带自测反例（trimmed 但有检索框 / 0 条样本 / 无实测数字 = 红）。回落来源：primary-immunodeficiency-workbench。
+
+### L97 · probe-page-view A4b 抢跑：关闭走 history 导航，焦点重置是异步的
+**教训**：整页视图关闭后 Chrome 异步把焦点重置回 body，应用在 60–1000ms 内多轮补焦；探针在 t=0 断言「焦点回到触发元素」必红（假红）。cold-agglutinin 修过一次，primary-immunodeficiency 用同一模板又踩（2026-11-13）。
+**修法**：A4b 断言前加 `waitForFunction(activeElement.dataset?.open==='chart', {timeout:1500})` 轮询等待，语义是「焦点最终回到触发元素」。
+
+### L98 · 模板头注释截断 :root 令牌块：页面照渲染、样式全丢，探针测不出
+**教训**：sed 替换原型 style.css 首行注释时把三行注释截成两段，`*/` 后残句成为非法语句，CSS 错误恢复吞掉下一个规则块（正好是 `:root` 令牌）。结果：布局还在（结构规则独立）、品牌变量全空、无报错、探针全绿——只有截图目检能发现（primary-immunodeficiency 2026-11-13 实测）。
+**修法**：migrate/替换脚本改模板注释时保持注释块完整；验收加一条运行态断言：`getComputedStyle(document.documentElement).getPropertyValue('--brand')` 非空。

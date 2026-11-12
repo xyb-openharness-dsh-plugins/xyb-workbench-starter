@@ -1,3 +1,8 @@
+## 1.10.0-rc.50（2026-11-13，primary-immunodeficiency 夜班回流：裁剪+实测证据合法分支）
+
+- **check-trial-chain 新增「裁剪+实测证据」合法分支**（自测 4 例：BAD/GOOD/GOOD_TRIM/BAD_TRIM）：解决 L76（裁剪线也实跑 M4）与 hasData 四段要求的冲突——manifest `trimmed:true` + 样本 >0 + 无检索入口/无匹配后端 + 文案实测 N 条 → 通过；runner 增加 research 下 manifest.json 发现。来源：primary-immunodeficiency-workbench 被迫用 snapshot-* 命名绕开匹配的真实踩坑。
+- docs/LESSONS.md L96（上述冲突与修法）、L97（probe-page-view A4b 补焦轮询——两仓同模板二踩）、L98（模板头注释截断 :root 令牌块——目检才能发现，建议运行态 --brand 断言）。
+
 ## 1.10.0-rc.39（2026-11-12，acquired-hemophilia 两轮返工回流：临床线 + 多患者写入闭环「一次做对」提示词）
 
 - 新增 `prompts/PATIENT-DATA-AND-TRIALS-ONESHOT.md`：把两轮真实返工（0.2.0 临床线、0.3.0 写入闭环）固化成开工检查 + 实现清单 + 报数模板 + 7 条反模式。
