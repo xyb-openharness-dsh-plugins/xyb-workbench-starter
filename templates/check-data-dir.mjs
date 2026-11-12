@@ -67,6 +67,7 @@ export function check({ client, app, dsh, patch }) {
   if (patchHasRoot && dshReadsRoot) oks.push('③ cordis.patch.yml 有 config.root: dshHomePath(...)，dsh/index.js 读取 config.root')
   else fails.push(`③ 目录落点没接上：patch 有 dshHomePath=${patchHasRoot} · dsh 读 config.root=${dshReadsRoot}`)
 
+
   if (hasUnmountedNotice && !hit) fails.push('④ 只写了「目录未真实挂载」提示，没有任何选择动作——这正是"假入口"的形态')
   else if (hasUnmountedNotice) oks.push('④ 未挂载提示只作为降级文案出现（选择动作也在）')
   else oks.push('④ 未使用「未真实挂载」说法（有真实挂载路径时不需要）')
@@ -90,7 +91,7 @@ const GOOD = {
       await fetch(API + '/root', { method: 'POST', body: JSON.stringify({ dir }) })
     }`,
   app: "window.parent.postMessage({ type: 'x:dir', dir: window.__DIR__ }, location.origin)",
-  dsh: "export function apply(ctx, config) { const root = config?.root; if (!root) return reject('root 未配置') }",
+  dsh: "export function apply(ctx, config) { const root = config?.root; if (!root) return reject('root 未配置') }\nif (path === apiPrefix + '/root' && req.method === 'POST') { return sendJson(res, 200, { dir: source.setDataRoot(body.dir) }) }",
   patch: 'config:\n  root: !!js dshHomePath("x-workbench")\n',
 }
 
@@ -107,12 +108,21 @@ if (!existsSync(join(root, 'lib/client.js')) && !existsSync(join(root, 'public/a
   process.exit(2)
 }
 
-const dshAll = (() => {
+/* 服务端代码不一定在 dsh/：lung 在 lib/server/、breast 在 dsh/host.js。都拼进来再判。 */
+const readTreeJs = (dir, depth = 0) => {
+  if (depth > 2) return ''
+  let out = ''
   try {
-    const dir = join(root, 'dsh')
-    return readdirSync(dir).filter((f) => /\.(m?js)$/.test(f)).map((f) => read(`dsh/${f}`)).join('\n')
-  } catch { return read('dsh/index.js') }
-})()
+    for (const e of readdirSync(join(root, dir), { withFileTypes: true })) {
+      if (e.name.startsWith('.') || e.name === 'node_modules') continue
+      const rel = join(dir, e.name)
+      if (e.isDirectory()) out += '\n' + readTreeJs(rel, depth + 1)
+      else if (/\.(m?js)$/.test(e.name)) out += '\n' + read(rel)
+    }
+  } catch { /* 目录不存在 */ }
+  return out
+}
+const dshAll = readTreeJs('dsh') + readTreeJs('lib') + readTreeJs('src')
 const result = check({ client: read('lib/client.js'), app: read('public/app.js'), dsh: dshAll, patch: read('cordis.patch.yml') })
 for (const o of result.oks) console.log(`✓ ${o}`)
 for (const f of result.fails) console.error(`✗ ${f}`)

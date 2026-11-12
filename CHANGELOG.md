@@ -1,3 +1,15 @@
+## 1.10.0-rc.51（2026-11-13，ampullary 0.1.6「启动无内容」回流：smoke-activate 补真渲染）
+
+- **`templates/smoke-activate.mjs` 新增判据 6「Panel 真渲染一遍」**：注册下来的 Panel 用 conversation 两种形态真调用，
+  useEffect/useLayoutEffect 回调与清理函数同步执行并收抛错。此前只跑到 apply/register 且 useEffect 是空操作，
+  Panel 函数体从未执行——ampullary-workbench 0.1.6 引用从未声明的 `bridge`（可选链对未声明标识符不生效，
+  首渲染抛 ReferenceError，装机后业务区整片空白）因此一路绿灯漏到装机。
+- 桩件补齐真浏览器都有的全局（fetch/AbortController/三类 Observer/matchMedia/rAF/localStorage/location，
+  window 与顶层各放一份）；定时器加速并惰性化 setInterval，防真跑 effect 后轮询拖住进程。
+- 新增 `--self-test`：BAD 样本（0.1.6 的未声明 bridge 原样）必须红、GOOD（声明+注入）必须绿。
+- 实测：0.1.6 旧包被拦下（`bridge is not defined` 精确现形）；修复版 ampullary、attr、biliary-tract 三个在装兄弟仓全绿无误报。
+- docs/LESSONS.md L106。
+
 ## 未发布（2026-11-13，psc-workbench 夜班回流五条 L101–L105）
 
 - L101 认领发帖须自带 `claim` 标签（issue #73 实测）；L102 init 产物接线件缺 config.root 两半（patch 内嵌 + dsh 声明读取），建议模板内置；L103 底本移植的消息命名空间前缀残留检查（`<前仓>:` 扫描）；L104 git 443 抖动的三条换路径；L105 发作—缓解线 episode_events 可复用形状。
@@ -110,7 +122,17 @@
 
 ## 1.10.0-rc.21（2026-11-12，自 mds-workbench 0.2.1 重装机回收）
 
-> ### 1.10.0-rc.51 — 批量修补器 fix-data-dir.mjs（让 A 缺口可脚本化）
+> ### 1.10.0-rc.52 — 撤掉 check-data-dir 的 ⑤（不可靠的端点判据），改为修补器提示人工核对
+
+批量推 AC 桶时发现 **A 闸门有个盲区**：①-④ 全绿只证明"客户端会调 pickDirectory + 有口径 + patch 有 root"，**不证明服务端有接收目录切换的 POST 端点**。cll/ esophageal / gastric 实测：按钮会 POST 到不存在的路由 → 用户点了必然 404，而闸门是绿的。
+
+我试了两版自动判据（全局匹配、按路由形状匹配），都不可靠：
+- 放宽到"文件里有 POST + 出现过 /workspace" → esophageal/gastric 假绿（它们 routes.js 里根本没有 POST）；
+- 收紧到"=== 后紧跟引号包着的 /root" → lung/pericarditis/myeloma 假红（它们写的是 `pathname === apiPrefix + '/root'`）。
+
+**决定：撤掉 ⑤，不让闸门说谎**（假绿比没有闸门更贵）。改成在 `fix-data-dir.mjs` 末尾打印一行人工核对提示：*"服务端是否真有接收目录切换的 POST 端点（实际路径是 /api/x/...）；有就跳过，没有就补 /root 或 /settings/workspace + setDataRoot()"*。
+
+### 1.10.0-rc.51 — 批量修补器 fix-data-dir.mjs（让 A 缺口可脚本化）
 
 AC 桶里 10+ 个仓都只差「资料目录入口」，而每个仓的客户端结构不同（src/ 构建 vs lib/ 单文件、缩进 6/8/10、常量名不统一）。手改一次能过，下次又要在几百行 JSX 里找锚点。
 

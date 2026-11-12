@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * 激活烟测：在 Node 里把插件真的「装一遍」，而不是 grep 常量。
+ * 激活烟测：在 Node 里把插件真的「装一遍 + 渲染一遍」，而不是 grep 常量。
  *
  * ## 为什么要有这个脚本
  * 2026-10-25 head-neck-workbench 0.1.0–0.1.2 装进 Desktop 后
@@ -11,14 +11,27 @@
  * 喂一个 `window.__ModuleLoader__`、一个 `ctx`，让 `apply()` 真的跑一遍，
  * `register()` 按宿主原文的 7 条规则逐条校验。桩件不是宿主，但校验规则是抄来的。
  *
+ * ## 为什么还要有「渲染一遍」（判据 6，2026-11-13 补）
+ * ampullary-workbench 0.1.6 装机后业务区整片空白：Panel 引用了 `bridge`，
+ * 但模块里从未声明它——可选链 `bridge?.` 对**未声明标识符**不生效，
+ * 首渲染抛 `ReferenceError: bridge is not defined`，React 整棵崩掉。
+ * 此前本脚本只跑到 apply/register 为止，且 React 桩的 useEffect 是空操作，
+ * Panel 函数体从未执行，这类错静态与激活两层都拦不住。
+ * 现在把注册下来的 Panel 真调用两次（conversation 为 null / 桩会话），
+ * useEffect/useLayoutEffect 的回调也同步执行并收抛错。
+ *
  * 判据（任一不过即退出码 1）：
  *   1. `lib/client.js` 能在桩环境里求值，并抛出 `{apply, inject}`
  *   2. `inject` 含宿主必需的 `desktopWorkbenches`
  *   3. `apply()` 不抛错
  *   4. `register()` 被调用恰好一次，且描述符逐条通过宿主 7 条校验
  *   5. Panel 是函数（宿主 `typeof Component !== 'function'` 直接拒绝）
+ *   6. Panel 真渲染一遍不抛错（conversation 两种形态），effect 回调与清理函数同样收抛错
  *
- * 用法：node scripts/smoke-activate.mjs [包目录]，默认对**已安装的那个包**跑。
+ * 用法：
+ *   node scripts/smoke-activate.mjs [包目录]   默认对已安装的那份跑，找不到退回本仓
+ *   node scripts/smoke-activate.mjs --self-test  正反样本自测（BAD 必须红、GOOD 必须绿）
+ * 退出码：0 通过 / 1 激活或渲染会失败 / 2 环境（self-test 失败）
  */
 import { readFileSync, existsSync } from 'node:fs'
 import { join, dirname } from 'node:path'
@@ -26,6 +39,7 @@ import { fileURLToPath } from 'node:url'
 import { createContext, runInContext } from 'node:vm'
 
 const HERE = dirname(fileURLToPath(import.meta.url))
+const SELF_TEST = process.argv.includes('--self-test')
 
 /** 默认项目根；可传参指向**已装进去的那一份** */
 function candidates() {
@@ -37,9 +51,6 @@ function candidates() {
     join(HERE, '..'),
   ].filter(Boolean)
 }
-
-const problems = []
-const notes = []
 
 /* ---------------- 宿主 7 条校验（抄自 app.asar → dsh-desktop-workbenches/client.js 的 register） ---------------- */
 const REPO_RE = /^https:\/\/github\.com\/([a-zA-Z0-9_.-]+)\/([a-zA-Z0-9_.-]+?)(?:\.git)?\/?$/i
@@ -70,18 +81,68 @@ function hostRegisterCheck(descriptor, Component) {
   return bad
 }
 
-/* ---------------- 桩件 ---------------- */
+/* ---------------- 桩件（每次运行独立一份，self-test 与正式跑互不污染） ---------------- */
 function makeStubs() {
   const registered = []
+  const problems = []
+  const notes = []
+  const cleanups = []
+
+  /* 常用浏览器全局：window 与顶层各放一份（client 里裸 fetch/localStorage 很常见）。
+     真浏览器都有的东西这里缺了不算项目错——缺哪个补哪份，别因此放宽渲染判据。 */
+  const FakeAbortController = typeof AbortController !== 'undefined'
+    ? AbortController
+    : class { constructor() { this.signal = { aborted: false } } abort() { this.signal.aborted = true } }
+  const NullObserver = class { observe() {} unobserve() {} disconnect() {} }
+  const globals = {
+    fetch: async () => ({ ok: true, status: 200, headers: { get: () => 'text/html' }, json: async () => ({}), text: async () => '' }),
+    AbortController: FakeAbortController,
+    localStorage: { getItem: () => null, setItem() {}, removeItem() {}, clear() {} },
+    location: { origin: 'http://127.0.0.1:0', hostname: '127.0.0.1', href: 'http://127.0.0.1:0/' },
+    matchMedia: () => ({ matches: false, media: '', addEventListener() {}, removeEventListener() {}, addListener() {}, removeListener() {} }),
+    ResizeObserver: NullObserver,
+    MutationObserver: NullObserver,
+    IntersectionObserver: NullObserver,
+    requestAnimationFrame: () => 0,
+    cancelAnimationFrame: () => {},
+    /* 定时器加速/惰性化：真跑 effect 后项目里的轮询 setInterval 会拖住进程不退出 */
+    setTimeout: (fn, _ms, ...args) => setTimeout(fn, 1, ...args),
+    clearTimeout: (id) => clearTimeout(id),
+    setInterval: () => 0,
+    clearInterval: () => {},
+    console,
+  }
+
   const react = {
     createElement: (type, props, ...children) => ({ type, props, children }),
     useState: (init) => [typeof init === 'function' ? init() : init, () => {}],
-    useEffect: () => {},
+    /* effect 真的执行：首渲染会炸的代码多半藏在这里（订阅、探活、定时器） */
+    useEffect: (fn) => {
+      try {
+        const off = fn()
+        if (typeof off === 'function') cleanups.push(off)
+      } catch (e) {
+        problems.push(`useEffect 回调抛错：${e.message}`)
+      }
+    },
+    useLayoutEffect: (fn) => {
+      try {
+        const off = fn()
+        if (typeof off === 'function') cleanups.push(off)
+      } catch (e) {
+        problems.push(`useLayoutEffect 回调抛错：${e.message}`)
+      }
+    },
     useRef: (v) => ({ current: v }),
     useMemo: (fn) => fn(),
     useCallback: (fn) => fn,
+    useReducer: (_reducer, init) => [typeof init === 'function' ? init() : init, () => {}],
+    useContext: () => undefined,
+    useId: () => 'smoke-r0',
+    useSyncExternalStore: (_subscribe, getSnapshot) => getSnapshot(),
     Fragment: 'Fragment',
   }
+
   const ctx = {
     effect: (fn) => { try { fn() } catch (e) { problems.push(`ctx.effect 里的注册抛错：${e.message}`) } },
     on: () => {},
@@ -101,44 +162,47 @@ function makeStubs() {
     connection: { requestRejection: () => undefined },
     webServer: { register: () => {} },
   }
+
   const win = {
+    ...globals,
     __ModuleLoader__: { load: (mod) => { win.__mod = mod } },
-    matchMedia: () => ({ matches: false, addEventListener() {}, removeEventListener() {} }),
     addEventListener() {}, removeEventListener() {},
-    location: { origin: 'http://127.0.0.1:0', hostname: '127.0.0.1' },
-    localStorage: { getItem: () => null, setItem() {}, removeItem() {} },
-    setTimeout, clearTimeout, setInterval, clearInterval,
-    fetch: async () => ({ ok: true, json: async () => ({}) }),
-    console,
+    dispatchEvent: () => true,
   }
-  return { win, ctx, react, registered }
+  const doc = {
+    addEventListener() {}, removeEventListener() {},
+    createElement: () => ({ style: {}, setAttribute() {}, appendChild() {}, removeChild() {}, addEventListener() {}, remove() {}, textContent: '', className: '' }),
+    createTextNode: (t) => ({ textContent: t }),
+    querySelector: () => null,
+    querySelectorAll: () => [],
+    body: { appendChild() {}, removeChild() {}, addEventListener() {} },
+    head: { appendChild() {} },
+    documentElement: { style: {} },
+  }
+  return { win, ctx, react, registered, problems, notes, cleanups, globals, doc }
 }
 
-function main() {
-  const root = candidates().find((p) => p && existsSync(join(p, 'lib/client.js')))
-  if (!root) { console.error('找不到 lib/client.js，请传包目录'); process.exit(2) }
-  const src = readFileSync(join(root, 'lib/client.js'), 'utf8')
-
-  const { win, ctx, react, registered } = makeStubs()
+/* ---------------- 装一遍 + 渲染一遍 ---------------- */
+function runSource(src, { label = 'lib/client.js' } = {}) {
+  const { win, ctx, react, registered, problems, notes, cleanups, globals, doc } = makeStubs()
   const sandbox = {
     window: win,
-    document: { addEventListener() {}, removeEventListener() {}, createElement: () => ({}), body: {}, documentElement: {} },
+    document: doc,
     navigator: { userAgent: 'node' },
-    console,
-    setTimeout, clearTimeout, setInterval, clearInterval,
+    ...globals,
   }
   sandbox.globalThis = sandbox
   sandbox.self = sandbox
 
   try {
-    runInContext(src, createContext(sandbox), { filename: 'lib/client.js' })
+    runInContext(src, createContext(sandbox), { filename: label })
   } catch (error) {
-    console.error(`✗ 求值 lib/client.js 失败：${error.message}`)
-    process.exit(1)
+    problems.push(`求值 ${label} 失败：${error.message}`)
+    return { problems, notes }
   }
 
   const mod = win.__mod
-  if (!mod) { console.error('✗ 没有调用 window.__ModuleLoader__.load()——宿主不会把它当插件'); process.exit(1) }
+  if (!mod) { problems.push('没有调用 window.__ModuleLoader__.load()——宿主不会把它当插件'); return { problems, notes } }
   notes.push(`模块 id：${mod.id}`)
 
   let exported
@@ -148,8 +212,8 @@ function main() {
       throw new Error(`烟测未提供模块：${name}`)
     })
   } catch (error) {
-    console.error(`✗ factory() 抛错：${error.message}`)
-    process.exit(1)
+    problems.push(`factory() 抛错：${error.message}`)
+    return { problems, notes }
   }
 
   if (!exported || typeof exported.apply !== 'function') problems.push('没有导出 apply()')
@@ -167,13 +231,89 @@ function main() {
     const { descriptor, Component } = registered[0]
     notes.push(`标题：${descriptor.title}`)
     notes.push(`customFrame：${descriptor.customFrame}｜businessSide：${descriptor.layout?.businessSide}｜businessWidth：${descriptor.layout?.businessWidth}`)
-    if (typeof Component !== 'function') problems.push('Panel 不是函数，宿主会直接拒绝注册')
-    // 会话区与业务区不能互相挤压：这两块之和超过 1 就会在真机上互相压
-    const width = descriptor.layout?.businessWidth
-    if (Number.isFinite(width) && width + 0.32 > 1) {
-      problems.push(`businessWidth(${width}) + 会话默认占比(0.32) > 1，两区会互相挤压`)
+    if (typeof Component !== 'function') {
+      problems.push('Panel 不是函数，宿主会直接拒绝注册')
+    } else {
+      // 会话区与业务区不能互相挤压：这两块之和超过 1 就会在真机上互相压
+      const width = descriptor.layout?.businessWidth
+      if (Number.isFinite(width) && width + 0.32 > 1) {
+        problems.push(`businessWidth(${width}) + 会话默认占比(0.32) > 1，两区会互相挤压`)
+      }
+      /* 判据 6：把 Panel 真调用一遍。
+         ampullary 0.1.6 的 bridge ReferenceError 只有走到这一步才现形——
+         可选链对未声明标识符不生效，首渲染即抛，装机后业务区整片空白。 */
+      const propVariants = [
+        { conversation: null },
+        { conversation: react.createElement('div', null, 'stub-conversation') },
+      ]
+      for (const props of propVariants) {
+        try {
+          const tree = Component(props)
+          if (tree == null) notes.push(`Panel(${props.conversation === null ? '无会话' : '有会话'}) 返回空树`)
+        } catch (error) {
+          problems.push(`Panel 渲染抛错（装机后用户看到的就是一片空白）：${error.message}`)
+        }
+      }
+      /* effect 清理函数也跑一遍：不少组件在 cleanup 里再碰一次宿主桥 */
+      for (const off of cleanups) {
+        try { off() } catch (error) { problems.push(`effect 清理函数抛错：${error.message}`) }
+      }
     }
   }
+
+  return { problems, notes }
+}
+
+/* ---------------- self-test：BAD 必须红（ampullary 0.1.6 的 bridge 原样），GOOD 必须绿 ---------------- */
+function selfTest() {
+  const BAD = `
+window.__ModuleLoader__.load({ id: 'self-test-bad', factory(require) {
+  const React = require('react')
+  function Panel() {
+    const [tick, setTick] = React.useState(0)
+    React.useEffect(() => { bridge?.desktopWorkbenches?.subscribe?.(() => setTick((n) => n + 1)) }, [])
+    return React.createElement('div', null, String(tick))
+  }
+  function apply(ctx) {
+    ctx.effect(() => ctx.desktopWorkbenches.register(
+      { title: 'self-test-bad', repository: 'https://github.com/xyb-openharness-dsh-plugins/self-test-bad' }, Panel))
+  }
+  return { apply, inject: ['desktopWorkbenches'] }
+} })`
+  const GOOD = `
+window.__ModuleLoader__.load({ id: 'self-test-good', factory(require) {
+  const React = require('react')
+  let bridge = null
+  function Panel() {
+    const [tick, setTick] = React.useState(0)
+    React.useEffect(() => { const off = bridge?.desktopWorkbenches?.subscribe?.(() => setTick((n) => n + 1)); return () => { off?.() } }, [])
+    return React.createElement('div', null, String(tick))
+  }
+  function apply(ctx) {
+    bridge = ctx
+    ctx.effect(() => ctx.desktopWorkbenches.register(
+      { title: 'self-test-good', repository: 'https://github.com/xyb-openharness-dsh-plugins/self-test-good' }, Panel))
+  }
+  return { apply, inject: ['desktopWorkbenches'] }
+} })`
+
+  const bad = runSource(BAD, { label: 'self-test-bad.js' })
+  const good = runSource(GOOD, { label: 'self-test-good.js' })
+  const badCaught = bad.problems.some((p) => /Panel 渲染抛错|useEffect 回调抛错/.test(p) && /bridge is not defined/.test(p))
+  const goodClean = good.problems.length === 0
+  console.log(`${badCaught ? 'PASS' : 'FAIL'}  self-test BAD（未声明 bridge 的 0.1.6 原样）被拦下${badCaught ? '' : '：' + JSON.stringify(bad.problems)}`)
+  console.log(`${goodClean ? 'PASS' : 'FAIL'}  self-test GOOD（声明 + 注入 bridge）不误报${goodClean ? '' : '：' + good.problems.join(' | ')}`)
+  process.exit(badCaught && goodClean ? 0 : 2)
+}
+
+function main() {
+  if (SELF_TEST) return selfTest()
+
+  const root = candidates().find((p) => p && existsSync(join(p, 'lib/client.js')))
+  if (!root) { console.error('找不到 lib/client.js，请传包目录'); process.exit(2) }
+  const src = readFileSync(join(root, 'lib/client.js'), 'utf8')
+
+  const { problems, notes } = runSource(src)
 
   console.log(`激活烟测：${root}`)
   for (const n of notes) console.log(`  · ${n}`)
@@ -182,7 +322,7 @@ function main() {
     for (const p of problems) console.log(`  - ${p}`)
     process.exit(1)
   }
-  console.log('\n✓ PASS —— apply() 走通、register() 描述符逐条通过宿主 7 条校验（桩件，非真宿主）')
+  console.log('\n✓ PASS —— apply() 走通、register() 描述符过宿主 7 条校验、Panel 两种会话形态渲染不炸（桩件，非真宿主）')
 }
 
 main()

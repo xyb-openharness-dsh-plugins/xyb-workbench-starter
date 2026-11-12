@@ -23,9 +23,20 @@ const args = process.argv.slice(2)
 const root = resolve(args[0] || '.')
 const slug = (args.includes('--slug') ? args[args.indexOf('--slug') + 1] : null) || root.split('/').pop().replace(/-workbench$/, '')
 const DRY = args.includes('--dry')
-const apiRoot = `/api/${slug}/api/root`
+/* 端点名按仓里实际有的来：/root、/settings/workspace、/workspace 都有仓在用；
+   硬编码 /root 会在"仓里其实叫 /settings/workspace"时让按钮 404。 */
+const probe = (() => {
+  const tryRead = (rel) => { try { return readFileSync(join(root, rel), 'utf8') } catch { return '' } }
+  const text = ['dsh/routes.js', 'dsh/server.js', 'dsh/index.js'].map(tryRead).join('\n')
+  if (new RegExp(`/api/${slug}/settings/workspace`).test(text)) return `/api/${slug}/settings/workspace`
+  if (/settings\/workspace/.test(text)) return `/api/${slug}/settings/workspace`
+  if (/\/api\/workspace['\"]/.test(text)) return '/api/workspace'
+  return `/api/${slug}/api/root`
+})()
+const apiRoot = probe
 
-const candidate = ['lib/client.js', 'src/client.js'].map((p) => join(root, p)).find((p) => existsSync(p))
+/* 真源优先：有 src/client.js 的仓，lib/client.js 是构建产物（直接改会被下次 build 冲掉）。 */
+const candidate = ['src/client.js', 'lib/client.js'].map((p) => join(root, p)).find((p) => existsSync(p))
 if (!candidate) {
   console.error('✗ 用法：node scripts/fix-data-dir.mjs <项目根>（找不到 lib/client.js 或 src/client.js）')
   process.exit(2)
@@ -48,9 +59,9 @@ const r = (re, rep, label, required = true, marker = null) => {
 r(/(?:^|\n)( *)(function Panel\()/m, (_m, indent, head) => `
 ${indent}/* 资料目录：口径与服务端同一条规则（服务端会再判一遍） */
 ${indent}const DATA_ROOT_URL = '${apiRoot}'
-${indent}const HOME_EXACT = String.raw`^(\/Users\/[^/]+|\/home\/[^/]+|\/root|[A-Za-z]:\\Users\\[^\\]+)$`
-${indent}const FORBIDDEN_DIR = String.raw`((Desktop|桌面)$|(Downloads?|下载(夹)?)$|^(\/tmp|\/private\/tmp|\/var\/folders\/|\/private\/var\/folders\/))`
-${indent}const isForbiddenDir = (dir) => new RegExp(HOME_EXACT, 'i').test(dir) || new RegExp(FORBIDDEN_DIR, 'i').test(dir)
+${indent}const HOME_EXACT = new RegExp('^(\\\\/Users\\\\/[^/]+|\\\\/home\\\\/[^/]+|\\\\/root|[A-Za-z]:\\\\\\\\Users\\\\\\\\[^\\\\\\\\]+)$', 'i')
+${indent}const FORBIDDEN_DIR = new RegExp('((Desktop|桌面)$|(Downloads?|下载(夹)?)$|^(\\\\/tmp|\\\\/private\\\\/tmp|\\\\/var\\\\/folders\\\\/|\\\\/private\\\\/var\\\\/folders\\\\/))', 'i')
+${indent}const isForbiddenDir = (dir) => HOME_EXACT.test(dir) || FORBIDDEN_DIR.test(dir)
 
 ${indent}${head}`,
   '模块常量（DATA_ROOT_URL / 口径正则）', true, 'DATA_ROOT_URL')
@@ -148,3 +159,4 @@ if (DRY) {
 }
 writeFileSync(candidate, src)
 console.log(`\n✓ 已写入 ${candidate.replace(root + '/', '')}`)
+if (candidate.endsWith('src/client.js')) console.log('· 这是真源：记得跑该仓的 build:client 重新生成 lib/client.js')

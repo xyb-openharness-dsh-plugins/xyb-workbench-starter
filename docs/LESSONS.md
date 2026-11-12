@@ -786,3 +786,9 @@ L1/L3 会拦 clinicaltrials.gov/ 这种裸域名）；③验收必须「双探�
 
 - **来源**：2026-11-13 psc（首发作—缓解线）。`episode_events`（end_date IS NULL=发作未记缓解）+「近 90 天发作次数读时算」+ 折叠卡 details.phase-fold 单元=一次发作，可平移到复发—缓解型非肿瘤病种。
 - **去向**：templates/ 候选；与 L95 的 subjects 写入闭环一并复用。
+
+### L106 · 可选链对「未声明标识符」不生效：`bridge?.` 从未声明时首渲染即炸，静态闸门全拦不住
+
+- **来源**：2026-11-13 ampullary-workbench 0.1.6 装机后「启动无内容」——业务区整片空白。Panel 与 effect 里 30 处引用 `bridge`，但工厂里既没有 `let bridge` 声明也没有 `apply(ctx)` 里的 `bridge = ctx` 赋值（attr-workbench 同款两连击只学了一半）。`check-agent-pane-contract`（正则找字符串）与 `smoke-activate`（apply/register 层）双双全绿，因为 Panel 函数体从未被执行过。
+- **修法**：业务仓补 `let bridge = null` + `apply(ctx)` 首行 `bridge = ctx`（0.1.7）；starter 侧 `smoke-activate.mjs` 升判据 6「Panel 真渲染一遍」（conversation 两种形态 + effect/清理函数同步执行），桩件补齐浏览器全局。
+- **教训**：**检查链的覆盖终点必须落到「组件真渲染一次」**——只验到 register 描述符的烟测，等价于只验了「装得上」，验不了「打开始终有内容」。凡宿主回调（Panel/组件/effect 回调）都要在桩件里真调用一次；`useEffect: () => {}` 这类空操作桩等于把最危险的一层跳过了。
