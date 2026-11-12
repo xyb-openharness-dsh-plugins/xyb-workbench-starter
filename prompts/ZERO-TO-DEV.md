@@ -1,4 +1,4 @@
-# 从一个癌种名到可运行开发版：一次性交付提示词 v1.5（发起层见 prompts/CANCER-KICKOFF.md v2.0）
+# 从一个癌种名到可运行开发版：一次性交付提示词 v1.6（发起层见 prompts/CANCER-KICKOFF.md v2.0）
 
 > 用法：把「你是…」到文件结尾整段复制给一个新会话，先填四个空：癌种中文名 / 癌种英文名 / 目标目录 / 样板基准。
 > **v1.5 必读**：开工前先看 §1.3.1「三条不可让步」（配置目录真入口 / 临床四段可用 / 新建患者写库），细则与报数模板见 [PATIENT-DATA-AND-TRIALS-ONESHOT](PATIENT-DATA-AND-TRIALS-ONESHOT.md)。这两组是 2026-11-12 两仓返工的原始错因。  
@@ -507,6 +507,23 @@ README.md / CHANGELOG.md / VERSION / package.json
 6. **仓库 private 导致表里链接 404 属预期**，不要为了"链接能点"去改可见性；在 PR 里注明一句即可。
 
 ---
+
+## 交付流水线（四步不可跳，跳哪步都会返工）
+
+> 顺序是硬性的：**开发 → 独立体检 → 验收自修 → 装机**。每一步的产物是下一步的输入；"我自己觉得挺好"不是任一步的替代品。
+
+| 步 | 跑什么 | 出处 | 通过判据 | 不允许的说法 |
+| --- | --- | --- | --- | --- |
+| D1 开发完成 | 三条不可让步 + 五件门禁（见 §1.3.1） | 本文 §1.3.1 + [PATIENT-DATA-AND-TRIALS-ONESHOT](PATIENT-DATA-AND-TRIALS-ONESHOT.md) | 五个闸门 exit 0，各自 `--self-test` 能红 | "差不多对齐了" |
+| D2 独立体检 | 逐项审查 A 视觉对齐 / B 菜单完整性 / C 设置三 tab / D 一图秀 / E 录入窗口 / F 数据层 / G 红线 / H 回归交付 | [FAMILY-INSPECTOR](FAMILY-INSPECTOR.md) | 每项四态（通过/失败/跳过/待人工），P0 清零；审查人不改代码，只出报告 | "我自查过了" |
+| D3 验收自修 | DP 疾病概要 / A 设置弹层 / B 功能线完整 / C 试验匹配 / D 指标卡 / E 录入窗口 / F 修复铁律，命中即修 + 回归 | [USER-ACCEPTANCE-AUTOFIX](USER-ACCEPTANCE-AUTOFIX.md) | 修完**全量复跑**；同类修 2 轮仍红 → 停手写停修报告 | "修好了，没复跑" |
+| D4 装机实测 | pack → profile 装 → 重开 Desktop → 点「AI 对话」/「配置目录」/新建档案 | [DEPLOY-INSTALL-KICKOFF](DEPLOY-INSTALL-KICKOFF.md) + `scripts/check-profile.mjs` | 装机副本版本=刚打的那版；面板能开、目录能选、档案能建 | "装上了应该没问题" |
+
+**D2 与 D3 的分工**：D2 是**别人**（或独立会话）审，产出问题清单；D3 是**开发自己**按验收常见病自检并当场修复。两者都跑过才算"体检过"。
+
+**D3 之后要重跑 D1**：修复会引入新的分叉（改了 public 忘了改原型、加了页没进探针），所以修完必须把 §1.3.1 的五件门禁再跑一遍，数字照抄进报告。
+
+**本地若有 `night_dev_dsh_workbench.md`（夜纲）**：它 = [FULL-CYCLE-KICKOFF](FULL-CYCLE-KICKOFF.md)（M0–M9/运行模式/闸口签认/省 token/回流）+ [WORKBENCH-DEV-CHECKLIST](WORKBENCH-DEV-CHECKLIST.md)（15 节检查点）的合成体。以 starter 里这两份为准；本地那份可以删，不要两份并行维护。
 
 ## 交付前最后一道：家族一致性 audit（可执行，不靠自述）
 

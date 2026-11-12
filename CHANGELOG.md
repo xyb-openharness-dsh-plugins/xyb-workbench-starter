@@ -100,7 +100,17 @@
 
 ## 1.10.0-rc.21（2026-11-12，自 mds-workbench 0.2.1 重装机回收）
 
-> ### 1.10.0-rc.42 — ZERO-TO-DEV v1.5：把两组返工前置成「三条不可让步」
+> ### 1.10.0-rc.43 — ZERO-TO-DEV v1.6：交付流水线四步（开发→体检→验收自修→装机）
+
+用户问「夜纲 / FAMILY-INSPECTOR / USER-ACCEPTANCE-AUTOFIX 要不要加进提示词」。核对结论：**三份都已在 starter 里**，问题是没串成顺序——ZERO 只说"可以读"，没说"必须按序跑、跑完才能进下一步"。
+
+- ZERO-TO-DEV 升 v1.6，新增 **§交付流水线（四步不可跳）**：D1 开发完成（§1.3.1 三不可让步 + 五件门禁）→ D2 独立体检（FAMILY-INSPECTOR，别人审、只出报告）→ D3 验收自修（USER-ACCEPTANCE-AUTOFIX，命中即修 + 全量复跑，同类 2 轮封顶）→ D4 装机实测（DEPLOY-INSTALL + `check-profile.mjs`）。每步给了通过判据与**不允许的说法**。明确 D2/D3 分工与"修完必须重跑 D1"。
+- 写明 **本地 `night_dev_dsh_workbench.md`（夜纲）= FULL-CYCLE-KICKOFF + WORKBENCH-DEV-CHECKLIST 的合成体**，以 starter 两份为准，本地那份可删，不并行维护。
+- 核对 `pericarditis-workbench` 的 USER-ACCEPTANCE-AUTOFIX：**starter 版更新**（已加沉淀出处、参考实现仓、`<slug>` 参数化、primer 参考路径），25 行差异都是 starter 侧的增强，无需回灌。
+- README 索引补一行四步流水线。
+
+
+### 1.10.0-rc.42 — ZERO-TO-DEV v1.5：把两组返工前置成「三条不可让步」
 
 2026-11-12 两仓（acquired-hemophilia / cidp）同天在两处返工：①配置目录按钮只有说明弹窗，没实现选目录；②临床试验用「候选池个位数／召回不可靠」推断裁掉，实测有数据。同批全家族体检又发现第三类共性错误：只有 demo 档案、没有新建入口（66 个目录只 1 个过）。
 
