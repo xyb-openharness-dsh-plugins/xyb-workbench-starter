@@ -1,3 +1,8 @@
+## 未发布（2026-11-13，psc-workbench 夜班回流五条 L101–L105）
+
+- L101 认领发帖须自带 `claim` 标签（issue #73 实测）；L102 init 产物接线件缺 config.root 两半（patch 内嵌 + dsh 声明读取），建议模板内置；L103 底本移植的消息命名空间前缀残留检查（`<前仓>:` 扫描）；L104 git 443 抖动的三条换路径；L105 发作—缓解线 episode_events 可复用形状。
+- 回流来源：psc-workbench（2026-11-13 夜班，issue #73）。检查器待实施：probe-one-chart.mjs（C1/C2/C6 手工口径已实测：三 path bbox 高全 198、单点 path=0/circle=3、末点标签 text-anchor=end 后 outside=0）。
+
 ## 1.10.0-rc.50（2026-11-13，primary-immunodeficiency 夜班回流：裁剪+实测证据合法分支）
 
 - **check-trial-chain 新增「裁剪+实测证据」合法分支**（自测 4 例：BAD/GOOD/GOOD_TRIM/BAD_TRIM）：解决 L76（裁剪线也实跑 M4）与 hasData 四段要求的冲突——manifest `trimmed:true` + 样本 >0 + 无检索入口/无匹配后端 + 文案实测 N 条 → 通过；runner 增加 research 下 manifest.json 发现。来源：primary-immunodeficiency-workbench 被迫用 snapshot-* 命名绕开匹配的真实踩坑。

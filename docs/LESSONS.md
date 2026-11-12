@@ -756,3 +756,33 @@ L1/L3 会拦 clinicaltrials.gov/ 这种裸域名）；③验收必须「双探�
 ### L98 · 模板头注释截断 :root 令牌块：页面照渲染、样式全丢，探针测不出
 **教训**：sed 替换原型 style.css 首行注释时把三行注释截成两段，`*/` 后残句成为非法语句，CSS 错误恢复吞掉下一个规则块（正好是 `:root` 令牌）。结果：布局还在（结构规则独立）、品牌变量全空、无报错、探针全绿——只有截图目检能发现（primary-immunodeficiency 2026-11-13 实测）。
 **修法**：migrate/替换脚本改模板注释时保持注释块完整；验收加一条运行态断言：`getComputedStyle(document.documentElement).getPropertyValue('--brand')` 非空。
+
+
+### L101 · /claim 机器人要求 issue 自带 `claim` 标签：发帖时就要加
+
+- **来源**：2026-11-13 PSC 认领（issue #73）。`gh issue create` 不带标签，机器人首答「这个 Issue 没有 claim 标签」并拒绝登记；`gh issue edit --add-label claim,triage` 补挂后重发 `/claim` 才过。
+- **修法**：认领发帖一步到位：`gh issue create --label claim,triage --title "[认领] …" --body-file …`，不要等机器人打回再补。
+- **教训**：**认领流程的"发帖→机器人确认"是一条链**，链上任何一环缺参数都会吃掉一次重试轮次（无人值守下就是几分钟排队）。
+
+### L102 · starter init 生成的接线件缺 config.root：check-data-dir ③ 红在第一晚
+
+- **来源**：2026-11-13 psc-workbench init 产物。`cordis.patch.yml` 无 `config.root: !!js dshHomePath('<slug>')`，`dsh/index.js` 的 `Config` 不声明 root、`apply` 不读 `config?.root`——资料目录闸门 ③（patch 有 dshHomePath · dsh 读 config.root）直接红；装机后表现是服务去默认目录找库、404/空档案。
+- **修法**：两处补齐（patch 的 insert 项内嵌 `config: { root: !!js dshHomePath('<slug>') }`；dsh/index.js `Config` 声明 root 列并在 apply 里 `config?.root`）。模板侧应内置。
+- **教训**：**「配置了 config.root」≠「服务端声明并读取该目录」**——两半都要有，缺哪半都是静默错位。
+
+### L103 · 家族底本移植时消息命名空间残留：`<前仓>:` 前缀必须整体换
+
+- **来源**：2026-11-13 psc 自 pbc 移植。bridge.js/app.js 的 `pbc:agent-draft`/`pbc:ui-ready`/`pbc:agent-open` 残留，与 lib/client.js 监听的 `psc:agent-draft` 不匹配——独立评审判 P1，桥穿断言会红。
+- **修法**：移植底本后全仓扫 `grep -rn "<前仓 slug>:"`，消息类型、localStorage key（`<slug>.agentWidth`）、导出文件名一并换成本仓 slug；探针 stub 的事件类型也要同步。
+- **教训**：**协议前缀是"看不见的病种语义"**——禁词 grep 只扫中文病种词抓不到它，要单独一条移植检查。
+
+### L104 · git 直连 443 抖动（DNS 到失活 IP）：换路径不计入重试上限
+
+- **来源**：2026-11-13 夜班，`git clone/push` 连续 75s 超时，但 `gh api` 与 codeload 均通；默认解析 IP 失活、备用 IP 可达。
+- **修法**：依次试——① 直连重试循环（当晚克隆第 5 次、push 第 2 次成功）；② 本地 Node CONNECT 中继 + `git -c http.proxy=http://127.0.0.1:<port>` + `http.version=HTTP/1.1`；③ codeload tarball（只读仓）。
+- **教训**：**判"任务错"还是"路径错"**：同命令重试 2 次仍挂但其他端点活着 → 路径错，换路径不计上限。
+
+### L105 · 非肿瘤底本移植的发作—缓解线：episode_events 是可复用形状
+
+- **来源**：2026-11-13 psc（首发作—缓解线）。`episode_events`（end_date IS NULL=发作未记缓解）+「近 90 天发作次数读时算」+ 折叠卡 details.phase-fold 单元=一次发作，可平移到复发—缓解型非肿瘤病种。
+- **去向**：templates/ 候选；与 L95 的 subjects 写入闭环一并复用。
