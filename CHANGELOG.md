@@ -100,7 +100,16 @@
 
 ## 1.10.0-rc.21（2026-11-12，自 mds-workbench 0.2.1 重装机回收）
 
-> ### 1.10.0-rc.48 — check-patient-create 两处硬伤：漏读子目录 + 只认一种命名
+> ### 1.10.0-rc.49 — 两个闸门再修假红：服务端选择器与模块化页面
+
+批量补齐 breast 时暴露，两处都会把**实现完整的仓**判红：
+
+1. `check-data-dir` ①只认客户端 `pickDirectory`——breast 由**宿主侧** `POST /api/fs/pick` 弹系统面板，同样是真的目录选择。扩词表加 `fs/pick` 形态。③只读 `dsh/index.js`——breast 在 `dsh/host.js` 读 `config.root`。改为拼接整个 `dsh/` 目录再判。
+2. `check-trial-chain` 的 UI 只读 `lib/client.js` / `public/app.js`——breast 把页面拆在 `public/js/pages-more.js`，四段明明齐了却判"缺收藏"。改为递归扫 `public/` 两层。
+
+`--self-test` 均仍能红。注意：修正后 breast 的 A 由红翻绿（真实现早就在），说明**闸门的误判和漏判一样贵**——误判会让人去改一个没坏的东西。
+
+### 1.10.0-rc.48 — check-patient-create 两处硬伤：漏读子目录 + 只认一种命名
 
 批量补齐 lung 时暴露，两处都会把**已经做对的仓**判红：
 

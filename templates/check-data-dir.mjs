@@ -18,7 +18,7 @@
  *   node scripts/check-data-dir.mjs --self-test      # 反例必须能红
  * 退出码：0 通过 / 1 失败 / 2 用法错误
  */
-import { existsSync, readFileSync } from 'node:fs'
+import { existsSync, readFileSync, readdirSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 
 const SELF_TEST = process.argv.includes('--self-test')
@@ -36,6 +36,8 @@ export function check({ client, app, dsh, patch }) {
     ['pickDirectory', /pickDirectory\s*\(/],
     ['showDirectoryPicker', /showDirectoryPicker\s*\(/],
     ['webkitdirectory', /webkitdirectory/],
+    /* 服务端原生选择器也算真动作（breast 用 POST /api/fs/pick 由宿主弹出系统面板） */
+    ['server picker', /\/api\/fs\/pick|fs\/pick|nativePicker|pick\/native/i],
   ]
   const hit = pickerPatterns.find(([, re]) => re.test(code))
 
@@ -50,6 +52,8 @@ export function check({ client, app, dsh, patch }) {
   const guardOk = hasGuard && reasons.length >= 3
 
   const patchHasRoot = /root:\s*!!js\s*dshHomePath\(/.test(patch)
+  /* dsh/ 下的任何一个文件读 config.root 都算（breast 在 dsh/host.js 里读）。
+     调用方传进来的 dsh 是**整个 dsh 目录拼接**，这里不再只认 index.js。 */
   const dshReadsRoot = /config\??\.root|config\.root/.test(stripComments(dsh))
 
   const hasUnmountedNotice = /目录未真实挂载|未真实挂载/.test(code)
@@ -103,7 +107,13 @@ if (!existsSync(join(root, 'lib/client.js')) && !existsSync(join(root, 'public/a
   process.exit(2)
 }
 
-const result = check({ client: read('lib/client.js'), app: read('public/app.js'), dsh: read('dsh/index.js'), patch: read('cordis.patch.yml') })
+const dshAll = (() => {
+  try {
+    const dir = join(root, 'dsh')
+    return readdirSync(dir).filter((f) => /\.(m?js)$/.test(f)).map((f) => read(`dsh/${f}`)).join('\n')
+  } catch { return read('dsh/index.js') }
+})()
+const result = check({ client: read('lib/client.js'), app: read('public/app.js'), dsh: dshAll, patch: read('cordis.patch.yml') })
 for (const o of result.oks) console.log(`✓ ${o}`)
 for (const f of result.fails) console.error(`✗ ${f}`)
 console.log(result.pass ? '\n✓ 资料目录闸门通过' : '\n✗ 资料目录闸门未通过：按钮必须真的能选目录并落盘')

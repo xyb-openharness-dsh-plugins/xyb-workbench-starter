@@ -96,7 +96,22 @@ if (!existsSync(join(root, 'lib/client.js')) && !existsSync(join(root, 'public/a
   process.exit(2)
 }
 
-const ui = `${read('lib/client.js')}\n${read('public/app.js')}\n${read('lib/client-trials.js')}`
+/* UI 代码不一定都在 app.js：breast 把页面拆在 public/js/*.js 里。
+   扫 public/ 下两层所有 js（排除 vendor/node_modules），否则真实页面被判"没实现"。 */
+function readTree(dir, depth = 0) {
+  if (depth > 2) return ''
+  let out = ''
+  try {
+    for (const e of readdirSync(join(root, dir), { withFileTypes: true })) {
+      if (e.name.startsWith('.') || e.name === 'node_modules') continue
+      const rel = join(dir, e.name)
+      if (e.isDirectory()) { out += '\n' + readTree(rel, depth + 1); continue }
+      if (/\.(m?js)$/.test(e.name)) out += '\n' + read(rel)
+    }
+  } catch { /* 目录不存在就跳过 */ }
+  return out
+}
+const ui = `${read('lib/client.js')}\n${read('public/app.js')}\n${readTree('public')}\n${read('lib/client-trials.js')}`
 const backend = `${read('dsh/index.js')}\n${read('dsh/workbench.js')}`
 const docs = `${read('docs/CLINICAL-DATA.md')}\n${read('docs/DEV-REQUIREMENTS.md')}` +
   readdirSync(join(root, 'docs')).filter((n) => /^DEV-REQUIREMENTS/.test(n)).map((n) => read(join('docs', n))).join('\n')
