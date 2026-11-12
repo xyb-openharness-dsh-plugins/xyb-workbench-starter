@@ -100,7 +100,17 @@
 
 ## 1.10.0-rc.21（2026-11-12，自 mds-workbench 0.2.1 重装机回收）
 
-> ### 1.10.0-rc.44 — 夜班组合版提示词 NIGHT-SHIFT-FULLSTACK（M0–M9 + 三条不可让步 + 面板九条 + 四步流水线）
+> ### 1.10.0-rc.45 — 批量补齐提示词 BATCH-BACKFILL-THREE-GAPS（65 个仓、三缺口、分型施工单）
+
+用户要求按 acquired-hemophilia → myeloma → thymic → lung/ovarian/breast 的顺序把被拦下的仓逐个补。
+
+- 新增 [prompts/BATCH-BACKFILL-THREE-GAPS.md](prompts/BATCH-BACKFILL-THREE-GAPS.md)：先跑三道闸门生成**当日队列**与 `BACKFILL-LEDGER.md` 台账；开工先分四型（A 有 subjects 只差 UI / B 有 schema 无 subjects / C 无 schema / D 界面内联无 public），每型给施工单；A/B/C 三缺口各给四到六条判据与闸门命令；收尾要求版本四处同源、改真源再构建、装机核对、commit 与台账；报数模板与"失败/放弃"规则（2 轮封顶、STUCK 标注、PARALLEL-CONFLICT 识别）。
+- 附队列前六仓的实测差异快照（版本/界面形态/schema/subjects/快照/施工单），并明确"这张表不是结论，动手前必须自己重跑闸门"。
+- 三条纪律：一次只动三处、台账先行、半成品必须标出来（不许把"裁剪说明"写成交付）。
+- README 索引补一行。
+
+
+### 1.10.0-rc.44 — 夜班组合版提示词 NIGHT-SHIFT-FULLSTACK（M0–M9 + 三条不可让步 + 面板九条 + 四步流水线）
 
 用户给了一段"三合一"的夜班提示词（M0–M9 + 「?」检查 + cold-agglutinin 面板修复），里面有三类问题：本机绝对路径不可分享、三件事混读像三个任务、以及本轮刚踩的两组返工（目录/临床/新建患者）完全没写。
 
