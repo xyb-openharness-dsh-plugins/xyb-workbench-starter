@@ -100,6 +100,15 @@
 
 ## 1.10.0-rc.21（2026-11-12，自 mds-workbench 0.2.1 重装机回收）
 
+> ### 1.10.0-rc.42 — ZERO-TO-DEV v1.5：把两组返工前置成「三条不可让步」
+
+2026-11-12 两仓（acquired-hemophilia / cidp）同天在两处返工：①配置目录按钮只有说明弹窗，没实现选目录；②临床试验用「候选池个位数／召回不可靠」推断裁掉，实测有数据。同批全家族体检又发现第三类共性错误：只有 demo 档案、没有新建入口（66 个目录只 1 个过）。
+
+- [ZERO-TO-DEV](prompts/ZERO-TO-DEV.md) 升 v1.5：§1.3.1 从「裁剪红线」升级为 **三条不可让步**（配置目录真入口 / 临床四段可用 / 新建患者写库+多档案+demo 隔离），每条带判据、反例与文件头必读指向；门禁列五件（data-dir、trial-chain、patient-create、trial-snapshot 不许 --if-present、trial-matching）；交付必须照 [PATIENT-DATA-AND-TRIALS-ONESHOT](prompts/PATIENT-DATA-AND-TRIALS-ONESHOT.md) §3 模板报数。
+- 细则统一收敛到 ONESHOT（§0 自检 / §1 临床线 / §2 写入闭环 / §3 报数 / §4 七条反模式），ZERO 只留判据与指针，避免两处口径漂。
+- README 提示词索引补 ONESHOT 一行。
+
+
 ### 新增
 
 - LESSONS L76：file: tgz 重装时 pnpm 判「Already up to date」不重解包——先删后装 --force + 装机副本 grep 新代码特征。

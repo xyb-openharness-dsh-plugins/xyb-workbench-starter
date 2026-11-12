@@ -1,6 +1,7 @@
-# 从一个癌种名到可运行开发版：一次性交付提示词 v1.3（发起层见 prompts/CANCER-KICKOFF.md v2.0）
+# 从一个癌种名到可运行开发版：一次性交付提示词 v1.5（发起层见 prompts/CANCER-KICKOFF.md v2.0）
 
-> 用法：把「你是…」到文件结尾整段复制给一个新会话，先填四个空：癌种中文名 / 癌种英文名 / 目标目录 / 样板基准。  
+> 用法：把「你是…」到文件结尾整段复制给一个新会话，先填四个空：癌种中文名 / 癌种英文名 / 目标目录 / 样板基准。
+> **v1.5 必读**：开工前先看 §1.3.1「三条不可让步」（配置目录真入口 / 临床四段可用 / 新建患者写库），细则与报数模板见 [PATIENT-DATA-AND-TRIALS-ONESHOT](PATIENT-DATA-AND-TRIALS-ONESHOT.md)。这两组是 2026-11-12 两仓返工的原始错因。  
 > 样板基准默认 `<癌种英文>-workbench v0.1.0`（当前可用样板：`colorectal-workbench`、`gastric-workbench`；数据/指南/分级三层可参照 `breast-cancer-workbench` v0.12.0）。  
 > 本文件由 2026-10 食管癌（EsopPal）一轮 + 乳腺癌 v0.10–v0.12 三轮（G1 出处 / G2 节奏 / G3 分级）沉淀而成；顺序不是建议，是闸口。  
 > **v1.2 新增**：阶段 1.5（指南与分级标准）、阶段 2.2（面板默认右侧 + 可拖 + 顶栏开关）、末节「假绿清单」。这三块是"做完看着像好了、其实没接上"的高发区。
@@ -148,17 +149,41 @@ Windows `%APPDATA%\dsh-desktop\harness`、Linux `${XDG_CONFIG_HOME:-~/.config}/d
 
    > **试验匹配（35 号）**：涉及"个人建档 → 检索/AI 匹配 → 呈现"功能时，按 docs/35-TRIAL-MATCHING.md（**v3**，参考实现小胆宝 match-0.1.0 与 lung-cancer client-trials）执行——粗筛符合度 pct（符合÷已对照、待确认=0 只偏低）+ 档位词「字段都对得上 / 部分对得上」+ 逐条证据链 + 三子页（匹配/检索/收藏）与右侧浮窗。三条落地硬约束：判据只取快照里真实存在的字段；**药物靶点不进分母**；**可对照项不足 2 条不给百分数**，病理未确认整页不排名。禁止 eligible/suitability 判读列与"适配度/入组概率"命名；断言器 templates/check-trial-matching.mjs（带 `--self-test`）进 check 链。
 
-### 1.3.1 裁剪红线（v1.4 新增，两条都踩过）
+### 1.3.1 三条不可让步（v1.5 升级：把两组返工前置成开工检查）
 
-- **临床试验不许靠推断裁掉**：写「候选池会长期是已载个位数」「罕见病召回不可靠」之前，必须先跑一次通道拿到实测 N 条
-  （记快照日期、来源、以及"其中干预试验几条 / 登记研究几条"）。2026-11-12 两个仓都裁了，实测 30 条，
-  而且包内本来就有 trials 快照——`trialMatch` 后端在、前端只有「裁剪说明页」，是最典型的假入口。
-  要么按 35 号四段链路补齐（建档/检索/匹配/呈现收藏），要么在 `docs/CLINICAL-DATA.md` 写实测数字再裁。
-- **资料目录必须是真入口**：顶栏「配置目录」要真调 `uiWorkspace.pickDirectory()`、硬拒主目录/桌面/下载根目录/tmp、
-  写进 `config.root`；`「本原型为示意，目录未真实挂载」`只允许作为降级文案，不许拿它当唯一实现。
-- **必须支持 demo + 新建**：只带两套合成档案就等于样机。要求「新建我的档案」落本机 sqlite（`subjects.is_demo=0`）、
-  demo 与真实数据分开标记、多档案可列可切、新档案空记录也能用。
-- 三个闸门随 `init` 下发并已入 `npm run check`：`check-data-dir.mjs`、`check-trial-chain.mjs`、`check-patient-create.mjs`，`--self-test` 都必须能红。
+> 执行细则见 **[PATIENT-DATA-AND-TRIALS-ONESHOT](PATIENT-DATA-AND-TRIALS-ONESHOT.md)**（§0 十分钟自检 → §1 临床线 → §2 新建患者/多用户/写库 → §3 报数模板 → §4 七条反模式）。
+> 本节的判据与它一致；两者冲突以 ONESHOT 的判据为准。
+
+**① 配置目录必须是真入口**（2026-11-12 两仓同天翻车：按钮点开只有一句说明）
+- 顶栏「配置目录」→ 真调 `uiWorkspace.pickDirectory()`（拿不到才降级 `showDirectoryPicker`）；
+- 口径硬拒：主目录本身 / 桌面 / 下载根目录 / tmp —— 选中当场拒绝并说明原因；
+- 落点接上：`config.root: !!js dshHomePath('<slug>')` + `dsh/index.js` 真读 `config.root`；选完回显当前目录，重开仍在；
+- 「本原型为示意，目录未真实挂载」**只允许作为降级文案**，不许拿它当唯一实现。
+
+**② 临床试验入口必须功能完整**（2026-11-12 两仓都写「候选池个位数/召回不可靠」把整条线裁了，实测有 30 条，而且包内本来就有快照）
+- 按 35 号四段齐全：建档（只有已确认字段参与）→ 检索（关键词/病理/状态/阶段/地区，按条件排不掺分）→
+  匹配（`pct = 符合 ÷ 已对照`、**待确认按 0 计**、四档分层、可对照 <2 不给百分数）→ 呈现/收藏（`saved_trial`，拒收零副作用）；
+- 卡头必须写候选池口径：**已载 N / 返回 M / 不是全库扫描 + 快照日期**；
+- 裁剪不是不许做，但**必须有实测证据**：manifest 里 N 条、相关 Y 条、逐通道终态（FAILED 不算查过），写进 `docs/CLINICAL-DATA.md`；
+  「相关 0」要写成「检索词命中才进池、不是没有研究」，不许写成「无研究」。
+
+**③ demo 之外必须能新建患者并写进 sqlite**（全家族 66 个目录只 1 个过：只带两套合成档案 = 样机）
+- 顶栏/侧栏有**档案级**「新建我的档案」→ `POST /api/<slug>/subjects` → `INSERT INTO subjects(..., is_demo=0)`；
+- 新建立刻切换过去、整页联动；多档案可列可切，会话与草稿按档案隔离；
+- demo 与真实分开标记（`is_demo`）、demo 不可删、不覆盖；新档案从空记录开始也能用；
+- 记录写入同样要走 API + 落库（八个 kind 一个都不能只 push 内存数组），刷新后还在。
+
+**门禁（随 `init` 下发，全部已入 `npm run check`，`--self-test` 都必须能红）**
+```
+node scripts/check-data-dir.mjs .          # ① 目录真入口四判据
+node scripts/check-trial-chain.mjs .       # ② 四段齐 / 或裁剪带实测
+node scripts/check-patient-create.mjs .    # ③ 新建 + 落库 + 多档案 + demo 隔离
+node scripts/check-trial-snapshot.mjs .    # 有快照就必须对账（不许再 --if-present）
+node scripts/check-trial-matching.mjs .    # 匹配卡分母/三态/不给百分数的判据
+```
+**交付时必须逐条报数**（照抄 ONESHOT §3 模板）：临床线「快照 X / 相关 Y / 通道终态 / 探针 TR n/n」；
+写入链「createProfile ✓ / addEntry 八类 ✓ / setPrivacy 两种寻址 ✓ / reload 持久化 ✓」；
+三条闸门各自的 exit code 与反例证明。**没有数字的"通过"不算通过。**
 
 ### 1.4 演示数据 + HTML demo（G2 闸口）
 
