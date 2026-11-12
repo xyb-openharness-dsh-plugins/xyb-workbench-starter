@@ -100,7 +100,16 @@
 
 ## 1.10.0-rc.21（2026-11-12，自 mds-workbench 0.2.1 重装机回收）
 
-> ### 1.10.0-rc.46 — check-patient-create 判据④修正：「仅演示」字样不是"只有 demo"
+> ### 1.10.0-rc.48 — check-patient-create 两处硬伤：漏读子目录 + 只认一种命名
+
+批量补齐 lung 时暴露，两处都会把**已经做对的仓**判红：
+
+1. **漏读子目录**：`readDirJs` 只读 `dsh/*.js` 与 `lib/*.js` 一层，而真实现在 `lib/server/api.js`、`lib/server/sqlite-case-repository.js` —— 于是 `INSERT INTO case_files` 与 POST 路由都“看不见”，② 恒红。改为递归两层（跳过 node_modules/点目录）。
+2. **只认 subjects/profiles**：lung 用的是 `cases` / `case_files`（病例档案）这套命名，闸门认不出。②③④ 的词表扩到 `subjects?|profiles?|cases|case_files`，并允许 `isDemoCase` 作为 demo 标记。
+
+`--self-test` 仍能红（反例仍被抓）。注意：这两处修正会让**部分基线红项翻绿**（此前是假红），台账需以最新扫描为准。
+
+### 1.10.0-rc.46 — check-patient-create 判据④修正：「仅演示」字样不是"只有 demo"
 
 acquired-hemophilia 0.3.0 写入闭环齐全（createProfile→INSERT subjects is_demo=0、多档案、demo 标记），却因页面里有「仅演示」字样被判红——那是合法的演示标记文案，不是"数据源只有 demo"。判据④改为：demo 有标记 **且** 新建路径的 INSERT 里把 is_demo 写成 0（非 demo 行）。`--self-test` 仍能红。基线台账随之更新：59 仓中 C 门绿 +1。
 

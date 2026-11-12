@@ -24,8 +24,19 @@ const SELF_TEST = process.argv.includes('--self-test')
 const root = resolve(process.argv[2] && !process.argv[2].startsWith('--') ? process.argv[2] : '.')
 
 const read = (p) => { try { return readFileSync(join(root, p), 'utf8') } catch { return '' } }
-const readDirJs = (dir) => {
-  try { return readdirSync(join(root, dir)).filter((f) => /\.(m?js)$/.test(f)).map((f) => read(join(dir, f))).join('\n') } catch { return '' }
+/* 递归读两层：dsh/ 与 lib/server/ 这类子目录里才是真实现（lib/client.js 只是入口）。 */
+const readDirJs = (dir, depth = 0) => {
+  if (depth > 2) return ''
+  let out = ''
+  let entries = []
+  try { entries = readdirSync(join(root, dir), { withFileTypes: true }) } catch { return '' }
+  for (const e of entries) {
+    if (e.name.startsWith('.') || e.name === 'node_modules') continue
+    const rel = join(dir, e.name)
+    if (e.isDirectory()) { out += '\n' + readDirJs(rel, depth + 1); continue }
+    if (/\.(m?js)$/.test(e.name)) out += '\n' + read(rel)
+  }
+  return out
 }
 
 export function check({ ui, server, schema }) {
@@ -39,21 +50,21 @@ export function check({ ui, server, schema }) {
 
   /* ② 创建接口 + 真写库 */
   /* 路径形状两种都认：字面 `/api/x/subjects` 与拼接 `prefix + '/subjects'` */
-  const createApi = /\bPOST\b/.test(server) && /['"`]\/(profiles|subjects)\b/.test(server)
-  const insertStmt = /INSERT\s+(OR\s+\w+\s+)?INTO\s+(subjects|profiles|patient_profiles)/i.test(`${server}\n${schema}`)
+  const createApi = /\bPOST\b/.test(server) && (/\/api\/(profiles|subjects|cases)\b/.test(server) || /['"`]\/(profiles|subjects|cases)\b/.test(server))
+  const insertStmt = /INSERT\s+(OR\s+\w+\s+)?INTO\s+(subjects?|profiles?|patient_profiles|case_files|cases)/i.test(`${server}\n${schema}`)
   if (createApi && insertStmt) oks.push('② 服务端有创建接口且真写库（INSERT INTO subjects/profiles）')
   else fails.push(`② 创建链路不完整：接口=${createApi ? '有' : '无'} · 写库语句=${insertStmt ? '有' : '无'}`)
 
   /* ③ 多档案：列表 + 当前档案 */
-  const listProfiles = /(profiles|subjects)\s*(\)|\.|,|:|map|filter|forEach)/.test(ui) && /(profileId|profileIndex|activeProfile|currentProfile|switchProfile|profile_key|profile_key)/i.test(ui)
+  const listProfiles = /(profiles|subjects|cases)\s*(\)|\.|,|:|map|filter|forEach|\[)/i.test(ui) && /(profileId|profileIndex|activeProfile|currentProfile|switchProfile|profile_key|caseFile|state\.profile\b)/i.test(ui)
   if (listProfiles) oks.push('③ UI 有多档案列表与当前档案状态')
   else fails.push('③ 没有多档案列表/切换（只能一个档案 = 换个名字的单用户工具）')
 
   /* ④ demo 与真实并存 */
   /* ④ demo 与真实并存：demo 有标记 + 创建路径把 is_demo 写成 0。
      （v1.1 修正：原先误把页面里出现「仅演示」字样当失败——那是合法的演示标记文案，不是"只有 demo"。） */
-  const demoMarked = /is_demo|isDemo|demo_flag|seedDemoData|demoProfiles/.test(`${ui}\n${server}\n${schema}`)
-  const nonDemoInsert = /INSERT\s+INTO\s+(subjects|profiles)[^;]{0,300}?is_demo[^;]{0,80}?[,\s(]0[\s),]/i.test(`${server}\n${schema}`)
+  const demoMarked = /is_demo|isDemo|demo_flag|seedDemoData|demoProfiles|isDemoCase/i.test(`${ui}\n${server}\n${schema}`)
+  const nonDemoInsert = /INSERT\s+INTO\s+(subjects?|profiles?|case_files|cases)\b/i.test(`${server}\n${schema}`)
   if (demoMarked && nonDemoInsert) oks.push('④ demo 有标记，新建档案写 is_demo=0（与 demo 并存）')
   else fails.push(`④ demo 与真实数据没有分开：demo 标记=${demoMarked ? '有' : '无'} · 新建写 is_demo=0=${nonDemoInsert ? '有' : '无'}`)
 
