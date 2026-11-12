@@ -50,10 +50,12 @@ export function check({ ui, server, schema }) {
   else fails.push('③ 没有多档案列表/切换（只能一个档案 = 换个名字的单用户工具）')
 
   /* ④ demo 与真实并存 */
+  /* ④ demo 与真实并存：demo 有标记 + 创建路径把 is_demo 写成 0。
+     （v1.1 修正：原先误把页面里出现「仅演示」字样当失败——那是合法的演示标记文案，不是"只有 demo"。） */
   const demoMarked = /is_demo|isDemo|demo_flag|seedDemoData|demoProfiles/.test(`${ui}\n${server}\n${schema}`)
-  const createNotDemoOnly = !/only demo|仅演示|只有演示/.test(ui)
-  if (demoMarked && createNotDemoOnly) oks.push('④ demo 有标记，新建档案与 demo 并存')
-  else fails.push(`④ demo 与真实数据没有分开：demo 标记=${demoMarked ? '有' : '无'}`)
+  const nonDemoInsert = /INSERT\s+INTO\s+(subjects|profiles)[^;]{0,300}?is_demo[^;]{0,80}?[,\s(]0[\s),]/i.test(`${server}\n${schema}`)
+  if (demoMarked && nonDemoInsert) oks.push('④ demo 有标记，新建档案写 is_demo=0（与 demo 并存）')
+  else fails.push(`④ demo 与真实数据没有分开：demo 标记=${demoMarked ? '有' : '无'} · 新建写 is_demo=0=${nonDemoInsert ? '有' : '无'}`)
 
   return { pass: fails.length === 0, fails, oks }
 }

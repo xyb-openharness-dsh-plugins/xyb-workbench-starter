@@ -100,7 +100,11 @@
 
 ## 1.10.0-rc.21（2026-11-12，自 mds-workbench 0.2.1 重装机回收）
 
-> ### 1.10.0-rc.45 — 批量补齐提示词 BATCH-BACKFILL-THREE-GAPS（65 个仓、三缺口、分型施工单）
+> ### 1.10.0-rc.46 — check-patient-create 判据④修正：「仅演示」字样不是"只有 demo"
+
+acquired-hemophilia 0.3.0 写入闭环齐全（createProfile→INSERT subjects is_demo=0、多档案、demo 标记），却因页面里有「仅演示」字样被判红——那是合法的演示标记文案，不是"数据源只有 demo"。判据④改为：demo 有标记 **且** 新建路径的 INSERT 里把 is_demo 写成 0（非 demo 行）。`--self-test` 仍能红。基线台账随之更新：59 仓中 C 门绿 +1。
+
+### 1.10.0-rc.45 — 批量补齐提示词 BATCH-BACKFILL-THREE-GAPS（65 个仓、三缺口、分型施工单）
 
 用户要求按 acquired-hemophilia → myeloma → thymic → lung/ovarian/breast 的顺序把被拦下的仓逐个补。
 
