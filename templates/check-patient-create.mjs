@@ -45,7 +45,7 @@ export function check({ ui, server, schema }) {
   else fails.push(`② 创建链路不完整：接口=${createApi ? '有' : '无'} · 写库语句=${insertStmt ? '有' : '无'}`)
 
   /* ③ 多档案：列表 + 当前档案 */
-  const listProfiles = /(profiles|subjects)\s*(\)|\.|,|:|map|filter|forEach)/.test(ui) && /(profileId|activeProfile|currentProfile|switchProfile|profile_key)/i.test(ui)
+  const listProfiles = /(profiles|subjects)\s*(\)|\.|,|:|map|filter|forEach)/.test(ui) && /(profileId|profileIndex|activeProfile|currentProfile|switchProfile|profile_key|profile_key)/i.test(ui)
   if (listProfiles) oks.push('③ UI 有多档案列表与当前档案状态')
   else fails.push('③ 没有多档案列表/切换（只能一个档案 = 换个名字的单用户工具）')
 
