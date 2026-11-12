@@ -50,13 +50,14 @@ export function check({ ui, server, schema }) {
 
   /* ② 创建接口 + 真写库 */
   /* 路径形状两种都认：字面 `/api/x/subjects` 与拼接 `prefix + '/subjects'` */
-  const createApi = /\bPOST\b/.test(server) && (/\/api\/(profiles|subjects|cases)\b/.test(server) || /['"`]\/(profiles|subjects|cases)\b/.test(server))
+  /* 路由写法三种都认：字面 `/api/x/subjects`、拼接 `'/subjects'`、模板 `${PREFIX}/subjects` */
+  const createApi = /\bPOST\b/.test(server) && /\/(profiles|subjects|cases)\b/.test(server)
   const insertStmt = /INSERT\s+(OR\s+\w+\s+)?INTO\s+(subjects?|profiles?|patient_profiles|case_files|cases)/i.test(`${server}\n${schema}`)
   if (createApi && insertStmt) oks.push('② 服务端有创建接口且真写库（INSERT INTO subjects/profiles）')
   else fails.push(`② 创建链路不完整：接口=${createApi ? '有' : '无'} · 写库语句=${insertStmt ? '有' : '无'}`)
 
   /* ③ 多档案：列表 + 当前档案 */
-  const listProfiles = /(profiles|subjects|cases)\s*(\)|\.|,|:|map|filter|forEach|\[)/i.test(ui) && /(profileId|profileIndex|activeProfile|currentProfile|switchProfile|profile_key|caseFile|state\.profile\b)/i.test(ui)
+  const listProfiles = /(profiles|subjects|cases)\s*(\)|\.|,|:|map|filter|forEach|\[)/i.test(ui) && /(profileId|profileIndex|profileKey|activeProfile|currentProfile|switchProfile|profile_key|activeKey|profile-switch|caseFile|state\.profile\b)/i.test(ui)
   if (listProfiles) oks.push('③ UI 有多档案列表与当前档案状态')
   else fails.push('③ 没有多档案列表/切换（只能一个档案 = 换个名字的单用户工具）')
 
