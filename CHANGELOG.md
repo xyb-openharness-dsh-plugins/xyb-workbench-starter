@@ -1,3 +1,15 @@
+## 1.10.0-rc.39（2026-11-12，acquired-hemophilia 两轮返工回流：临床线 + 多患者写入闭环「一次做对」提示词）
+
+- 新增 `prompts/PATIENT-DATA-AND-TRIALS-ONESHOT.md`：把两轮真实返工（0.2.0 临床线、0.3.0 写入闭环）固化成开工检查 + 实现清单 + 报数模板 + 7 条反模式。
+  - 临床线：M4 四件套、通道终态如实、**相关条数单独算**、相关 0 的三处标准写法、35 号三子页、匹配卡四件套、纯函数红线、check-trial-matching/snapshot 入链（禁 --if-present）、TR1–TR7 与 trial-line 测试。
+  - 写入闭环：schema `is_demo`、Workbench 四方法、8 类记录、合成 id 对回 rowid、三条 POST 路由、宿主与 dev-server 双处 services、前端 `apiBase()/apiPost` 双通道、乐观更新+失败回退、档案管理弹层、write-api 四组测试、PR1–PR4 持久化探针（无 API 形态记 SKIP）。
+- 回流来源：acquired-hemophilia-workbench 0.2.0（临床线返工）与 0.3.0（新建患者/多用户写入返工）。
+## 未发布（2026-11-12，三条硬闸门：患者数据 / 资料目录 / 临床试验）
+
+- 新增 `prompts/PATIENT-DATA-AND-TRIALS-GATES.md`：把当天两个仓同时踩的三类错误写成可执行红线——只有 demo 没有新建患者入口、配置目录只弹「本原型为示意，目录未真实挂载」、临床试验用推断裁掉只剩说明页。
+- `FULL-CYCLE-KICKOFF.md` 第 3 行与 §6 硬纪律、`ZERO-TO-DEV.md` 阶段 2 开工处、`NEW-CANCER-WORKBENCH.md` §六、`PATIENT-WORKBENCH-IMPLEMENTATION-STANDARD.md` 开头均已引用该文件，要求 `check-patient-create` / `check-data-dir` / `check-trial-chain` 进 `npm run check`，任一红只能报「未实现」。
+- 未改 templates 行为；三件检查器此前已存在。
+
 ## 1.10.0-rc.38（2026-11-12，acquired-hemophilia 夜班回流：模板 id 派生 + 残留词表累积 + 自病种排除）
 
 - `templates/build-client.mjs`：模块 id 从本仓 package.json 派生，不再写死 `pemphigus-workbench`——

@@ -1,6 +1,6 @@
 # 全流程启动提示词 v2.0（M0–M9 · 自动领取 · 可无人值守 · 经验自收敛）
 
-> 用法：整段复制给新会话，填三个空后发出。脚手架规则（CANCER-KICKOFF v2.0 / ZERO-TO-DEV v1.3 / 06 / 28 / 30 / 32 / 33 / 35 号 / LESSONS）默认生效；本文与之冲突时以本文为准，本文未写的按脚手架执行。执行前同时读取 [患者工作台实现标准](PATIENT-WORKBENCH-IMPLEMENTATION-STANDARD.md) 与 [开发检查点清单](WORKBENCH-DEV-CHECKLIST.md)；第 5 节阶段强化的细节以该标准为准，M2 起每个页面的自检以检查点清单逐条勾。
+> 用法：整段复制给新会话，填三个空后发出。脚手架规则（CANCER-KICKOFF v2.0 / ZERO-TO-DEV v1.3 / 06 / 28 / 30 / 32 / 33 / 35 号 / LESSONS）默认生效；本文与之冲突时以本文为准，本文未写的按脚手架执行。执行前同时读取 [患者工作台实现标准](PATIENT-WORKBENCH-IMPLEMENTATION-STANDARD.md)、[三条硬闸门](PATIENT-DATA-AND-TRIALS-GATES.md) 与 [开发检查点清单](WORKBENCH-DEV-CHECKLIST.md)；第 5 节阶段强化的细节以该标准为准，M2 起每个页面的自检以检查点清单逐条勾。
 > 来源：GBM / MPM / THY / MEL / MM / ENDO 六轮实战，加白塞病一轮（两组合成档案、非肿瘤固定出口、医嘱误路由、隐私历史版本、390px 实测）收敛。
 
 ---
@@ -90,6 +90,7 @@ M3–M6：G2 后冻结数据合同与迁移，标明字段语境、私密策略�
 
 ## 6. 硬纪律
 
+- **三条硬闸门（缺一不交付）**：① 患者档案能新建并落 sqlite（demo 不是唯一数据源）；② 「配置目录」真的调宿主选择器、拒绝主目录/桌面/下载根/tmp、服务端二次校验；③ 临床试验四段链路 + 三张子页（基础档案 / 匹配检查 / 结果分析带分数与分母）。执行标准与反例见 [PATIENT-DATA-AND-TRIALS-GATES.md](PATIENT-DATA-AND-TRIALS-GATES.md)；`check-patient-create` / `check-data-dir` / `check-trial-chain` 必须进 `npm run check`，任一红就写「未实现」，不许报「可用」。
 - 不修绿：不改断言、哈希、迁移；不虚报：实测、骨架、未实现三态分清；装上了能打开不等于可用。
 - 数据层：ORDER BY rowid、显式 null、in_use、分节 `*_title`、分类不进趋势、演示唯一源。
 - 前端：页脚贴底、`[hidden]`、字号 12.5–15、面板 25–45% 可拖可收、无判读列、private 三出口代码级过滤。

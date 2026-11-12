@@ -276,6 +276,13 @@ Windows `%APPDATA%\dsh-desktop\harness`、Linux `${XDG_CONFIG_HOME:-~/.config}/d
 
 ## 阶段 2（3.2）：确认后做开发版，与原型高度一致并完整交付
 
+> **开工先过三条硬闸门**（详见 [PATIENT-DATA-AND-TRIALS-GATES.md](PATIENT-DATA-AND-TRIALS-GATES.md)）：
+> ① 患者档案新建 + 多档案 + 记录落 sqlite（demo 之外的真实入口）；
+> ② 「配置目录」接宿主 `pickDirectory`，拒绝主目录/桌面/下载根/tmp，服务端二次校验；
+> ③ 临床试验四段链路 + 三步 Tab，分数带分母、待确认不进分母。
+> `check-patient-create` / `check-data-dir` / `check-trial-chain` 进 `npm run check`；
+> 只弹说明、只放裁剪页、只有 demo，都算「未实现」，不得写「已交付」。
+
 ### 2.1 六步移植（别重写）
 
 > **开工前置（GTN 2026-10-25 回收）**：移植开工前页面树必须已冻结（prototypes/vX 快照 + 用户反馈收敛）。
