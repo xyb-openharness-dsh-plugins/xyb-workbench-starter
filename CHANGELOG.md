@@ -1,3 +1,9 @@
+## 未发布（2026-11-14，gpp-workbench 全轮回流：L112–L115）
+
+- **lessons L112–L115**（来源 gpp-workbench M0–M6/D2/D3）：rc.52 检查器自相矛盾（placeholder-free vs 注入令牌白名单，见 L112）；check-ui-parity/build-client 模板自身缺陷（L113）；verify-desktop-load 的 dshHomePath 判据可被验证工具写副作用伪造（L114）；pnpm file: tgz 重装需先改 dependencies 旧路径（L115）。
+- 待实施（检查器待实施清单同向）：verify-desktop-load 增加「数据目录 mtime ≥ 装机 mtime 且晚于本次 harness 启动」三重判据；check-placeholder-free 内置注入令牌白名单。
+- 说明：gpp 轮同时在项目仓内修复了 rc.52 三处模板缺陷（placeholder-free 白名单、check-ui-parity 缺 import、build-client 裸插值），starter 模板本轮同步修复前，新 init 项目会复现同样红。
+
 ## 未发布（2026-11-14，psc-workbench 验收加固轮回流：匹配闸门触发面升级）
 
 - **templates/check-trial-matching.mjs 触发面升级**：匹配纯函数模块即使导出名不含 `trialMatch`

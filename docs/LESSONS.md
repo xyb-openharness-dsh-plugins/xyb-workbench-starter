@@ -826,3 +826,29 @@ L1/L3 会拦 clinicaltrials.gov/ 这种裸域名）；③验收必须「双探�
 - **为什么既有闸门抓不到**：模块与调用方拆成两个文件后，"分数在哪显示"和"档位词在哪定义"分家；闸门按文件合并评估时没把模块文件名算进触发面。
 - **修法**：模板触发面加 `MODULE_FILE = /(^|\/)trial-match\.m?js$/`（文件名也算匹配实现）；仓内同时给模块加 `export { matchTrial as trialMatch }` 别名，让家族合同符号稳定存在。两道保险：闸门认文件名，代码留合同符号。
 - **通用教训**：凡是"靠符号/字符串名识别被测对象"的检查器，触发面必须包含"实现本体文件名"而不只是符号字面量；否则实现侧一次无害重命名就能让闸门只看见调用方，报出的错指向错误文件。
+
+
+### L112 · rc.52 自带检查器自相矛盾：placeholder-free 与注入令牌/公共令牌检查打架
+
+- **来源**：2026-11-14 gpp-workbench M0/M5。starter 下发的 `check-placeholder-free.mjs` 把 `__API_BASE__` 等**设计上的注入令牌**当"未替换占位符"报红，而 `check-public-tokens.mjs` 与 `version-inject` 测试又**要求** public 恰好含这些令牌——同一链路自相矛盾，仓里被迫给 placeholder-free 加"家族注入面白名单"（`__API_BASE__/__VERSION__/__VERSION_DISPLAY__/__BUILD_DATE__/__PANEL_LAYOUT__/__AGENT_PANE__`，白名单外 `__NAME__` 仍报红，--self-test 仍红）。
+- **为什么既有闸门抓不到**：两个检查器分属不同轮次下发，没人跑过"同仓同链路"的组合。
+- **修法**：starter 的 check-placeholder-free 模板应直接内置这份白名单；下发新链前先在样板仓跑一遍完整 check。
+- **通用教训**：检查器新增时必须与既有检查器跑"合链冲突测试"——两条闸门对同一产物给出相反结论，等于没有闸门。
+
+### L113 · starter 检查器缺 import / 裸插值：rc.52 两处直接 ReferenceError
+
+- **来源**：2026-11-14 gpp-workbench。`check-ui-parity.mjs` 用了 `existsSync` 却没 import（首跑即 ReferenceError）；`build-client.mjs` 模板里 `id: ${pkg.name}` 裸插值进生成物（产物语法错误）。家族仓各自修在仓内（gpp：加 import / JSON.stringify），未回传底本。
+- **修法**：starter 两个模板各补一行；检查器与构建器模板自身也要过 `node --check` 与一次真实构建。
+- **通用教训**：检查器/构建器是代码不是配置，纳入与业务代码同级的最小验证（语法检查 + 一次端到端产物断言）。
+
+### L114 · 验证工具对 harness/<包名> 目录开库，会伪造 dshHomePath "宿主已加载"判据
+
+- **来源**：2026-11-14 gpp-workbench M6/V3。`verify-desktop-load.mjs` 以 "harness/<包名>/（dshHomePath 目录）出现 = 服务端 store 真跑过一次" 为宿主加载证据；而独立体检/测试若以 `root=harness/<包名>` 实例化 Workbench（开库+播种），会凭空造出该目录与 sqlite，令 verify 报出「宿主已加载」的假阳性（gpp 实测：01:41 体检代理开库 → verify 02:05 误判已加载；宿主工作台清单实际不含本仓）。
+- **修法**：①体检/测试一律用 tmpdir 或仓内 dev 目录，禁止指向 harness 真目录；②verify-desktop-load 增强判据：数据目录 mtime 必须 ≥ 装机 mtime 且 **晚于本次 harness 启动时刻**，否则降级为「疑似验证产物」；③发现痕迹先查创建者（`fs.stat` birthtime 对比装机时间线）再下结论。
+- **通用教训**：任何"痕迹=发生过"类判据，都必须排除验证工具自身的写副作用；证据产生者与证据检查者不能共用同一写入面。
+
+### L115 · pnpm 换装 file: tgz 前先改 dependencies 里的旧绝对路径
+
+- **来源**：2026-11-14 gpp-workbench 0.2.0→0.2.1 重装。`pnpm add` 只改 lock，`dependencies` 里的 `file:/…0.2.0.tgz` 仍指向已删除的旧包，下次解析直接报 ENOENT。
+- **修法**：重装前先 JSON 改写 profiles/web/package.json 的对应依赖 spec 指向新 tgz，再 pnpm add；或 pnpm add 后立即核对 dependency spec 与磁盘包一致。
+- **通用教训**：file: 依赖是"路径即版本"，删旧包前先检查是否有 profile/lockfile 还引用它。
