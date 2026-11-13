@@ -1,3 +1,13 @@
+## 未发布（2026-11-14，psc-workbench 验收加固轮回流：匹配闸门触发面升级）
+
+- **templates/check-trial-matching.mjs 触发面升级**：匹配纯函数模块即使导出名不含 `trialMatch`
+  （如 `matchTrial`/`matchAll`），只要文件名是 `trial-match.js` 也算匹配实现本体，
+  与调用方合并评估档位词——psc-workbench 实测：模块里有「高度符合/部分符合」，
+  但闸门只看调用方（有 pct 无档位词）而误红，属于"闸门看不见被测代码"的又一形态。
+  模板 `--self-test` 11/11 保持能红。检查器待实施：把该模板改动同步进已装各仓时，
+  需同时确认仓内 `trial-match.js` 保留 `trialMatch` 导出别名（psc 已加）。
+- 回流来源：psc-workbench 0.2.1（2026-11-14 验收加固轮）。
+
 ## 未发布（2026-11-13，myeloma-workbench 夜班回流：schema 闸门升级 + 占位符闸门 + 四条 Lesson）
 
 - **templates/check-schema.mjs 升级**（原版只查 0001 + 判读列 + 表数）：现在逐个迁移查命名与序号连续、`PRAGMA user_version = N` 与序号一致、全部迁移能在内存库顺序建成、**每个迁移的 sha256 都在 freeze-contract 里**、判读列（8 条禁词逐列扫描）、个人记录表都带 `is_private`、`in_use` / 分节 `*_title` / 不用空串冒充缺测；带 `--json`（兼容老调用方）与 `--self-test`（注入 `risk_level` 必须红）。实测：psc/我的仓 22 张表 208 列全过，自测能红。

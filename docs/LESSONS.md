@@ -819,3 +819,10 @@ L1/L3 会拦 clinicaltrials.gov/ 这种裸域名）；③验收必须「双探�
 - **为什么既有闸门抓不到**：静态检查看不出「表名不再存在」，而探针只打原型（不跑服务端）。
 - **修法**：① `migrate()` 用 ledger 里的 sha256 校验历史迁移，改结构后旧库会被当场拒绝而不是等到某个 SELECT 报 `no such table`；② 新增 `scripts/smoke-installed.mjs`：**直接 import 已安装副本** run 一遍路由（health / 静态资源 content-type / 档案 CRUD / 建库），把「装上了但接口 400」这类缺陷挡在装机那一步。
 - **教训**：装了不等于能用；**每个写库入口都要有一次端到端调用**，哪怕只是桩 ctx 跑一遍。
+
+### L111 · 闸门靠符号名认模块：匹配纯函数换个导出名就让闸门失明
+
+- **来源**：2026-11-14 psc-workbench 0.2.1 验收加固轮。匹配模块 `trial-match.js` 导出 `matchTrial/matchAll/matchCriterion`，不含 `trialMatch/matchTrials` 字面量；`check-trial-matching.mjs` 的 TRIGGER 只认符号名，于是 hasMatch 只剩调用方（app.js 有 `t.pct` 百分数、档位词在模块里）→ 误报「有百分数但缺档位词」。
+- **为什么既有闸门抓不到**：模块与调用方拆成两个文件后，"分数在哪显示"和"档位词在哪定义"分家；闸门按文件合并评估时没把模块文件名算进触发面。
+- **修法**：模板触发面加 `MODULE_FILE = /(^|\/)trial-match\.m?js$/`（文件名也算匹配实现）；仓内同时给模块加 `export { matchTrial as trialMatch }` 别名，让家族合同符号稳定存在。两道保险：闸门认文件名，代码留合同符号。
+- **通用教训**：凡是"靠符号/字符串名识别被测对象"的检查器，触发面必须包含"实现本体文件名"而不只是符号字面量；否则实现侧一次无害重命名就能让闸门只看见调用方，报出的错指向错误文件。
