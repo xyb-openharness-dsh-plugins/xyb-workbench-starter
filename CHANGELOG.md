@@ -1,3 +1,9 @@
+## 未发布（2026-11-14，gca-workbench 首夜回流：L116–L118 + 待实施⑩）
+
+- **lessons L116–L118**（来源 gca-workbench M4/移植轮）：快照对账表 source_statuses 必须由 fetch 模板同轮落库（L116）；快照到位后必须摘除 --if-present（L117）；跨仓机械改名三坑——BSD sed \b、cp -R 嵌套、事件通道字面量（L118）。
+- 待实施⑩（检查器待实施清单同向）：source_statuses 正反向断言、--if-present 摘除断言、机械移植锚点断言。
+- 回收自：gca-workbench（巨细胞动脉炎，2026-11-14 认领建仓，Issue #77）。
+
 ## 未发布（2026-11-14，gpp-workbench 全轮回流：L112–L115）
 
 - **lessons L112–L115**（来源 gpp-workbench M0–M6/D2/D3）：rc.52 检查器自相矛盾（placeholder-free vs 注入令牌白名单，见 L112）；check-ui-parity/build-client 模板自身缺陷（L113）；verify-desktop-load 的 dshHomePath 判据可被验证工具写副作用伪造（L114）；pnpm file: tgz 重装需先改 dependencies 旧路径（L115）。

@@ -537,6 +537,12 @@ check-probe-coverage 可追加断言：探针文件里必须出现 `prototypes/v
 - `check-primer-links` 现只查 prototypes/*/primer-data.js；M5 后应同时查 `public/primer-data.js`
   与原型逐字符（ui-parity 已测，双保险可并入）。
 
+### 待实施⑩（下轮进检查器，来自 GCA 首夜）
+
+- check-trial-snapshot 反向断言：存在 research/<slug>/manifest.json 时，package.json 的 check 链不得含 `--if-present`（L117）。
+- check-trial-snapshot 正向断言：sqlite 必含 `source_statuses(query, source_id, state)` 表且 `manifest.sourceStatusRows` 一致（L116；新版 fetch 模板已闭环，旧仓可补）。
+- 机械移植锚点断言：成对禁词 grep=0 且事件通道 `grep -o "[a-z]*:agent-draft" | uniq -c` 恰为 1（L118，check-derivative-leftovers 或新 checker 收编）。
+
 ### L76 · 陈旧端口服务别的仓副本（探针绿在别人的页面上）
 
 **现象**：egid 夜班对 8151 端口跑 primer 探针 10/10「全绿」，随后发现 8151 是上一夜遗留的
@@ -852,3 +858,21 @@ L1/L3 会拦 clinicaltrials.gov/ 这种裸域名）；③验收必须「双探�
 - **来源**：2026-11-14 gpp-workbench 0.2.0→0.2.1 重装。`pnpm add` 只改 lock，`dependencies` 里的 `file:/…0.2.0.tgz` 仍指向已删除的旧包，下次解析直接报 ENOENT。
 - **修法**：重装前先 JSON 改写 profiles/web/package.json 的对应依赖 spec 指向新 tgz，再 pnpm add；或 pnpm add 后立即核对 dependency spec 与磁盘包一致。
 - **通用教训**：file: 依赖是"路径即版本"，删旧包前先检查是否有 profile/lockfile 还引用它。
+
+### L116 · 快照对账表 source_statuses 必须由 fetch 脚本同轮落库（新库 no such table）
+
+- **来源**：2026-11-14 gca-workbench M4。`check-trial-snapshot.mjs` 按 `SELECT … FROM source_statuses` 对账，但现行 fetch 模板只建 `source_states`+`query_log`——旧仓（psc 等）的 sqlite 是历史版 fetch 产物、带这张表，新病种第一次真采集就报 `no such table: source_statuses`。表口径：`(query, source_id, state)`，state 为映射后的六值有效终态，`manifest.sourceStatusRows` 同轮写入。
+- **修法**：fetch 模板在建表段补 `CREATE TABLE source_statuses (query TEXT, source_id TEXT, state TEXT)` 并在逐 query×source 落 query_log 时同轮 INSERT；勿事后手补（哈希要三处一致）。
+- **通用教训**：检查器断言的表 = 采集器必须产出的表；对账字段在模板内闭环，不许靠"历史库恰好有"。
+
+### L117 · 快照到位后必须摘除 check-trial-snapshot 的 --if-present
+
+- **来源**：2026-11-14 gca-workbench。移植期无快照，check 链临时挂 `--if-present` 保 SKIP；M4 真快照落库后若忘摘除，"有快照必须对账"的闸门就空转。家族禁令：`check-trial-snapshot.mjs .` 不许带 `--if-present`（ONESHOT §1.4）。
+- **修法**：采集完成后 sed 摘除 package.json 里的 `--if-present`；`npm run check` 必须在带快照的严格形态下 exit 0。可断言：有 research/*/manifest.json 时 package.json 不得含 `--if-present`（待实施⑩）。
+- **通用教训**：为"还没有"降级的门禁，在"有了"之后必须恢复严格，否则闸门只对空仓有效。
+
+### L118 · 跨仓机械改名的三个工程坑（BSD sed \b / cp -R 嵌套 / 事件通道字面量）
+
+- **来源**：2026-11-14 gca-workbench←psc-workbench 全仓移植。
+- **坑与修法**：① BSD sed 不支持 `\b`（静默不替换），跨仓改名用 `perl -pi -e 's/\bpsc\b/gca/g'`；② `cp -R src dst/src` 在 dst/src 已存在时会复制成 `dst/src/src/` 嵌套并漏拷冲突文件——目标目录已存在一律 `rsync -a src/ dst/`；③ 事件通道等拼出的字面量（`<slug>:agent-draft`）分散在 bridge/app/client 三处，改名后必须 `grep -o "[a-z]*:agent-draft" | uniq -c` 验证唯一值，不一致=草稿桥静默断链。
+- **通用教训**：机械移植的收尾不是"没报错"，是"成对锚点 grep=0 且 uniq=1"。
