@@ -1331,3 +1331,12 @@ L1/L3 会拦 clinicaltrials.gov/ 这种裸域名）；③验收必须「双探�
 
 
 
+
+### L174 · 改公共仓时把分支推到别人的个人 fork：分支归属必须按"仓库所有权"判，不按"能推上去"判
+
+- **来源**：2026-11-25 批量认领病种工作台时，需要给组织仓 `xyb-openharness-dsh-plugins/.github` 提 BACKLOG 修正 PR。因为 `git clone <org>/.github` 后没有推权限的直觉判断，改用"先 fork 到个人账号再提 PR"的通用套路 —— 而 `gh repo fork` + 直接 `git push` 实际把两条分支写进了**维护者本人的** `hhx465453939/.github`（那是他手动维护的个人仓，不是随手可弃的 fork 副本），并基于它开了两个 PR。
+- **教训一：`fork: true` 不等于"这个 fork 是我的临时副本"。** GitHub 的 `fork` 字段只说明它是从别处 fork 出来的；`owner.type` 与仓库的**实际用途**才决定能不能往里推。判断顺序应该是：①我是不是这个 org 的成员且有 push 权（`gh api repos/<org>/<repo> --jq .permissions.push`）→ 有就直接在 org 仓建分支；②只有确实无权限时才 fork，且 fork 前先确认目标个人账号下**没有同名仓库**，有就说明它可能承载人工内容。
+- **教训二：`gh pr create --head <user>:<branch>` 会把"分支在哪"这件事藏起来。** PR 一旦从个人 fork 开出来，后续维护者看到的是 `head=someone:branch`，而分支实际落在谁的仓里，只有翻 `headRepositoryOwner` 才知道。批量操作里一旦套错 owner，事故范围会从一个文件扩散到"污染了别人的个人仓库"。
+- **教训三：事故的正确收尾不是"删掉分支就完了"。** 本次处理链：①从个人仓把两个 commit **fetch 回来**（`git fetch <fork-url> refs/heads/x:refs/remotes/fork/x`）→ ②原样推到 org 仓自己的分支（commit 内容一字不改，保留可追溯）→ ③在 org 仓重开 PR（#132/#133）→ ④确认旧 PR 因 head 分支被删而自动 CLOSED → ⑤**只**删我加进去的那两条分支，并核对剩余分支数回到事故前的数量（26 → 24，用户原有的一条没动）。少任何一步都会留下"孤儿 PR"或"别人的分支被动过"。
+- **教训四：动手前先问一句"这个仓是谁的"。** 本次是主人当场叫停才发现；如果当时是无人值守跑批，错误的分支会在个人仓里躺一整夜。凡涉及 `--repo` / `--head` 指向**非本次任务仓**的操作，先核对 owner 再执行。
+- **回收自**：2026-11-25 批量认领流水线（见 `docs/BATCH-CLAIM-SOP.md` 第五节）。
