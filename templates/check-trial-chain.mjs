@@ -159,12 +159,13 @@ const docs = `${read('docs/CLINICAL-DATA.md')}\n${read('docs/DEV-REQUIREMENTS.md
   readdirSync(join(root, 'docs')).filter((n) => /^DEV-REQUIREMENTS/.test(n)).map((n) => read(join('docs', n))).join('\n')
 
 /* 阶段感知：M0–M4 还没有临床试验功能面、research/ 下也没有试验快照时跳过并说明。
-   判据是"功能面完全不存在"——出现 trial / 临床试验 / 入组 任一词表或试验快照，本闸门立即生效，
-   不许拿「骨架阶段」当借口放行半成品。 */
+   与 check-patient-create 同一条教训（rett-workbench 实测）：判据只看**代码语义信号**，
+   不扫人类可见文案——项目名/描述里的"临床试验"会被注入 lib/client.js 而误判功能已存在。
+   信号：①后端有 trialMatch(/trials 路由 ②research/ 下有试验快照文件。 */
 const trialFiles = findTrialData(join(root, 'research'))
-const trialSurface = /trial|临床试验|入组|试验匹配/im.test(`${ui}\n${backend}`)
-if (!trialSurface && trialFiles.length === 0) {
-  console.log('SKIP 临床试验闸门：本仓尚无临床试验功能面与试验快照（M0–M4），实现后本断言自动生效')
+const backendSignal = /trialMatch\s*\(|\/trials?\b|trials?\/(search|match)/i.test(backend)
+if (!backendSignal && trialFiles.length === 0) {
+  console.log('SKIP 临床试验闸门：本仓尚无临床试验后端（trialMatch / /trials 路由）且 research/ 无试验快照（M0–M4），实现后本断言自动生效')
   process.exit(0)
 }
 

@@ -102,11 +102,15 @@ const server = `${readDirJs('dsh')}\n${readDirJs('lib')}`
 const schema = readDirJs('schema') + (() => { try { return readdirSync(join(root, 'schema')).filter((f) => f.endsWith('.sql')).map((f) => read(join('schema', f))).join('\n') } catch { return '' } })()
 
 /* 阶段感知（与 check-route-prefix 同范式）：M0–M2 骨架还没有「患者/档案」这一层时跳过并说明。
-   判据是"功能面完全不存在"——一旦出现 patients/subjects/profiles 任一词表，本闸门立刻生效，
-   不许拿「骨架阶段」当借口放行半成品。 */
-const patientSurface = /患者|档案|patient|subjects?\b|profiles?\b|case_files/im.test(`${ui}\n${server}\n${schema}`)
-if (!patientSurface) {
-  console.log('SKIP 患者档案闸门：本仓尚无患者/档案功能面（M0 骨架），实现患者建档后本断言自动生效')
+   判据必须只看**代码语义信号**，不许扫人类可见文案：
+   实测（rett-workbench 2026-11-25）项目名/描述里带"患者"字样会被 `__CLIENT_METADATA__` 注入
+   lib/client.js，旧判据（裸词表）据此认定"已有患者功能面"→ 门禁判红，把正常 M0 项目卡死。
+   现在的信号：①UI 有患者/档案级创建入口 ②服务端有 /profiles|/subjects|/cases 路由
+   ③schema/后端有 CREATE TABLE / INSERT INTO 这类真表——三者全无才算"功能面不存在"。 */
+const createEntrySignal = /(新建|新增|添加|创建)\s*(患者|患者档案|档案|病历|随访对象)|(create|add|new)(Profile|Subject|Patient)/i.test(ui)
+const serverSignal = /\/(profiles|subjects|cases)\b|CREATE\s+TABLE\s+(subjects?|profiles?|patient_profiles|case_files|cases)|INSERT\s+(OR\s+\w+\s+)?INTO\s+(subjects?|profiles?|patient_profiles|case_files|cases)/i.test(`${server}\n${schema}`)
+if (!createEntrySignal && !serverSignal) {
+  console.log('SKIP 患者档案闸门：尚无患者/档案功能面（无创建入口、无 /profiles|/subjects 路由、无相关建表），M0 骨架阶段跳过；实现患者建档后本断言自动生效')
   process.exit(0)
 }
 

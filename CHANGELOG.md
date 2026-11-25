@@ -1,3 +1,13 @@
+## 1.10.0-rc.71（未发布，2026-11-25，修 M0 门禁按文件名/描述误判的假红）
+
+- **根因**：`init` 把 `title` / `description` 注入生成项目的 `lib/client.js`（`__CLIENT_METADATA__`）。`check-patient-create` 与 `check-trial-chain` 的阶段感知跳过判据用的是**裸词表**（`患者|档案|patient|subjects?|profiles?` / `trial|临床试验|入组|试验匹配`），而真实项目的名称/描述天然含这些词 → 判据认定"功能面已存在" → 本该 SKIP 的 M0 项目被判红。
+- **实测复现**：`rett-workbench`（2026-11-25 认领，项目名含「患者」）首次 `npm run check` 挂在 `check-patient-create ①②③④`；同一条链在名字中性的探针项目上是绿的 —— 说明缺陷只在真实项目上暴露。
+- **修法**：判据改为**代码语义信号**，人类可见文案不再参与判定。
+  - `check-patient-create`：①UI 患者/档案级创建入口 ②服务端 `/profiles|/subjects|/cases` 路由 ③`CREATE TABLE / INSERT INTO` 真表 —— 三者全无才 SKIP。
+  - `check-trial-chain`：`trialMatch(` / `/trials` 路由 / `research/` 下试验快照 —— 全无才 SKIP。
+- **反向对照（证明没改瞎）**：fixture「有『新建档案』入口、无后端路由/建表」→ `exit 1`（`✗ ② 创建链路不完整`）；fixture「有 `trialMatch(`、无四段/裁剪证据」→ `exit 1`。两条 `--self-test` 仍 PASS。
+- **影响面**：所有 `init` 生成的 M0 项目；修复后 `rett-workbench` 的 `npm run check` 由 **1 fail → 0 fail（7 SKIP 各带原因）**。
+
 ## 1.10.0-rc.70（未发布，2026-11-25，CHG-002：内建审计—测试闭环 + 标准 IO）
 
 - **门禁注册表（唯一声明源）**：新增 `scripts/lib/gates-table.mjs`（21 条门禁的 id/title/script/args/stage/skipWhen/docs 策展表）+ `scripts/build-gates-registry.mjs`（生成 `gates.registry.json`，`--check` 校验幂等）；`check-starter` 断言"注册表 == 策展表"与"脚本存在"，漂移即红。
